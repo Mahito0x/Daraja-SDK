@@ -1,0 +1,100 @@
+---
+title: Dynamic QR Code
+description: Generate a scannable M-Pesa payment QR code for a specific amount and recipient.
+icon: QrCode
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`DynamicQRClient` wraps `POST /mpesa/qrcode/v1/generate`. Unlike a static till-number sticker, a Dynamic QR code encodes a specific amount and reference the customer scans it in the M-Pesa app and everything is pre-filled, they just confirm with their PIN.
+
+## Request & response
+
+```ts
+type DynamicQRTrxCode = "BG" | "WA" | "PB" | "SM" | "SB";
+// BG — Pay Merchant (Buy Goods)
+// WA — Withdraw Cash at Agent Till
+// PB — Paybill or Business number
+// SM — Send Money (Mobile number)
+// SB — Sent to Business (Business number CPI in MSISDN format)
+
+interface DynamicQRRequest {
+  merchantName: string;
+  refNo: string;
+  amount: number; // whole KES, no decimals
+  trxCode: DynamicQRTrxCode;
+  cpi: string; // Credit Party Identifier — till, paybill, or MSISDN, depending on trxCode
+  size: number; // output image size in pixels, square
+}
+
+interface DynamicQRResponse {
+  ResponseCode: string;
+  RequestID: string;
+  ResponseDescription: string;
+  QRCode: string; // Base64-encoded PNG
+}
+```
+
+```ts
+const qr = await daraja.dynamicQR.generate({
+  merchantName: "TEST SUPERMARKET",
+  refNo: "Invoice 4521",
+  amount: 1500,
+  trxCode: "BG",
+  cpi: "373132",
+  size: 300,
+});
+
+console.log(qr.ResponseDescription); // "QR Code Successfully Generated."
+```
+
+### Rendering the code
+
+`QRCode` is a raw Base64 string, not a data URI you need to prefix it yourself before dropping it into an `<img>` tag. The SDK ships a static helper for exactly that:
+
+```ts
+import { DynamicQRClient } from "@lumierelabs/daraja";
+
+const dataUri = DynamicQRClient.toDataUri(qr);
+// "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+```
+
+```tsx
+<img
+  src={DynamicQRClient.toDataUri(qr)}
+  alt="Scan to pay"
+  width={300}
+  height={300}
+/>
+```
+
+<Callout type="info" title="amount must be a whole number">
+  Daraja's Dynamic QR endpoint does not accept decimal amounts `1500.50` throws
+  `INVALID_QR_REQUEST` before any request is sent. If you're working with a cart
+  total that includes cents, round or floor it before calling `generate()` and
+  reconcile any difference separately; there's no fractional-KES QR flow.
+</Callout>
+
+### Validation the SDK performs
+
+- `merchantName`, `refNo`, `cpi` — required, non-empty strings
+- `amount` — whole number, greater than 0
+- `trxCode` — one of the five valid codes above (the error message lists all five with their human-readable meaning if you pass something invalid)
+- `cpi` — digits only
+- `size` — whole number, greater than 0
+
+All failures throw `errorCode: 'INVALID_QR_REQUEST'`.
+
+<Callout
+  type="error"
+  title="cpi depends on trxCode, and Daraja won't tell you if you mismatched them"
+>
+  `cpi` means something different depending on `trxCode` a Till number for `BG`,
+  a Paybill for `PB`, an MSISDN for `SM`/`SB`. The SDK validates that `cpi` is
+  digits-only, but it has no way to confirm the *type* of identifier matches the
+  chosen `trxCode` Daraja itself will happily generate a QR code with mismatched
+  semantics (e.g. a Paybill number passed under `trxCode: 'SM'`) and the failure
+  only shows up when a customer tries to scan it. Double-check this pairing
+  manually; it's the single most common Dynamic QR support complaint in Daraja
+  community channels.
+</Callout>

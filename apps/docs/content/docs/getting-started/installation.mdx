@@ -1,0 +1,96 @@
+---
+title: Installation
+description: Add @lumierelabs/daraja to your project.
+icon: Download
+---
+
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "fumadocs-ui/components/tabs";
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+## Requirements
+
+- Node.js 18.17 or later (the SDK uses the global `fetch`, `AbortController`, and `btoa`/`Buffer` APIs no `node-fetch` or `isomorphic-fetch` dependency needed)
+- A Daraja Developer Portal account with a sandbox app [developer.safaricom.co.ke](https://developer.safaricom.co.ke)
+- TypeScript 5+ if you want the shipped `.d.ts` types (the package works fine from plain JS too)
+
+## Install the package
+
+<Tabs defaultValue="pnpm">
+  <TabsList>
+    <TabsTrigger value="pnpm" className="gap-1.5">
+      <Pnpm className="h-4 w-4" />
+      <span>pnpm</span>
+    </TabsTrigger>
+    <TabsTrigger value="npm" className="gap-1.5">
+      <NPM className="h-4 w-4" />
+      <span>npm</span>
+    </TabsTrigger>
+    <TabsTrigger value="yarn" className="gap-1.5">
+      <Yarn className="h-4 w-4" />
+      <span>yarn</span>
+    </TabsTrigger>
+    <TabsTrigger value="bun" className="gap-1.5">
+      <Bun className="h-4 w-4" />
+      <span>bun</span>
+    </TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="pnpm">
+  ```bash
+  pnpm add @lumierelabs/daraja
+  ```
+  </TabsContent>
+  <TabsContent value="npm">
+  ```bash
+  npm install @lumierelabs/daraja
+  ```
+  </TabsContent>
+  <TabsContent value="yarn">
+  ```bash
+  yarn add @lumierelabs/daraja
+  ```
+  </TabsContent>
+  <TabsContent value="bun">
+  ```bash
+  bun add @lumierelabs/daraja
+  ```
+  </TabsContent>
+</Tabs>
+
+The package ships both ESM (`dist/index.mjs`) and CJS (`dist/index.js`) builds plus a `.d.ts` file, so `import { Daraja } from '@lumierelabs/daraja'` and `const { Daraja } = require('@lumierelabs/daraja')` both work without extra config.
+
+## Get sandbox credentials
+
+<Steps>
+<Step>
+### Create a Daraja app
+
+Log into the [Daraja Developer Portal](https://developer.safaricom.co.ke), go to **My Apps**, and create a new app. Select at minimum the **Lipa Na M-Pesa Sandbox** and **M-Pesa Sandbox** products add more depending on which endpoints you plan to call.
+
+</Step>
+<Step>
+### Copy your Consumer Key and Consumer Secret
+
+Both are on the app's detail page. The Consumer Key is exactly 48 alphanumeric characters, the Consumer Secret is exactly 64 the SDK validates both lengths at construction time and will tell you immediately if you've pasted one into the wrong field.
+
+</Step>
+<Step>
+### Grab the shared sandbox test credentials
+
+For STK Push you'll also need a **Business Shortcode** and **Passkey**. Safaricom publishes shared sandbox values (Shortcode `174379`) on the "Test Credentials" page of the portal these are shared across all sandbox developers, so don't be surprised if your test transaction descriptions show up next to other people's in demo videos.
+
+</Step>
+</Steps>
+
+<Callout type="warn" title="Don't commit credentials">
+  Put `DARAJA_CONSUMER_KEY`, `DARAJA_CONSUMER_SECRET`, and `MPESA_PASSKEY` in
+  your `.env` file and add `.env` to `.gitignore`. The SDK's credential
+  validator will catch an accidentally-quoted or newline-padded `.env` value,
+  but it can't catch a leaked one.
+</Callout>

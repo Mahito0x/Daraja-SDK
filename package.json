@@ -1,0 +1,24 @@
+{
+  "name": "lumierelabs-daraja-monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "turbo run test",
+    "coverage": "turbo run coverage --filter=@lumierelabs/daraja",
+    "typecheck": "turbo run typecheck",
+    "types:check": "turbo run types:check",
+    "package:check": "turbo run package:check"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.10.8"
+  }
+}

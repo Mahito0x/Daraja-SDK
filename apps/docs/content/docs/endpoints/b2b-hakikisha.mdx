@@ -1,0 +1,93 @@
+---
+title: B2B Hakikisha
+description: Verify an organization's registered name and tariff before you pay it.
+icon: ShieldCheck
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`B2BHakikishaClient` wraps `POST /sfcverify/v1/query/info`. "Hakikisha" is Swahili for "make sure" that's exactly what this does: confirms a Till/Paybill number resolves to the organization you think it does, before you send a B2B payment to it.
+
+<Callout type="warn" title="This is a lookup, not a payment">
+  Hakikisha does not move money. It's a pre-flight check you run before
+  initiating an actual B2B payment through your own banking/ERP-side integration
+  or Daraja's B2B Payment Request flow which this SDK does not currently
+  implement (see [Roadmap](/docs/guides/roadmap)). Think of it as the M-Pesa
+  equivalent of a bank account name lookup before a wire transfer.
+</Callout>
+
+## Request & response
+
+```ts
+type B2BHakikishaIdentifierType = "2" | "4";
+// '2'  Lipa na M-PESA Till number / M-PESA agent till
+// '4'  PayBill, B2C account, or any other shortcode
+
+interface B2BHakikishaRequest {
+  identifierType: B2BHakikishaIdentifierType;
+  identifier: string; // the shortcode being looked up, digits only
+}
+
+interface B2BHakikishaResponse {
+  ConversationID: string;
+  ResponseCode: string; // "0" means success
+  ResponseMessage: string;
+  DetailedMessage: string;
+  OrganizationShortCode: string;
+  OrganizationName: string;
+  ChargeProfileID: string;
+}
+```
+
+```ts
+const result = await daraja.b2bHakikisha.query({
+  identifierType: "4",
+  identifier: "666677",
+});
+
+if (result.ResponseCode === "0") {
+  console.log(
+    `Paying: ${result.OrganizationName} (${result.OrganizationShortCode})`,
+  );
+} else {
+  console.log("Lookup failed:", result.ResponseMessage);
+}
+```
+
+<Callout type="info">
+  `identifier` is validated to be digits-only whitespace is trimmed
+  automatically, but letters or symbols throw `INVALID_B2B_HAKIKISHA_REQUEST`
+  immediately rather than sending a malformed lookup to Daraja.
+</Callout>
+
+## Practical use
+
+Wire this into your B2B payment form as a "confirm recipient" step, the same way banking apps show you the account holder's name before you approve a transfer:
+
+```ts
+async function confirmRecipient(shortCode: string) {
+  try {
+    const result = await daraja.b2bHakikisha.query({
+      identifierType: "4",
+      identifier: shortCode,
+    });
+    return {
+      name: result.OrganizationName,
+      chargeProfileId: result.ChargeProfileID,
+    };
+  } catch (error) {
+    // Wrong shortcode entirely  surface this before the user commits to paying it
+    return null;
+  }
+}
+```
+
+<Callout type="error" title="Sandbox coverage is thin">
+  Hakikisha's sandbox environment only resolves a small, undocumented set of
+  test shortcodes correctly most arbitrary sandbox shortcodes come back with a
+  generic "organization not found" response even when they're otherwise valid
+  test Paybills for other endpoints. Don't treat a sandbox failure here as proof
+  your integration is broken; verify against Safaricom's actual published
+  Hakikisha test values (from the Daraja portal's test credentials page) before
+  assuming a bug in your code.
+</Callout>

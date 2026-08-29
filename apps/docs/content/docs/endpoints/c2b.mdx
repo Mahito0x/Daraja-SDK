@@ -1,0 +1,154 @@
+---
+title: C2B (Customer to Business)
+description: Register callback URLs for your Paybill/Till, and simulate incoming payments in sandbox.
+icon: ArrowDownToLine
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`C2BClient` wraps two Daraja endpoints:
+
+| Method              | Daraja endpoint                  | Purpose                                       |
+| ------------------- | -------------------------------- | --------------------------------------------- |
+| `c2b.registerUrl()` | `POST /mpesa/c2b/v2/registerurl` | Registers your Validation/Confirmation URLs   |
+| `c2b.simulate()`    | `POST /mpesa/c2b/v1/simulate`    | Simulates a customer payment **sandbox only** |
+
+## `registerUrl()`
+
+```ts
+type C2BResponseType = "Completed" | "Cancelled";
+
+interface C2BRegisterUrlRequest {
+  shortCode: string | number; // 5–6 digit Paybill/Till
+  responseType: C2BResponseType; // what Daraja does if validationUrl is unreachable
+  confirmationUrl: string; // called after a payment completes
+  validationUrl: string; // called before a payment is allowed to complete
+}
+
+interface C2BRegisterUrlResponse {
+  OriginatorCoversationID: string; // sic  Safaricom really does misspell "Conversation" here
+  ResponseCode: string;
+  ResponseDescription: string;
+}
+```
+
+```ts
+const result = await daraja.c2b.registerUrl({
+  shortCode: "600984",
+  responseType: "Completed",
+  confirmationUrl: "https://example.com/callbacks/confirmation",
+  validationUrl: "https://example.com/callbacks/validation",
+});
+
+console.log(result.ResponseDescription); // "Success"
+```
+
+<Callout type="warn" title="responseType must be exact sentence case">
+Daraja expects `"Completed"` or `"Cancelled"`  not `"completed"`, not `"COMPLETED"`. The SDK's validator specifically checks for a casing mismatch and, if it finds one, tells you exactly which value you meant instead of a generic "invalid value" message:
+
+```
+responseType must be exact sentence case, but received "completed".
+Did you mean "Completed"?
+```
+
+</Callout>
+
+<Callout type="error" title="C2B v1 vs v2 registration">
+  The request/response *shape* here (camelCase in, PascalCase out, same field
+  names) is identical between Daraja's C2B v1 and v2 `registerurl` endpoints but
+  v1 (`/mpesa/c2b/v1/registerurl`) is the one still floating around in older
+  blog posts and tutorials, and Safaricom has been quietly steering integrators
+  toward v2 without a hard deprecation notice. The SDK always calls **v2**
+  (`/mpesa/c2b/v2/registerurl`) if you're migrating from a hand-rolled v1
+  integration, don't expect a different response shape, but do expect steadier
+  uptime.
+</Callout>
+
+Both `confirmationUrl` and `validationUrl` go through [callback URL validation](/docs/core-concepts/callback-urls) HTTPS is required in production, and ngrok-style tunnel hosts are rejected outright.
+
+<Callout type="warn" title="Validation URL often isn't actually called">
+  Even when correctly registered, Safaricom's production infrastructure
+  frequently skips calling `validationUrl` and goes straight to
+  `confirmationUrl` this is a long-documented inconsistency in Daraja's C2B
+  flow, not something wrong with your registration. Don't build critical
+  accept/reject logic that depends on `validationUrl` firing; treat
+  `confirmationUrl` as your source of truth and validate account references
+  defensively there instead.
+</Callout>
+
+## `simulate()`
+
+Triggers a fake customer payment against your registered shortcode this fires a real call to your `confirmationUrl`, exactly like a live payment would. **Sandbox only**; calling it with `environment: 'production'` throws before any request is sent.
+
+```ts
+type C2BCommandId = "CustomerPayBillOnline" | "CustomerBuyGoodsOnline";
+
+interface C2BSimulateRequest {
+  shortCode: string | number;
+  commandId: C2BCommandId;
+  amount: number; // whole number > 0
+  msisdn: string; // "254XXXXXXXXX"
+  billRefNumber?: string; // required for CustomerPayBillOnline, forbidden for CustomerBuyGoodsOnline
+}
+
+interface C2BSimulateResponse {
+  OriginatorCoversationID: string;
+  ResponseCode: string;
+  ResponseDescription: string;
+}
+```
+
+```ts
+const result = await daraja.c2b.simulate({
+  shortCode: "600984",
+  commandId: "CustomerPayBillOnline",
+  amount: 1,
+  msisdn: "254708374149",
+  billRefNumber: "Test Ref",
+});
+
+console.log(result.ResponseDescription);
+```
+
+```ts
+// Throws SIMULATE_NOT_AVAILABLE_IN_PRODUCTION before any network call:
+// "C2B simulate() only works in sandbox  Safaricom does not support
+// simulating payments in production."
+Daraja({ ...config, environment: "production" }).c2b.simulate({/* ... */});
+```
+
+<Callout type="info">
+  `billRefNumber` is required when `commandId` is `'CustomerPayBillOnline'`
+  (it's the account number the customer typed in) and must be **omitted** for
+  `'CustomerBuyGoodsOnline'` Till payments don't have an account reference.
+  Passing it for a Till simulate throws `INVALID_C2B_REQUEST`.
+</Callout>
+
+## The confirmation payload you'll receive
+
+```json
+{
+  "TransactionType": "Pay Bill",
+  "TransID": "NLJ7RT61SV",
+  "TransTime": "20260822163045",
+  "TransAmount": "1.00",
+  "BusinessShortCode": "600984",
+  "BillRefNumber": "Test Ref",
+  "InvoiceNumber": "",
+  "OrgAccountBalance": "49197.00",
+  "ThirdPartyTransID": "",
+  "MSISDN": "254708374149",
+  "FirstName": "John",
+  "MiddleName": "",
+  "LastName": "Doe"
+}
+```
+
+<Callout type="error" title="Missing / inconsistent fields">
+  `OrgAccountBalance` and the name fields are frequently blank strings in
+  sandbox and occasionally absent entirely on production for Till (Buy Goods)
+  payments Safaricom's own schema documentation doesn't fully match what's on
+  the wire. Treat every field on this payload except `TransID`, `TransAmount`,
+  and `MSISDN` as optional in your handler, even though the published docs don't
+  mark them that way.
+</Callout>

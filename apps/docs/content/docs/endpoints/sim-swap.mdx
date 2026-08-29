@@ -1,0 +1,62 @@
+---
+title: SIM Swap
+description: Check the last date a customer's SIM card was swapped a standard fraud signal.
+icon: RefreshCcw
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`SwapClient` wraps `POST /imsi/v2/checkATI`. A recent, unexpected SIM swap is one of the strongest signals of SIM-swap fraud attackers port a victim's number to a new SIM specifically to intercept OTPs and M-Pesa PIN resets. This endpoint lets you check that before approving something risky.
+
+## Request & response
+
+```ts
+interface SwapRequest {
+  customerNumber: string; // "254XXXXXXXXX"
+}
+
+interface SwapResponse {
+  requestRefID: string;
+  responseCode: string; // "200" means the request was submitted successfully
+  responseDesc: string;
+  lastSwapDate: string; // format "DD-MM-YYYY HH:mm"
+}
+```
+
+```ts
+const result = await daraja.swap.check({ customerNumber: "254722000000" });
+console.log(result.lastSwapDate);
+```
+
+<Callout type="warn" title="The sentinel value that means 'no recent swap'">
+If a customer's SIM has **not** been swapped in the last 3 months, Daraja does not return an empty string or a null it returns the literal sentinel value `"01-01-1900 00:00"`. Checking `lastSwapDate` truthiness or trying to parse it as a real date will silently misbehave (`new Date('01-01-1900 00:00')` parses to a real, very old date without throwing). Use the SDK's static helper instead of writing your own date comparison:
+
+```ts
+import { SwapClient } from "@lumierelabs/daraja";
+
+if (SwapClient.wasRecentlySwapped(result)) {
+  // flag or block the high-risk action password reset, large B2C payout, etc.
+}
+```
+
+</Callout>
+
+### Validation the SDK performs
+
+`customerNumber` must match `254XXXXXXXXX` (12 digits) anything else throws `errorCode: 'INVALID_SWAP_REQUEST'` before a request is sent.
+
+## Typical usage
+
+```ts
+async function isSafeToResetPassword(msisdn: string): Promise<boolean> {
+  try {
+    const result = await daraja.swap.check({ customerNumber: msisdn });
+    return !SwapClient.wasRecentlySwapped(result);
+  } catch {
+    // Fail closed on lookup failure for a security-sensitive check
+    return false;
+  }
+}
+```
+
+See also [IMSI](/docs/endpoints/imsi) for a related fraud-check endpoint that additionally returns a hashed IMSI and network registration date, at a different (typically higher) per-call cost on Safaricom's pricing table.

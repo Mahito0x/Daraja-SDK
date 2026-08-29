@@ -1,0 +1,152 @@
+---
+title: Express.js / Node.js
+description: A native Node server setup for @lumierelabs/daraja.
+icon: Expressjs
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Singleton client
+
+```ts title="src/daraja.ts"
+import { Daraja } from "@lumierelabs/daraja";
+
+export const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  environment: process.env.NODE_ENV === "production" ? "production" : "sandbox",
+});
+```
+
+Import this module once, at app startup not inside a request handler the same instance needs to live for the lifetime of your process so its token cache actually gets used.
+
+## Initiating an STK Push
+
+```ts title="src/routes/checkout.ts"
+import { Router } from "express";
+import { daraja } from "../daraja";
+import { DarajaError } from "@lumierelabs/daraja";
+
+export const checkoutRouter = Router();
+
+checkoutRouter.post("/checkout", async (req, res) => {
+  const { phoneNumber, amount, orderRef } = req.body;
+
+  try {
+    const push = await daraja.stkPush({
+      businessShortCode: "174379",
+      passkey: process.env.MPESA_PASSKEY!,
+      transactionType: "CustomerPayBillOnline",
+      amount,
+      partyA: phoneNumber,
+      partyB: "174379",
+      phoneNumber,
+      callBackURL: `${process.env.APP_URL}/callbacks/stk`,
+      accountReference: orderRef,
+    });
+
+    res.json({ checkoutRequestId: push.CheckoutRequestID });
+  } catch (error) {
+    if (error instanceof DarajaError) {
+      res
+        .status(error.statusCode || 400)
+        .json({ error: error.message, code: error.errorCode });
+    } else {
+      throw error;
+    }
+  }
+});
+```
+
+## STK Push callback handler
+
+```ts title="src/routes/callbacks.ts"
+import { Router } from "express";
+
+export const callbacksRouter = Router();
+
+interface StkCallbackItem {
+  Name: string;
+  Value?: string | number;
+}
+
+callbacksRouter.post("/callbacks/stk", (req, res) => {
+  const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } =
+    req.body.Body.stkCallback;
+
+  if (ResultCode === 0) {
+    const items: StkCallbackItem[] = CallbackMetadata?.Item ?? [];
+    const get = (name: string) => items.find((i) => i.Name === name)?.Value;
+    console.log("Payment confirmed", {
+      checkoutRequestId: CheckoutRequestID,
+      amount: get("Amount"),
+      receipt: get("MpesaReceiptNumber"),
+    });
+  } else {
+    console.log("Payment failed", CheckoutRequestID, ResultDesc);
+  }
+
+  // Daraja only checks for a 200 status — the response body content doesn't matter to it.
+  res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+});
+```
+
+## C2B confirmation handler
+
+```ts title="src/routes/c2b.ts"
+import { Router } from "express";
+
+export const c2bRouter = Router();
+
+c2bRouter.post("/callbacks/confirmation", (req, res) => {
+  const { TransID, TransAmount, MSISDN, BillRefNumber } = req.body;
+  console.log(
+    `C2B payment: ${TransAmount} from ${MSISDN}, ref ${BillRefNumber}, txn ${TransID}`,
+  );
+  res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+});
+
+c2bRouter.post("/callbacks/validation", (req, res) => {
+  // Return this shape to accept the payment, or ResultCode: 'C2B00016' with a
+  // custom ResultDesc to reject it — but see the warning below first.
+  res.status(200).json({ ResultCode: "0", ResultDesc: "Accepted" });
+});
+```
+
+## Wiring it up
+
+```ts title="src/server.ts"
+import express from "express";
+import { checkoutRouter } from "./routes/checkout";
+import { callbacksRouter } from "./routes/callbacks";
+import { c2bRouter } from "./routes/c2b";
+
+const app = express();
+app.use(express.json());
+
+app.use(checkoutRouter);
+app.use(callbacksRouter);
+app.use(c2bRouter);
+
+app.listen(process.env.PORT || 3000);
+```
+
+<Callout
+  type="error"
+  title="Don't rely on validationUrl for real rejection logic"
+>
+  Production Daraja traffic frequently skips the Validation URL entirely and
+  calls Confirmation directly, regardless of what you return from
+  `/callbacks/validation` see the callout on this in the [C2B endpoint
+  page](/docs/endpoints/c2b#registerurl). Build your actual accept/reject
+  business logic in the confirmation handler, and treat Validation as a
+  best-effort optimization rather than a security boundary.
+</Callout>
+
+<Callout type="warn" title="express.json() must run before your webhook routes">
+  If `app.use(express.json())` is registered after your callback routers (or
+  scoped only to specific routes and you forgot the callback path), `req.body`
+  on your webhook handlers will be `undefined` and every destructure above
+  throws. This is the single most common "my callback handler crashes" bug
+  reported against hand-rolled Daraja Express integrations.
+</Callout>

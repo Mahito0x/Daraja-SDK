@@ -1,0 +1,167 @@
+---
+title: Dynamic Offers (Mobile Data Bundles)
+description: Browse, purchase, and check the status of mobile data bundle offers.
+icon: Wifi
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`DynamicOffersClient` wraps three Daraja endpoints for letting customers buy Safaricom data bundles from inside your own app instead of dialing a USSD code:
+
+| Method                        | Daraja endpoint                                    | Purpose                              |
+| ----------------------------- | -------------------------------------------------- | ------------------------------------ |
+| `dynamicOffers.fetchOffers()` | `GET /v1/dynamic-offers/fetch`                     | List bundles available to a customer |
+| `dynamicOffers.purchase()`    | `POST /v1/dynamic-offers/facebook-bundle/purchase` | Fulfill a purchase                   |
+| `dynamicOffers.checkStatus()` | `GET /v2/bundles/get/status`                       | Check a purchase's outcome           |
+
+<Callout
+  type="info"
+  title="Yes, the purchase path really says 'facebook-bundle'"
+>
+  This is Safaricom's actual, documented production path not a typo introduced
+  by this SDK, and not limited to Facebook-branded bundles despite the name.
+  It's a historical artifact from when this endpoint was first built for a Free
+  Basics-style partner integration and the path never got renamed.
+</Callout>
+
+## `fetchOffers()`
+
+```ts
+interface DynamicOffersFetchRequest {
+  msisdn: string; // "254XXXXXXXXX"
+}
+
+interface DynamicOffersOffer {
+  offerName: string;
+  uniqueOfferingId: string;
+  offerValidity: number;
+  resourceAccId: number;
+  resourceValue: number;
+  offerPrice: number;
+  offerUssdName: string;
+  offeringId: number;
+  offerSource: string;
+  locationId: number;
+  subscribed: number;
+  childOffers?: DynamicOffersChildOffer[]; // e.g. a weekly bundle containing daily boosters
+}
+
+interface DynamicOffersFetchResponse {
+  id: string;
+  desc: string;
+  status: string;
+  relatedSusbscription?: Array<{ desc: string; name: string }>; // sic Safaricom's misspelling on the wire
+  lineItem: { characteristicsValue: DynamicOffersOffer[] };
+}
+```
+
+```ts
+const offers = await daraja.dynamicOffers.fetchOffers({
+  msisdn: "254708374149",
+});
+
+for (const offer of offers.lineItem.characteristicsValue) {
+  console.log(
+    `${offer.offerName} — KES ${offer.offerPrice} (${offer.resourceValue}MB, offeringId ${offer.offeringId})`,
+  );
+}
+```
+
+## `purchase()`
+
+Every field here is meant to be copied straight off the offer you got back from `fetchOffers()` `offeringId` from `offeringId`, `accountId` from `resourceAccId`, `price` from `offerPrice`, `resourceAmount` from `resourceValue`, `validity` from `offerValidity`.
+
+```ts
+type DynamicOffersPaymentMode = "airtime" | "m-pesa";
+
+interface DynamicOffersPurchaseRequest {
+  msisdn: string;
+  offeringId: string;
+  paymentMode: DynamicOffersPaymentMode;
+  accountId: string;
+  price: number;
+  resourceAmount: number;
+  validity: number;
+  transactionId: string; // your own correlation ID — used later in checkStatus()
+}
+
+interface DynamicOffersPurchaseResponse {
+  header: {
+    requestRefId: string;
+    responseCode: number;
+    responseMessage: string;
+    customerMessage: string; // safe to show directly to the customer
+    timestamp: string;
+  };
+}
+```
+
+```ts
+const result = await daraja.dynamicOffers.purchase({
+  msisdn: "254708374149",
+  offeringId: "20001",
+  paymentMode: "airtime",
+  accountId: "1001",
+  price: 99,
+  resourceAmount: 2048,
+  validity: 7,
+  transactionId: `order-${Date.now()}`,
+});
+
+console.log(result.header.customerMessage);
+```
+
+<Callout type="warn" title="transactionId is yours, and you must keep it">
+  Unlike most Daraja endpoints, there's no `CheckoutRequestID` or
+  `ConversationID` handed back to you here `transactionId` is a value **you**
+  generate and supply on the purchase call, and it's the only handle you have
+  for checking status afterward. Persist it (order ID, UUID, whatever fits your
+  system) before calling `purchase()`, not after.
+</Callout>
+
+## `checkStatus()`
+
+```ts
+interface DynamicOffersCheckStatusRequest {
+  transactionId: string; // the same value you passed to purchase()
+  serviceAccountId?: string; // default: "0" — Safaricom's docs say to always use "0" for dynamic offers
+}
+
+interface DynamicOffersCheckStatusResponse {
+  responseId: string;
+  responseDesc: string;
+  responseStatus: string;
+  responseCreated: string;
+}
+```
+
+```ts
+const status = await daraja.dynamicOffers.checkStatus({
+  transactionId: "order-1755878400000",
+});
+
+console.log(status.responseStatus, status.responseDesc);
+```
+
+If you omit `serviceAccountId`, the SDK defaults it to `"0"` for you this matches Safaricom's own guidance, which explicitly says to hardcode it for dynamic offers regardless of your actual service account setup elsewhere.
+
+### Validation the SDK performs
+
+- `msisdn` — `254XXXXXXXXX` format, on both `fetchOffers()` and `purchase()`
+- `offeringId`, `accountId`, `transactionId` — required, non-empty strings
+- `paymentMode` — `'airtime'` or `'m-pesa'`
+- `price`, `resourceAmount`, `validity` — finite numbers greater than 0
+
+All failures throw `errorCode: 'INVALID_DYNAMIC_OFFERS_REQUEST'`.
+
+<Callout
+  type="error"
+  title="Sandbox offer catalogs are sparse and change without notice"
+>
+  `fetchOffers()` in sandbox frequently returns an empty or near-empty
+  `characteristicsValue` array, and the handful of offers that do appear can
+  disappear between sandbox resets. Don't hardcode a sandbox `offeringId` into a
+  test suite and expect it to keep working fetch fresh before every purchase
+  test, and expect this endpoint's sandbox behavior to be the least stable of
+  the ones in this SDK.
+</Callout>

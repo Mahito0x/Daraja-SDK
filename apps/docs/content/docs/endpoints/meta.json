@@ -1,0 +1,15 @@
+{
+  "title": "Endpoints",
+  "icon": "Boxes",
+  "pages": [
+    "mpesa-express-stk-push",
+    "c2b",
+    "b2c-top-up",
+    "b2b-hakikisha",
+    "dynamic-qr",
+    "dynamic-offers",
+    "sim-swap",
+    "imsi",
+    "mobile-number-validation"
+  ]
+}

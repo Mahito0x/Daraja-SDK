@@ -1,0 +1,192 @@
+---
+title: Next.js
+description: App Router API routes and Server Actions for @lumierelabs/daraja.
+icon: Nextjs
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+## Singleton client
+
+Create the client once, at module scope, and import it everywhere. Constructing `Daraja(config)` inside a route handler defeats [token caching](/docs/core-concepts/authentication) because a fresh `AuthManager` (and empty cache) is created on every request.
+
+```ts title="lib/daraja.ts"
+import { Daraja } from "@lumierelabs/daraja";
+
+export const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  environment: process.env.NODE_ENV === "production" ? "production" : "sandbox",
+});
+```
+
+<Callout type="warn" title="Route Handlers only not Edge Runtime">
+  The SDK's `AuthManager` falls back to Node's `Buffer` for Base64 encoding when
+  the global `btoa` isn't available, and relies on `Intl.DateTimeFormat` with
+  the `Africa/Nairobi` timezone for STK Push timestamps. Both work fine on
+  Node.js Route Handlers (the default) stick to `export const runtime =
+  'nodejs'` (or omit it, since that's the default) rather than opting into
+  `export const runtime = 'edge'`.
+</Callout>
+
+## Initiating an STK Push (Route Handler)
+
+```ts title="app/api/checkout/route.ts"
+import { NextResponse } from "next/server";
+import { daraja } from "@/lib/daraja";
+import { DarajaError } from "@lumierelabs/daraja";
+
+export async function POST(request: Request) {
+  const { phoneNumber, amount, orderRef } = await request.json();
+
+  try {
+    const push = await daraja.stkPush({
+      businessShortCode: "174379",
+      passkey: process.env.MPESA_PASSKEY!,
+      transactionType: "CustomerPayBillOnline",
+      amount,
+      partyA: phoneNumber,
+      partyB: "174379",
+      phoneNumber,
+      callBackURL: `${process.env.APP_URL}/api/callbacks/stk`,
+      accountReference: orderRef,
+      transactionDesc: "Order payment",
+    });
+
+    return NextResponse.json({ checkoutRequestId: push.CheckoutRequestID });
+  } catch (error) {
+    if (error instanceof DarajaError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode || 400 },
+      );
+    }
+    throw error;
+  }
+}
+```
+
+## Initiating an STK Push (Server Action)
+
+```ts title="app/checkout/actions.ts"
+"use server";
+
+import { daraja } from "@/lib/daraja";
+import { DarajaError } from "@lumierelabs/daraja";
+
+export async function initiateCheckout(formData: FormData) {
+  const phoneNumber = formData.get("phoneNumber") as string;
+  const amount = Number(formData.get("amount"));
+
+  try {
+    const push = await daraja.stkPush({
+      businessShortCode: "174379",
+      passkey: process.env.MPESA_PASSKEY!,
+      transactionType: "CustomerPayBillOnline",
+      amount,
+      partyA: phoneNumber,
+      partyB: "174379",
+      phoneNumber,
+      callBackURL: `${process.env.APP_URL}/api/callbacks/stk`,
+      accountReference: `order-${Date.now()}`,
+    });
+
+    return { success: true, checkoutRequestId: push.CheckoutRequestID };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof DarajaError
+          ? error.message
+          : "Payment failed to initiate",
+    };
+  }
+}
+```
+
+## STK Push callback handler
+
+```ts title="app/api/callbacks/stk/route.ts"
+import { NextResponse } from "next/server";
+
+interface StkCallbackItem {
+  Name: string;
+  Value?: string | number;
+}
+
+interface StkCallbackBody {
+  Body: {
+    stkCallback: {
+      MerchantRequestID: string;
+      CheckoutRequestID: string;
+      ResultCode: number;
+      ResultDesc: string;
+      CallbackMetadata?: { Item: StkCallbackItem[] };
+    };
+  };
+}
+
+export async function POST(request: Request) {
+  const payload = (await request.json()) as StkCallbackBody;
+  const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } =
+    payload.Body.stkCallback;
+
+  if (ResultCode === 0) {
+    const items = CallbackMetadata?.Item ?? [];
+    const get = (name: string) => items.find((i) => i.Name === name)?.Value;
+
+    await recordSuccessfulPayment({
+      checkoutRequestId: CheckoutRequestID,
+      amount: get("Amount"),
+      receipt: get("MpesaReceiptNumber"),
+      phoneNumber: get("PhoneNumber"),
+    });
+  } else {
+    await recordFailedPayment({
+      checkoutRequestId: CheckoutRequestID,
+      reason: ResultDesc,
+    });
+  }
+
+  // Daraja only checks for a 200 it does not parse this response body.
+  return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+
+async function recordSuccessfulPayment(_data: unknown) {
+  // your database write here
+}
+
+async function recordFailedPayment(_data: unknown) {
+  // your database write here
+}
+```
+
+## C2B confirmation handler
+
+```ts title="app/api/callbacks/confirmation/route.ts"
+import { NextResponse } from "next/server";
+
+export async function POST(request: Request) {
+  const payload = await request.json();
+  const { TransID, TransAmount, MSISDN, BillRefNumber } = payload;
+
+  console.log(
+    `C2B payment: ${TransAmount} from ${MSISDN}, ref ${BillRefNumber}, txn ${TransID}`,
+  );
+
+  // Fields beyond these four are inconsistently populated by Daraja see
+  // the C2B endpoint page's callout on missing/inconsistent fields.
+  return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+```
+
+Register these with [`c2b.registerUrl()`](/docs/endpoints/c2b) once per shortcode not on every deploy since re-registering doesn't hurt but also doesn't need to happen automatically on every build.
+
+<Callout type="info">
+  Deploying to Vercel? `process.env.APP_URL` should be your production domain,
+  not a preview deployment URL preview URLs are usually randomized per-deploy
+  and Daraja's own DNS-level trust for a domain builds up over the app's
+  lifetime on Safaricom's side. Keep callback URLs pinned to your stable
+  production domain.
+</Callout>

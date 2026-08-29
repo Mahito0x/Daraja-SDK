@@ -1,0 +1,155 @@
+---
+title: Introduction
+description: A typed, zero-nonsense TypeScript SDK for Safaricom's Daraja (M-Pesa) API.
+icon: BookOpen
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { Callout } from "fumadocs-ui/components/callout";
+import { Badge } from "@/components/ui/badge";
+import { EndpointStatusBadge } from "@/components/Badge";
+import {
+  Key,
+  Smartphone,
+  ArrowRightLeft,
+  Wallet,
+  Building2,
+  QrCode,
+  Wifi,
+  ShieldAlert,
+  UserCheck,
+} from "lucide-react";
+
+`@lumierelabs/daraja` wraps the [Safaricom Daraja API](https://developer.safaricom.co.ke/) in a TypeScript client that handles the parts everyone reimplements badly on their own project: OAuth token caching, STK Push password generation, callback URL validation, and Daraja's inconsistent PascalCase/camelCase payload shapes.
+
+You give it a Consumer Key and Consumer Secret. It gives you back a client with typed methods, readable error messages, and no `Buffer.from(...).toString('base64')` scattered across your codebase.
+
+```ts
+import { Daraja } from "@lumierelabs/daraja";
+
+const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  environment: "sandbox",
+});
+
+const result = await daraja.stkPush({
+  businessShortCode: "174379",
+  passkey: process.env.MPESA_PASSKEY!,
+  transactionType: "CustomerPayBillOnline",
+  amount: 1,
+  partyA: "254708374149",
+  partyB: "174379",
+  phoneNumber: "254708374149",
+  callBackURL: "https://example.com/callbacks/stk",
+  accountReference: "INV-1042",
+});
+
+console.log(result.CheckoutRequestID);
+```
+
+<Callout type="info" title="A note on scope">
+  This documentation covers exactly what `@lumierelabs/daraja` implements today
+  nothing more. If you came here looking for **Account Balance**, **Transaction
+  Status**, or a generic **Reversal**/**B2B Payment Request** client, they
+  aren't in the package yet. See [Roadmap & what's not
+  here](/docs/guides/roadmap) for the honest list of what's missing and why,
+  instead of documentation for endpoints that would throw a 404 the moment you
+  called them.
+</Callout>
+
+## What's actually in the box
+
+<Cards>
+  <Card className="relative" icon={<Key className="h-4 w-4 text-emerald-500" />} title="Authentication" description="Auto-caching OAuth 2.0 token management, handled for you." href="/docs/core-concepts/authentication">
+    <EndpointStatusBadge status="working" />
+  </Card>
+
+<Card
+  className="relative"
+  icon={<Smartphone className="h-4 w-4 text-emerald-500" />}
+  title="M-Pesa Express (STK Push)"
+  description="Push a payment prompt to a customer's phone and query its outcome."
+  href="/docs/endpoints/mpesa-express-stk-push"
+>
+  <EndpointStatusBadge status="working" />
+</Card>
+
+<Card
+  className="relative"
+  icon={<ArrowRightLeft className="h-4 w-4 text-emerald-500" />}
+  title="C2B"
+  description="Register callback URLs and simulate customer payments in sandbox."
+  href="/docs/endpoints/c2b"
+>
+  <EndpointStatusBadge status="upstream-issue" />
+</Card>
+
+<Card
+  className="relative"
+  icon={<Wallet className="h-4 w-4 text-emerald-500" />}
+  title="B2C Account Top Up"
+  description="Move funds from your MMF/Working account into a B2C shortcode's utility account."
+  href="/docs/endpoints/b2c-top-up"
+>
+  <EndpointStatusBadge status="working" />
+</Card>
+
+<Card
+  className="relative"
+  icon={<Building2 className="h-4 w-4 text-emerald-500" />}
+  title="B2B Hakikisha"
+  description="Verify an organization's name and tariff before you pay it."
+  href="/docs/endpoints/b2b-hakikisha"
+>
+  <EndpointStatusBadge status="working" />
+</Card>
+
+<Card
+  className="relative"
+  icon={<QrCode className="h-4 w-4 text-emerald-500" />}
+  title="Dynamic QR"
+  description="Generate a scannable M-Pesa payment QR code."
+  href="/docs/endpoints/dynamic-qr"
+>
+  <EndpointStatusBadge status="upstream-issue" />
+</Card>
+
+<Card
+  className="relative"
+  icon={<Wifi className="h-4 w-4 text-emerald-500" />}
+  title="Mobile Data Bundles"
+  description="Browse, purchase, and check the status of data bundle offers."
+  href="/docs/endpoints/dynamic-offers"
+>
+  <EndpointStatusBadge status="upstream-issue" />
+</Card>
+
+<Card
+  className="relative"
+  icon={<ShieldAlert className="h-4 w-4 text-emerald-500" />}
+  title="SIM Swap & IMSI"
+  description="Fraud checks: last SIM swap date, hashed IMSI, network registration age."
+  href="/docs/endpoints/sim-swap"
+>
+  <EndpointStatusBadge status="working" />
+</Card>
+
+  <Card className="relative" icon={<UserCheck className="h-4 w-4 text-emerald-500" />} title="Mobile Number Validation" description="Confirm an msisdn is registered against a given National ID, Military ID, or Passport." href="/docs/endpoints/mobile-number-validation">
+    <EndpointStatusBadge status="upstream-issue" />
+  </Card>
+</Cards>
+
+<Callout type="info" title="Understanding Endpoint Badges">
+  - **Working**: The SDK code is implemented and verified against an active,
+  functional Safaricom Daraja Sandbox endpoint. - **Upstream Issue**: The SDK
+  method and payload types are fully implemented, but Safaricom's Sandbox
+  environment is currently returning upstream errors (such as `500 Server
+  Error`, `503 Service Unavailable`, or unparsed HTML responses).
+</Callout>
+
+## Why this exists
+
+Daraja's own documentation is functional but thin: field names change case between endpoints (`OriginatorCoversationID` is a real, misspelled field Safaricom ships), the STK Push password has to be hand-built as `Base64(ShortCode + Passkey + Timestamp)` in the exact East African timezone, and half the "gotchas" you'll hit are only discoverable by hitting them. This SDK bakes those lessons in so you don't have to relearn them from a failed sandbox call at 11pm.
+
+Start with [Installation](/docs/getting-started/installation), or jump straight to [Quickstart](/docs/getting-started/quickstart) if you already have sandbox credentials.

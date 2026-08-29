@@ -1,0 +1,66 @@
+---
+title: Authentication & Token Management
+description: How OAuth token caching and rotation work under the hood.
+icon: KeyRound
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+
+Daraja uses OAuth 2.0 client credentials for every authenticated call. `AuthManager` (used internally by every endpoint client) handles the full lifecycle so you never touch `/oauth/v1/generate` yourself.
+
+## How it works
+
+```ts
+// You never call this directly  every endpoint method does it for you.
+const token = await daraja.getAccessToken();
+```
+
+1. On the first call, `AuthManager` Base64-encodes `consumerKey:consumerSecret` and sends it as a `Basic` auth header to `GET /oauth/v1/generate?grant_type=client_credentials`.
+2. Daraja responds with `{ access_token, expires_in }` `expires_in` is typically `"3599"` seconds (Daraja returns it as a string, not a number; the SDK coerces it).
+3. The token and its computed expiry (`Date.now() + expires_in * 1000`) are cached **in memory** on the `AuthManager` instance.
+4. Every subsequent call to `getAccessToken()` checks the cache first. If the cached token still has more than **60 seconds** of life left, it's reused no network call.
+5. Once the buffer is crossed, the next call transparently fetches a fresh token and replaces the cache.
+
+```ts
+// Internally, roughly:
+if (cachedToken && Date.now() < cachedToken.expiresAt - 60_000) {
+  return cachedToken.token;
+}
+return await fetchNewAccessToken();
+```
+
+<Callout type="warn" title="The cache is per-instance, not global">
+Token caching lives on the `AuthManager` created inside `Daraja(config)`. If you accidentally construct a new client per request (`Daraja({...})` inside a route handler instead of at module scope), you get zero caching benefit and hit `/oauth/v1/generate` on every single request. Construct the client **once**, at module scope, and import it  see the [framework integration guides](/docs/integrations/nextjs) for the pattern.
+</Callout>
+
+## Manually clearing the cache
+
+```ts
+daraja.clearAuthCache();
+```
+
+Forces the next call to fetch a fresh token regardless of the cached expiry. Useful in long-running processes if you suspect Daraja revoked a token early (rare, but it happens during Safaricom-side incidents), or in tests where you want to assert the fetch path runs.
+
+## Failure modes
+
+<Accordions>
+  <Accordion title="OAUTH_AUTHENTICATION_FAILED">
+    Daraja rejected the Basic Auth header usually an inactive sandbox app, or
+    credentials copied from the wrong app in a multi-app portal account. Check
+    that the app's status is **Active** in the Daraja portal.
+  </Accordion>
+  <Accordion title="MALFORMED_OAUTH_RESPONSE">
+    Daraja returned `200 OK` but the body was missing `access_token` or
+    `expires_in`. This is a Safaricom-side response shape problem, not something
+    in your config it shows up during sandbox instability windows. Retry with
+    backoff; there's nothing to fix on your end.
+  </Accordion>
+  <Accordion title="REQUEST_TIMEOUT">
+    The OAuth call didn't respond within your configured `timeout`. Increase
+    `timeout` in `DarajaConfig` if you're on a high-latency connection to
+    Safaricom's sandbox, which is noticeably slower than production.
+  </Accordion>
+</Accordions>
+
+Every one of these arrives as a typed `DarajaError` see [Error Handling](/docs/core-concepts/error-handling) for the full shape.

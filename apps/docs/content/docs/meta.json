@@ -1,0 +1,15 @@
+{
+  "title": "@lumierelabs/daraja",
+  "pages": [
+    "index",
+    "---Getting Started---",
+    "getting-started",
+    "core-concepts",
+    "---API Reference---",
+    "endpoints",
+    "---Framework Integrations---",
+    "integrations",
+    "---Guides---",
+    "guides"
+  ]
+}

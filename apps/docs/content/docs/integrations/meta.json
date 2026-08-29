@@ -1,0 +1,5 @@
+{
+  "title": "Framework Integrations",
+  "icon": "Blocks",
+  "pages": ["nextjs", "astro", "remix", "express"]
+}

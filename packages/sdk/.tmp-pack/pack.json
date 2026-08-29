@@ -1,0 +1,41 @@
+[
+  {
+    "id": "@lumierelabs/daraja@1.0.0",
+    "name": "@lumierelabs/daraja",
+    "version": "1.0.0",
+    "size": 52716,
+    "unpackedSize": 225278,
+    "shasum": "7d7a686714bc2b24c066a85c1566bbbd22519691",
+    "integrity": "sha512-CiWhKI6DWeFc8HvhTq2PnfjfIMatc6eZHf+4F7fhSIvh+bpVtmlIxyjML4rIvyeBANySArOFwJGLuhVrLyADcA==",
+    "filename": "lumierelabs-daraja-1.0.0.tgz",
+    "files": [
+      {
+        "path": "dist/index.cjs",
+        "size": 72835,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.cts",
+        "size": 40030,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 40030,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 70786,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1597,
+        "mode": 420
+      }
+    ],
+    "entryCount": 5,
+    "bundled": []
+  }
+]

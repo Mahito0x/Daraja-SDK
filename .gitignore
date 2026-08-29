@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build and generated output
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+.turbo/
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Local/editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local test scripts
+*test-*.ts

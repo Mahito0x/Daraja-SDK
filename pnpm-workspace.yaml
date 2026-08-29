@@ -1,0 +1,10 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+overrides:
+  fast-uri: 3.1.6
+
+minimumReleaseAge: 10080 # Delays installs of brand new versions by 7 days
+trustPolicy:
+  no-downgrade: true # Rejects dependency updates if trust signals weaken
