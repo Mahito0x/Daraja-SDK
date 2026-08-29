@@ -1,0 +1,50 @@
+---
+title: Roadmap & What's Not Here
+description: An honest list of Daraja functionality this SDK does not implement yet.
+icon: MapPin
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+This page exists because it's worse to publish confident-looking documentation for a method that doesn't exist than to just say so plainly. Everything below is genuinely absent from `@daraja/sdk`'s current source not renamed, not hiding under a different method name.
+
+<Callout type="error" title="Not implemented in the current version">
+  - **General B2C Payment Request** (`CommandID: "BusinessPayment"` /
+  `"SalaryPayment"` / `"PromotionPayment"` disbursing to a customer MSISDN)
+  what's actually shipped is [B2C Account Top Up](/docs/endpoints/b2c-top-up),
+  which moves funds between your own organization's accounts, not out to a
+  customer. - **General B2B Payment Request** (moving money from your shortcode
+  to another business's shortcode) what's shipped is [B2B
+  Hakikisha](/docs/endpoints/b2b-hakikisha), a name/tariff *lookup* only. It
+  doesn't move money. - **Account Balance** (`CommandID: "AccountBalance"`)
+  querying your own shortcode's available balance. - **Transaction Status**
+  (`CommandID: "TransactionStatusQuery"`) checking the status of a previously
+  initiated B2C/B2B transaction by `TransactionID`. - **Reversal** (`CommandID:
+  "TransactionReversal"`) reversing a completed transaction.
+</Callout>
+
+If your integration needs any of these today, you'll need to call Daraja directly for that specific flow (they follow the same OAuth Bearer pattern as everything else this SDK wraps see [Authentication](/docs/core-concepts/authentication) for the token lifecycle you'd replicate) or track the package's changelog for when they land.
+
+## What is implemented
+
+For contrast, everything documented elsewhere in these docs is real, tested, working code in the current version:
+
+- [Authentication & token caching](/docs/core-concepts/authentication)
+- [M-Pesa Express STK Push & Query](/docs/endpoints/mpesa-express-stk-push)
+- [C2B Register URL & Simulate](/docs/endpoints/c2b)
+- [B2C Account Top Up](/docs/endpoints/b2c-top-up)
+- [B2B Hakikisha](/docs/endpoints/b2b-hakikisha)
+- [Dynamic QR](/docs/endpoints/dynamic-qr)
+- [Dynamic Offers (mobile data bundles)](/docs/endpoints/dynamic-offers)
+- [SIM Swap](/docs/endpoints/sim-swap)
+- [IMSI](/docs/endpoints/imsi)
+- [Mobile Number Validation](/docs/endpoints/mobile-number-validation)
+
+<Callout type="info">
+  If you're contributing to `@daraja/sdk` and want to close one of the gaps
+  above, the existing endpoint clients (particularly [B2C Account Top
+  Up](/docs/endpoints/b2c-top-up), which already handles the
+  `SecurityCredential`/Initiator pattern that Account Balance, Transaction
+  Status, and Reversal all also need) are the closest reference implementation
+  to follow for request validation style and error codes.
+</Callout>

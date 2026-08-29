@@ -1,0 +1,102 @@
+---
+title: Configuration
+description: Every option DarajaConfig accepts, and what happens if you get one wrong.
+icon: Settings
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+```ts
+interface DarajaConfig {
+  consumerKey: string;
+  consumerSecret: string;
+  environment?: "sandbox" | "production"; // default: 'sandbox'
+  timeout?: number; // default: 10000 (ms)
+}
+```
+
+<TypeTable
+  type={{
+    consumerKey: {
+      description:
+        "Your Daraja app Consumer Key. Must be exactly 48 alphanumeric characters.",
+      type: "string",
+      required: true,
+    },
+    consumerSecret: {
+      description:
+        "Your Daraja app Consumer Secret. Must be exactly 64 alphanumeric characters.",
+      type: "string",
+      required: true,
+    },
+    environment: {
+      description:
+        "'sandbox' targets sandbox.safaricom.co.ke. 'production' targets api.safaricom.co.ke and requires HTTPS on every callback URL.",
+      type: "'sandbox' | 'production'",
+      default: "'sandbox'",
+    },
+    timeout: {
+      description:
+        "Milliseconds before an in-flight request is aborted via AbortController. Must be a positive, finite number.",
+      type: "number",
+      default: 10000,
+    },
+  }}
+/>
+
+## `consumerKey` / `consumerSecret`
+
+Required. Both go through a validation pipeline the moment you call `Daraja(config)` before any network request is made:
+
+1. Presence not `undefined`, `null`, or `""`
+2. Type must be a `string`
+3. Sanitization surrounding quotes, tabs, and newlines picked up from `.env` copy-paste are stripped automatically
+4. Placeholder detection values like `"YOUR_CONSUMER_KEY"`, `"changeme"`, or `"xxxx..."` are rejected outright
+5. No internal whitespace
+6. Alphanumeric only
+7. Exact length 48 characters for the Consumer Key, 64 for the Consumer Secret
+8. Cross-check if `consumerKey === consumerSecret`, or if one field's length matches what the _other_ field is supposed to be, the error message tells you that you likely swapped them
+
+```ts
+// Throws: "Consumer Key must be exactly 48 characters (received 64, 16
+// characters too long). This matches the expected length of the other
+// credential. Did you swap Consumer Key and Consumer Secret?"
+Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_SECRET!, // oops
+  consumerSecret: process.env.DARAJA_CONSUMER_KEY!,
+});
+```
+
+<Callout type="info">
+  This validation exists because a swapped key/secret pair produces a generic
+  `400 Bad Request` from Daraja's OAuth endpoint with no indication of what's
+  actually wrong. The SDK catches it before the request ever leaves your
+  machine.
+</Callout>
+
+## `environment`
+
+- `'sandbox'` (default) points at `https://sandbox.safaricom.co.ke`
+- `'production'` points at `https://api.safaricom.co.ke`, and additionally **requires HTTPS on every callback URL** (`callBackURL`, `confirmationUrl`, `validationUrl`, `queueTimeOutURL`, `resultURL`). Passing an `http://` callback URL in production throws `INVALID_CALLBACK_URL` immediately instead of letting Daraja reject it later.
+
+Any value outside `'sandbox'` / `'production'` throws `INVALID_ENVIRONMENT` at construction time.
+
+## `timeout`
+
+Milliseconds before an in-flight request is aborted via `AbortController`. Applies to every HTTP call the SDK makes, including the OAuth token fetch. Must be a positive, finite number `0`, negative numbers, `NaN`, and `Infinity` all throw `INVALID_TIMEOUT`.
+
+Aborted requests surface as a `DarajaError` with `errorCode: 'REQUEST_TIMEOUT'`, not a raw `AbortError` so your error handling only needs to know about one error shape. See [Error Handling](/docs/core-concepts/error-handling).
+
+## Full example
+
+```ts
+import { Daraja } from "@daraja/sdk";
+
+export const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  environment: process.env.NODE_ENV === "production" ? "production" : "sandbox",
+  timeout: 15000,
+});
+```

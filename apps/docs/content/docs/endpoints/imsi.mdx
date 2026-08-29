@@ -1,0 +1,98 @@
+---
+title: IMSI
+description: Hashed IMSI, last SIM swap date, and network registration age V1 and V2.
+icon: FingerprintPattern
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`IMSIClient` wraps two versions of the same underlying lookup, priced and scoped differently on Safaricom's side:
+
+| Method           | Returns                                                      | Relative cost |
+| ---------------- | ------------------------------------------------------------ | ------------- |
+| `imsi.checkV1()` | Hashed IMSI + last SIM swap date + network registration date | Higher        |
+| `imsi.checkV2()` | Hashed IMSI only                                             | Lower         |
+
+<Callout
+  type="warn"
+  title="Paths are inferred, not confirmed in Safaricom's own docs"
+>
+  Safaricom's Daraja documentation gives the IMSI endpoints' base URL as
+  `https://sandbox.safaricom.co.ke/{imsi_path_suffix}` and never fills in what `
+  {imsi_path_suffix}` actually is for either version a genuine gap in their
+  published reference. This SDK calls `/imsi/v1/getIMSI` and `/imsi/v2/getIMSI`,
+  following the same path shape as the (correctly documented) SIM Swap endpoint
+  at `/imsi/v2/checkATI`. This has worked reliably in practice, but treat it as
+  inferred rather than officially confirmed if you're auditing against
+  Safaricom's PDF spec line-by-line.
+</Callout>
+
+## Shared request shape
+
+Both versions take the same input:
+
+```ts
+interface IMSIRequest {
+  customerNumber: string; // "254XXXXXXXXX"
+}
+```
+
+## `checkV1()`
+
+```ts
+interface IMSIResponseV1 {
+  requestRefID: string;
+  responseCode: string;
+  responseDesc: string;
+  imsi: string; // hashed, not the raw IMSI
+  lastSwapDate: string; // "01-01-1900 00:00" sentinel if no swap in ~3 months
+  msisdnRegistrationDate: string; // e.g. "2019-01-12", or a message if > 1 year old
+  customerNumber: string;
+}
+```
+
+```ts
+const result = await daraja.imsi.checkV1({ customerNumber: "254722000000" });
+console.log(result.imsi, result.lastSwapDate, result.msisdnRegistrationDate);
+```
+
+Use the same sentinel-aware helper pattern as [SIM Swap](/docs/endpoints/sim-swap):
+
+```ts
+import { IMSIClient } from "@daraja/sdk";
+
+if (IMSIClient.wasRecentlySwapped(result)) {
+  // treat as elevated risk
+}
+```
+
+## `checkV2()`
+
+```ts
+interface IMSIResponseV2 {
+  requestRefID: string;
+  responseCode: string;
+  responseDesc: string;
+  imsi: string; // hashed
+  customerNumber: string;
+}
+```
+
+```ts
+const result = await daraja.imsi.checkV2({ customerNumber: "254722000000" });
+console.log(result.imsi);
+```
+
+Reach for V2 when all you need is a stable hashed identifier for a customer's SIM deduplication, fraud-scoring inputs, correlating a phone number to a device across sessions without paying for swap-date and registration-date data you won't use.
+
+### Validation the SDK performs
+
+`customerNumber` must match `254XXXXXXXXX` on both methods anything else throws `errorCode: 'INVALID_IMSI_REQUEST'` before a request is sent.
+
+<Callout type="error" title="Hashed IMSI is not comparable across environments">
+  The hashed `imsi` value V1 and V2 return is salted per-app-credential on
+  Safaricom's side in some deployments don't assume the same physical SIM
+  produces the same hash across your sandbox and production apps, or across two
+  different Daraja apps you own. Treat it as a stable identifier *within* one
+  app's credentials, not a global fingerprint.
+</Callout>

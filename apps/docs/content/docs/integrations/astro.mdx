@@ -1,0 +1,148 @@
+---
+title: Astro
+description: API endpoints and SSR usage for @daraja/sdk.
+icon: Astro
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<Callout type="warn" title="SSR must be enabled">
+  Astro's API routes (and any route that calls Daraja server-side) require
+  `output: 'server'` or `output: 'hybrid'` in `astro.config.mjs`, with
+  individual routes opting in via `export const prerender = false;` under hybrid
+  mode. A fully static (`output: 'static'`) site can't make outbound
+  authenticated calls at request time there's no server to run them on.
+</Callout>
+
+## Singleton client
+
+```ts title="src/lib/daraja.ts"
+import { Daraja } from "@daraja/sdk";
+
+export const daraja = Daraja({
+  consumerKey: import.meta.env.DARAJA_CONSUMER_KEY,
+  consumerSecret: import.meta.env.DARAJA_CONSUMER_SECRET,
+  environment: import.meta.env.PROD ? "production" : "sandbox",
+});
+```
+
+Add the corresponding entries to `src/env.d.ts` so `import.meta.env` is typed:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DARAJA_CONSUMER_KEY: string;
+  readonly DARAJA_CONSUMER_SECRET: string;
+  readonly MPESA_PASSKEY: string;
+  readonly APP_URL: string;
+}
+```
+
+## Initiating an STK Push
+
+```ts title="src/pages/api/checkout.ts"
+import type { APIRoute } from "astro";
+import { daraja } from "../../lib/daraja";
+import { DarajaError } from "@daraja/sdk";
+
+export const POST: APIRoute = async ({ request }) => {
+  const { phoneNumber, amount, orderRef } = await request.json();
+
+  try {
+    const push = await daraja.stkPush({
+      businessShortCode: "174379",
+      passkey: import.meta.env.MPESA_PASSKEY,
+      transactionType: "CustomerPayBillOnline",
+      amount,
+      partyA: phoneNumber,
+      partyB: "174379",
+      phoneNumber,
+      callBackURL: `${import.meta.env.APP_URL}/api/callbacks/stk`,
+      accountReference: orderRef,
+    });
+
+    return new Response(
+      JSON.stringify({ checkoutRequestId: push.CheckoutRequestID }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    const message =
+      error instanceof DarajaError
+        ? error.message
+        : "Payment failed to initiate";
+    return new Response(JSON.stringify({ error: message }), { status: 400 });
+  }
+};
+
+export const prerender = false;
+```
+
+## STK Push callback handler
+
+```ts title="src/pages/api/callbacks/stk.ts"
+import type { APIRoute } from "astro";
+
+export const POST: APIRoute = async ({ request }) => {
+  const payload = await request.json();
+  const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } =
+    payload.Body.stkCallback;
+
+  if (ResultCode === 0) {
+    const items: Array<{ Name: string; Value?: string | number }> =
+      CallbackMetadata?.Item ?? [];
+    const get = (name: string) => items.find((i) => i.Name === name)?.Value;
+    console.log("Payment confirmed", {
+      checkoutRequestId: CheckoutRequestID,
+      amount: get("Amount"),
+      receipt: get("MpesaReceiptNumber"),
+    });
+  } else {
+    console.log("Payment failed", CheckoutRequestID, ResultDesc);
+  }
+
+  return new Response(
+    JSON.stringify({ ResultCode: 0, ResultDesc: "Accepted" }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+};
+
+export const prerender = false;
+```
+
+## Calling it from a page during SSR
+
+```astro title="src/pages/account/status.astro"
+---
+import { daraja } from '../../lib/daraja';
+
+const checkoutRequestId = Astro.url.searchParams.get('crid');
+let status = null;
+
+if (checkoutRequestId) {
+  status = await daraja.stkPushQuery({
+    businessShortCode: '174379',
+    passkey: import.meta.env.MPESA_PASSKEY,
+    checkoutRequestId,
+  });
+}
+
+---
+
+<html lang="en">
+  <body>
+    {status && <p>{status.ResultDesc}</p>}
+  </body>
+</html>
+```
+
+<Callout type="info">
+  Every route in this guide needs `export const prerender = false;` under
+  Astro's `hybrid` output mode without it, Astro tries to render the route at
+  build time, when no `phoneNumber`/`amount` body exists yet, and the build
+  fails or silently produces a static (wrong) response.
+</Callout>

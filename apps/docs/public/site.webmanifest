@@ -1,0 +1,8 @@
+{
+  "name": "Daraja SDK Docs",
+  "short_name": "Daraja SDK",
+  "icons": [{ "src": "/favicon.ico", "sizes": "any" }],
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "display": "standalone"
+}

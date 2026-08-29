@@ -1,0 +1,53 @@
+{
+  "name": "@daraja/sdk",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src tests --ext .ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "types:check": "tsc --noEmit",
+    "package:check": "node -e \"const fs=require('fs'); const path=require('path'); const dir=path.resolve('.tmp-pack'); fs.rmSync(dir,{recursive:true,force:true}); fs.mkdirSync(dir,{recursive:true});\" && npm pack --json --pack-destination .tmp-pack > .tmp-pack/pack.json && node ./scripts/verify-package.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^26.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.39.4",
+    "globals": "^16.0.0",
+    "log-symbols": "^7.0.1",
+    "prettier": "^3.5.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

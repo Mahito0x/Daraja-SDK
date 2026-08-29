@@ -1,0 +1,79 @@
+---
+title: Mobile Number Validation
+description: Confirm a phone number is registered under a given National ID, Military ID, or Passport.
+icon: IdCard
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+`MobileNumberValidationClient` wraps `POST /v1/KYC-validation/validateID` a KYC helper for confirming an `msisdn` genuinely belongs to the person claiming a given ID number. Common uses: onboarding checks, loan disbursement fraud prevention, confirming a beneficiary before a B2C payout.
+
+## Request & response
+
+```ts
+type MobileNumberValidationIdType = "01" | "02" | "05";
+// '01' — National ID
+// '02' — Military ID
+// '05' — Passport
+
+interface MobileNumberValidationRequest {
+  requestRefID?: string; // auto-generated if omitted
+  shortCode: string; // your organization's Paybill/Till, 5–6 digits
+  msisdn: string; // "254XXXXXXXXX"
+  idType: MobileNumberValidationIdType;
+  idNumber: string;
+}
+
+interface MobileNumberValidationResponse {
+  responseRefID: string;
+  responseCode: string; // "4000" on a successful lookup match OR no-match, both count as "successful"
+  responseMessage: string;
+  status: "true" | "false"; // a STRING, not a JSON boolean
+}
+```
+
+```ts
+const result = await daraja.mobileNumberValidation.validate({
+  shortCode: "12345",
+  msisdn: "254710860780",
+  idType: "01",
+  idNumber: "454353453",
+});
+
+console.log(result.status); // "true" or "false" a string
+```
+
+<Callout type="warn" title="status is the string 'true'/'false', not a boolean">
+This is the same footgun as `MobileNumberValidationResponse.status` on other Daraja endpoints that encode booleans as strings `if (result.status)` is always truthy in JavaScript because `"false"` is a non-empty string. Use the SDK's static helper instead:
+
+```ts
+import { MobileNumberValidationClient } from "@daraja/sdk";
+
+if (MobileNumberValidationClient.isMatch(result)) {
+  // msisdn genuinely matches idType + idNumber
+}
+```
+
+</Callout>
+
+<Callout type="info" title="requestRefID is optional">
+If you don't supply `requestRefID`, the SDK generates one for you (`mnv-<timestamp>-<random>`) good enough for request tracing, not meant to be cryptographically unique across a high-volume system. Supply your own if you need to correlate this call with an internal record (an onboarding application ID, for instance).
+</Callout>
+
+### Validation the SDK performs
+
+- `shortCode` — 5–6 digits
+- `msisdn` — `254XXXXXXXXX` format
+- `idType` — one of `'01'`, `'02'`, `'05'`
+- `idNumber` — digits only
+- `requestRefID`, if provided, must be a non-empty string
+
+All failures throw `errorCode: 'INVALID_MOBILE_NUMBER_VALIDATION_REQUEST'`.
+
+<Callout type="error" title="responseCode 4000 does not mean 'matched'">
+  `responseCode: "4000"` means the *lookup itself* succeeded Daraja was able to
+  check. It says nothing about whether the identity actually matched; that's
+  what `status` is for. Treat a non-`"4000"` `responseCode` as "the check itself
+  failed to run" (bad shortcode, service unavailable) and only read `status`
+  once `responseCode` is `"4000"`.
+</Callout>

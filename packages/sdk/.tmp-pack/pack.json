@@ -1,0 +1,41 @@
+[
+  {
+    "id": "@daraja/sdk@1.0.0",
+    "name": "@daraja/sdk",
+    "version": "1.0.0",
+    "size": 52709,
+    "unpackedSize": 225270,
+    "shasum": "067e18b0d23738f6ff6e66e72de9a1e4a791679c",
+    "integrity": "sha512-1XMZ38ogAxIEc7v5Nk8k8wLaJR+Z50jGbzmiPPTI75HBzNbGMWdSvmSkUZ8d/ghmq/3RzIKvB7gUEObuoVWltw==",
+    "filename": "daraja-sdk-1.0.0.tgz",
+    "files": [
+      {
+        "path": "dist/index.cjs",
+        "size": 72835,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.cts",
+        "size": 40030,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 40030,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 70786,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1589,
+        "mode": 420
+      }
+    ],
+    "entryCount": 5,
+    "bundled": []
+  }
+]

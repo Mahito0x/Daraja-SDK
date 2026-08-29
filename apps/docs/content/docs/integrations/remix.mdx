@@ -1,0 +1,118 @@
+---
+title: Remix / React Router v7
+description: Action-based routes for @daraja/sdk.
+icon: ReactRouter
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+React Router v7's framework mode uses the same `action`/`loader` convention Remix pioneered, so this pattern applies to both directly.
+
+## Singleton client
+
+```ts title="app/lib/daraja.server.ts"
+import { Daraja } from "@daraja/sdk";
+
+export const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  environment: process.env.NODE_ENV === "production" ? "production" : "sandbox",
+});
+```
+
+<Callout type="warn" title="The .server.ts suffix matters">
+  Naming the file `daraja.server.ts` tells Remix/React Router's bundler to strip
+  this module from the client bundle entirely. Without it, your Consumer Key and
+  Secret risk being pulled into a client-side chunk the first time a route
+  imports this file at the top level instead of inside a server-only export.
+</Callout>
+
+## Initiating an STK Push
+
+```ts title="app/routes/checkout.tsx"
+import type { ActionFunctionArgs } from 'react-router';
+import { daraja } from '~/lib/daraja.server';
+import { DarajaError } from '@daraja/sdk';
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const phoneNumber = formData.get('phoneNumber') as string;
+  const amount = Number(formData.get('amount'));
+  const orderRef = formData.get('orderRef') as string;
+
+  try {
+    const push = await daraja.stkPush({
+      businessShortCode: '174379',
+      passkey: process.env.MPESA_PASSKEY!,
+      transactionType: 'CustomerPayBillOnline',
+      amount,
+      partyA: phoneNumber,
+      partyB: '174379',
+      phoneNumber,
+      callBackURL: `${process.env.APP_URL}/callbacks/stk`,
+      accountReference: orderRef,
+    });
+
+    return { success: true, checkoutRequestId: push.CheckoutRequestID };
+  } catch (error) {
+    return { success: false, error: error instanceof DarajaError ? error.message : 'Payment failed to initiate' };
+  }
+}
+
+export default function Checkout() {
+  return (
+    <form method="post">
+      <input type="tel" name="phoneNumber" placeholder="254712345678" required />
+      <input type="number" name="amount" min={1} required />
+      <input type="hidden" name="orderRef" value={`order-${Date.now()}`} />
+      <button type="submit">Pay with M-Pesa</button>
+    </form>
+  );
+}
+```
+
+## STK Push callback handler
+
+Webhook routes don't render UI, so keep the component minimal and do all the work in `action`:
+
+```ts title="app/routes/callbacks.stk.tsx"
+import type { ActionFunctionArgs } from "react-router";
+
+export async function action({ request }: ActionFunctionArgs) {
+  const payload = await request.json();
+  const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } =
+    payload.Body.stkCallback;
+
+  if (ResultCode === 0) {
+    const items: Array<{ Name: string; Value?: string | number }> =
+      CallbackMetadata?.Item ?? [];
+    const get = (name: string) => items.find((i) => i.Name === name)?.Value;
+    console.log("Payment confirmed", {
+      CheckoutRequestID,
+      amount: get("Amount"),
+    });
+  } else {
+    console.log("Payment failed", CheckoutRequestID, ResultDesc);
+  }
+
+  return Response.json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+```
+
+Wire the route into `app/routes.ts` (React Router v7 config-based routing):
+
+```ts title="app/routes.ts"
+import { type RouteConfig, route } from "@react-router/dev/routes";
+
+export default [
+  route("checkout", "routes/checkout.tsx"),
+  route("callbacks/stk", "routes/callbacks.stk.tsx"),
+] satisfies RouteConfig;
+```
+
+<Callout type="info">
+  If you're still on classic Remix file-based routing rather than React Router
+  v7's config-based routes, name the file `app/routes/callbacks.stk.ts` (flat
+  routes convention) Remix maps the dots in the filename to the URL path
+  `/callbacks/stk` automatically, no `routes.ts` entry needed.
+</Callout>

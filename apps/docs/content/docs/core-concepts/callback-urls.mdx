@@ -1,0 +1,48 @@
+---
+title: Callback URL Validation
+description: The rules the SDK enforces on every callBackURL, confirmationUrl, validationUrl, resultURL, and queueTimeOutURL.
+icon: Link
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+Every endpoint that accepts a webhook URL `mpesaExpress.push()`'s `callBackURL`, `c2b.registerUrl()`'s `confirmationUrl`/`validationUrl`, and `b2cTopUp.topUp()`'s `queueTimeOutURL`/`resultURL` runs the same `validateCallbackUrl()` check before the request is sent.
+
+## What gets checked, in order
+
+1. **Presence** must be a non-empty string
+2. **Valid URL** must parse with the `URL` constructor and use `http:` or `https:`
+3. **HTTPS in production** if `environment: 'production'`, `http://` URLs are rejected outright
+4. **No banned keywords** the hostname+path can't contain `mpesa`, `safaricom`, `exec`, or `sql` (case-insensitive). This mirrors an actual, undocumented Daraja-side rejection rule callback URLs containing these words get silently rejected by Safaricom's own infrastructure, so the SDK fails fast instead of letting you burn a support ticket finding out.
+5. **No public tunneling hosts** `ngrok.io`, `ngrok-free.app`, `ngrok.app`, `mockbin.org`, `requestbin.com`, and `requestbin.net` (and their subdomains) are rejected.
+
+```ts
+// Throws INVALID_CALLBACK_URL: "callBackURL contains a disallowed keyword
+// (\"mpesa\")."
+await daraja.stkPush({
+  // ...
+  callBackURL: "https://example.com/mpesa-callback",
+});
+```
+
+<Callout type="warn" title="Why ngrok is blocked">
+  It's tempting to point `callBackURL` at an ngrok tunnel while developing
+  locally. The SDK blocks this on purpose: Safaricom's production IP
+  whitelisting and general infrastructure trust model does not play well with
+  rotating tunnel hostnames, and teams that prototype against ngrok tend to ship
+  it by accident. Use a real (sub)domain even a cheap one pointed at a
+  Cloudflare Tunnel from day one. See [Safaricom API Quirks Local development
+  vs. production callbacks](/docs/guides/safaricom-quirks#ip-whitelisting) for
+  the full picture, including why ngrok specifically causes different problems
+  than a Cloudflare Tunnel does.
+</Callout>
+
+## Which fields this applies to
+
+| Endpoint              | Fields validated                   |
+| --------------------- | ---------------------------------- |
+| `mpesaExpress.push()` | `callBackURL`                      |
+| `c2b.registerUrl()`   | `confirmationUrl`, `validationUrl` |
+| `b2cTopUp.topUp()`    | `queueTimeOutURL`, `resultURL`     |
+
+If you need to bypass a specific rule for a legitimate reason (an internal staging domain that happens to contain "exec", for instance), there is currently no config flag to relax validation rename the route instead. This is intentional: the check exists to save you from a confusing Daraja-side silent failure, not to be a gate you fight against.

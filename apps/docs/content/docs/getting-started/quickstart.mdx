@@ -1,0 +1,227 @@
+---
+title: Quickstart
+description: Send your first STK Push in under five minutes.
+icon: Zap
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "fumadocs-ui/components/tabs";
+import { Nextjs, Expressjs, Astro, ReactRouter } from "@/components/Icons";
+
+This walks through the single most common thing people reach for the SDK to do: prompting a customer's phone for an M-Pesa PIN entry (STK Push / Lipa na M-Pesa Online).
+
+## 1. Initialize the client
+
+`Daraja` can be called with or without `new` both return the same client, so pick whichever your team's style guide prefers.
+
+```ts title="daraja.ts"
+import { Daraja } from "@daraja/sdk";
+
+export const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  environment: "sandbox", // 'production' when you go live
+});
+```
+
+<Callout type="info">
+  `Daraja(config)` throws synchronously if `consumerKey` or `consumerSecret` is
+  missing, malformed, or still a placeholder like `"YOUR_CONSUMER_KEY"` you'll
+  find out at boot time, not three requests deep in production.
+</Callout>
+
+## 2. Send the push
+
+```ts title="checkout.ts"
+import { daraja } from "./daraja";
+
+const push = await daraja.stkPush({
+  businessShortCode: "174379",
+  passkey: process.env.MPESA_PASSKEY!,
+  transactionType: "CustomerPayBillOnline",
+  amount: 1,
+  partyA: "254708374149", // customer's phone (debited)
+  partyB: "174379", // your paybill (credited)
+  phoneNumber: "254708374149", // where the STK prompt is sent
+  callBackURL: "https://example.com/callbacks/stk",
+  accountReference: "INV-1042", // shown on the customer's phone, max 12 chars
+  transactionDesc: "Order #1042",
+});
+
+console.log(push.CheckoutRequestID);
+// Save this  you need it to query the transaction status later.
+```
+
+`daraja.stkPush(...)` is a shortcut for `daraja.mpesaExpress.push(...)`. Both exist so you can either treat STK Push as the SDK's headline feature (top-level) or reach for it alongside the rest of `mpesaExpress` (namespaced) see [M-Pesa Express](/docs/endpoints/mpesa-express-stk-push) for the full method.
+
+## 3. Handle the callback
+
+`push()` only confirms Daraja _accepted_ the request. The actual outcome (customer entered PIN, cancelled, or timed out) arrives asynchronously as a POST to your `callBackURL`. Pick your framework:
+
+<Tabs defaultValue="Next.js">
+  <TabsList>
+    <TabsTrigger value="Next.js" className="gap-1.5">
+      <Nextjs className="size-4" />
+      <span>Next.js</span>
+    </TabsTrigger>
+    <TabsTrigger value="Express" className="gap-1.5">
+      <Expressjs className="size-4" />
+      <span>Express</span>
+    </TabsTrigger>
+    <TabsTrigger value="Astro" className="gap-1.5">
+      <Astro className="size-4" />
+      <span>Astro</span>
+    </TabsTrigger>
+    <TabsTrigger value="Remix" className="gap-1.5">
+      <ReactRouter className="size-4" />
+      <span>Remix</span>
+    </TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="Next.js">
+```ts title="app/api/callbacks/stk/route.ts"
+import { NextResponse } from 'next/server';
+import type { StkQueryResponse } from '@daraja/sdk';
+
+interface StkCallbackBody {
+Body: {
+stkCallback: {
+MerchantRequestID: string;
+CheckoutRequestID: string;
+ResultCode: number;
+ResultDesc: string;
+CallbackMetadata?: {
+Item: Array<{ Name: string; Value?: string | number }>;
+};
+};
+};
+}
+
+export async function POST(request: Request) {
+  const payload = (await request.json()) as StkCallbackBody;
+  const { ResultCode, ResultDesc, CheckoutRequestID } = payload.Body.stkCallback;
+
+if (ResultCode === 0) {
+const items = payload.Body.stkCallback.CallbackMetadata?.Item ?? [];
+const amount = items.find((item) => item.Name === 'Amount')?.Value;
+const receipt = items.find((item) => item.Name === 'MpesaReceiptNumber')?.Value;
+console.log(`Payment confirmed: ${amount} KES, receipt ${receipt}`);
+} else {
+console.log(`Payment failed for ${CheckoutRequestID}: ${ResultDesc}`);
+}
+
+// Daraja only cares that you returned 200 it does not read this body.
+return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' });
+}
+
+````
+  </TabsContent>
+
+  <TabsContent value="Express">
+```ts title="routes/callbacks.ts"
+import type { Request, Response } from 'express';
+
+interface StkCallbackBody {
+  Body: {
+    stkCallback: {
+      MerchantRequestID?: string;
+      CheckoutRequestID: string;
+      ResultCode: number;
+      ResultDesc: string;
+      CallbackMetadata?: {
+        Item: Array<{ Name: string; Value?: string | number }>;
+      };
+    };
+  };
+}
+
+export function stkCallback(req: Request<{}, {}, StkCallbackBody>, res: Response) {
+  const { ResultCode, ResultDesc, CheckoutRequestID } = req.body.Body.stkCallback;
+
+  if (ResultCode === 0) {
+    const items = req.body.Body.stkCallback.CallbackMetadata?.Item ?? [];
+    const receipt = items.find((i) => i.Name === 'MpesaReceiptNumber')?.Value;
+    console.log(`Payment confirmed, receipt ${receipt}`);
+  } else {
+    console.log(`Payment failed for ${CheckoutRequestID}: ${ResultDesc}`);
+  }
+
+  res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
+}
+````
+
+  </TabsContent>
+
+  <TabsContent value="Astro">
+```ts title="src/pages/api/callbacks/stk.ts"
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = async ({ request }) => {
+  const payload = await request.json();
+  const { ResultCode, ResultDesc } = payload.Body.stkCallback;
+
+if (ResultCode === 0) {
+console.log('Payment confirmed');
+} else {
+console.log(`Payment failed: ${ResultDesc}`);
+}
+
+return new Response(JSON.stringify({ ResultCode: 0, ResultDesc: 'Accepted' }), {
+status: 200,
+headers: { 'Content-Type': 'application/json' },
+});
+};
+
+export const prerender = false;
+```
+  </TabsContent>
+
+  <TabsContent value="Remix">
+```ts title="app/routes/callbacks.stk.ts"
+import type { ActionFunctionArgs } from 'react-router';
+
+export async function action({ request }: ActionFunctionArgs) {
+  const payload = await request.json();
+  const { ResultCode, ResultDesc } = payload.Body.stkCallback;
+
+if (ResultCode === 0) {
+console.log('Payment confirmed');
+} else {
+console.log(`Payment failed: ${ResultDesc}`);
+}
+
+return Response.json({ ResultCode: 0, ResultDesc: 'Accepted' });
+}
+
+````
+  </TabsContent>
+</Tabs>
+
+<Callout type="warn" title="Local development">
+Daraja needs a publicly reachable URL for `callBackURL`  `localhost` will never receive anything. Use a tunnel (Cloudflare Tunnel, or ngrok *for local testing only*) and swap it for a real domain before you register anything in production. See [Safaricom API Quirks](/docs/guides/safaricom-quirks#ip-whitelisting) for why ngrok specifically causes problems later.
+</Callout>
+
+## 4. (Optional) Query the status directly
+
+If your callback never arrives  dropped webhook, firewall, whatever  poll instead:
+
+```ts
+const status = await daraja.stkPushQuery({
+  businessShortCode: '174379',
+  passkey: process.env.MPESA_PASSKEY!,
+  checkoutRequestId: push.CheckoutRequestID,
+});
+
+console.log(status.ResultDesc);
+````
+
+That's the whole loop. From here:
+
+- [Authentication](/docs/core-concepts/authentication) how token caching actually works under the hood
+- [M-Pesa Express](/docs/endpoints/mpesa-express-stk-push) the full request/response shape
+- [Framework Integrations](/docs/integrations/nextjs) production-shaped route handlers

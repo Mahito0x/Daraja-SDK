@@ -1,0 +1,165 @@
+---
+title: M-Pesa Express (STK Push)
+description: Send a payment prompt to a customer's phone, and check its outcome.
+icon: Smartphone
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+`MpesaExpressClient` wraps two Daraja endpoints:
+
+| Method                 | Daraja endpoint                         | Purpose                               |
+| ---------------------- | --------------------------------------- | ------------------------------------- |
+| `mpesaExpress.push()`  | `POST /mpesa/stkpush/v1/processrequest` | Sends the PIN-entry prompt            |
+| `mpesaExpress.query()` | `POST /mpesa/stkpushquery/v1/query`     | Checks the outcome of a previous push |
+
+`daraja.stkPush()` and `daraja.stkPushQuery()` are shortcuts for the same two methods, exposed on the top-level client because this is the endpoint most people reach for first.
+
+<Callout type="info" title="Naming note">
+  Safaricom's own portal labels the push endpoint "M-Pesa Express Simulate,"
+  which reads like a sandbox-only tool. It isn't this is the real,
+  production-capable payment initiation call. The "Simulate" in the name is a
+  Daraja naming quirk, not a hint about environment.
+</Callout>
+
+## `push()`
+
+```ts
+interface StkPushRequest {
+  businessShortCode: string | number; // 5–7 digits
+  passkey: string;
+  transactionType: "CustomerPayBillOnline" | "CustomerBuyGoodsOnline";
+  amount: number; // whole number, 1–250,000 KES
+  partyA: string; // format "254XXXXXXXXX"  debited
+  partyB: string | number; // your shortcode/till  credited
+  phoneNumber: string; // where the prompt is sent, usually === partyA
+  callBackURL: string;
+  accountReference: string; // max 12 characters  shown to the customer
+  transactionDesc?: string; // max 13 characters, default "Payment"
+}
+
+interface StkPushResponse {
+  MerchantRequestID: string;
+  CheckoutRequestID: string;
+  ResponseCode: string;
+  ResponseDescription: string;
+  CustomerMessage: string;
+}
+```
+
+```ts
+const result = await daraja.mpesaExpress.push({
+  businessShortCode: "174379",
+  passkey: process.env.MPESA_PASSKEY!, // Daraja's shared sandbox passkey starts "bfb279f9..."
+  transactionType: "CustomerPayBillOnline",
+  amount: 1,
+  partyA: "254708374149",
+  partyB: "174379",
+  phoneNumber: "254708374149",
+  callBackURL: "https://example.com/callbacks/stk",
+  accountReference: "INV-1042",
+  transactionDesc: "Order 1042",
+});
+
+console.log(result.CheckoutRequestID); // e.g. "ws_CO_260820261234567890"
+```
+
+<Callout type="warn" title="Password and Timestamp are generated for you">
+  Daraja requires a `Password` field computed as `Base64(BusinessShortCode +
+  Passkey + Timestamp)`, where `Timestamp` must be in `YYYYMMDDHHmmss` format
+  **in East Africa Time**, regardless of your server's own timezone. Get the
+  timezone wrong (most cloud servers run UTC) and Daraja rejects the request
+  with a generic authentication failure that has nothing to do with your actual
+  OAuth token. `push()` and `query()` compute both fields internally using
+  `Africa/Nairobi` explicitly you never touch `Password` or `Timestamp`
+  directly.
+</Callout>
+
+### Validation the SDK performs before sending
+
+- `businessShortCode` must be 5–7 digits
+- `amount` must be a whole number between 1 and 250,000 (Safaricom's documented per-transaction cap)
+- `partyA` and `phoneNumber` must match `254XXXXXXXXX` (12 digits)
+- `accountReference` ≤ 12 characters, `transactionDesc` ≤ 13 characters
+- `callBackURL` goes through [callback URL validation](/docs/core-concepts/callback-urls)
+
+All failures throw `DarajaError` with `errorCode: 'INVALID_STK_REQUEST'`.
+
+## `query()`
+
+```ts
+interface StkQueryRequest {
+  businessShortCode: string | number; // same shortcode used in push()
+  passkey: string; // same passkey used in push()
+  checkoutRequestId: string; // CheckoutRequestID from push()'s response
+}
+
+interface StkQueryResponse {
+  ResponseCode: string;
+  ResponseDescription: string;
+  MerchantRequestID: string;
+  CheckoutRequestID: string;
+  ResultCode: string;
+  ResultDesc: string;
+}
+```
+
+```ts
+const status = await daraja.mpesaExpress.query({
+  businessShortCode: "174379",
+  passkey: process.env.MPESA_PASSKEY!,
+  checkoutRequestId: result.CheckoutRequestID,
+});
+
+if (status.ResultCode === "0") {
+  console.log("Payment completed");
+} else {
+  console.log("Payment not completed:", status.ResultDesc);
+}
+```
+
+<Callout type="warn" title="ResultCode is a string here, not a number">
+  `StkQueryResponse.ResultCode` is typed as `string` because that's what Daraja
+  returns on this particular endpoint compare against `'0'`, not `0`. This is
+  one of several spots across Daraja where the same logical field (a result
+  code) ships as a different JSON type depending on which endpoint you're
+  hitting. The C2B callback payload you receive from Safaricom uses a numeric
+  `ResultCode`; this query response does not.
+</Callout>
+
+## Handling the async callback
+
+`push()` resolves once Daraja _accepts_ the request the real result (customer entered their PIN, cancelled, or the prompt timed out after ~20 seconds unanswered) is POSTed to `callBackURL` separately, shaped like this:
+
+```json
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "29115-34620561-1",
+      "CheckoutRequestID": "ws_CO_260820261234567890",
+      "ResultCode": 0,
+      "ResultDesc": "The service request is processed successfully.",
+      "CallbackMetadata": {
+        "Item": [
+          { "Name": "Amount", "Value": 1 },
+          { "Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV" },
+          { "Name": "TransactionDate", "Value": 20260822163045 },
+          { "Name": "PhoneNumber", "Value": 254708374149 }
+        ]
+      }
+    }
+  }
+}
+```
+
+`CallbackMetadata.Item` is only present when `ResultCode === 0`. A cancelled or failed prompt omits it entirely check for its existence before indexing into it. See the framework-specific handlers in [Framework Integrations](/docs/integrations/nextjs) for copy-pasteable parsing.
+
+<Callout type="error" title="Sandbox callbacks are unreliable">
+  In sandbox, it's common for the `callBackURL` POST to arrive late, arrive
+  twice, or not arrive at all during Safaricom's periodic sandbox instability
+  windows this is a known, long-standing complaint in Daraja community channels,
+  not a bug in your handler. Always build a `query()` fallback (poll on a timer,
+  or expose a manual "check status" button) rather than assuming the callback is
+  guaranteed delivery, even in production.
+</Callout>

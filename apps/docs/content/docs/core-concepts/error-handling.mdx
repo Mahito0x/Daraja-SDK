@@ -1,0 +1,106 @@
+---
+title: Error Handling
+description: Every error the SDK throws goes through one class  DarajaError.
+icon: OctagonAlert
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+Every failure a validation error before a request is even sent, a rejected response from Daraja, a network timeout is thrown as a `DarajaError`. You only need one `catch` shape across the entire SDK.
+
+```ts
+export class DarajaError extends Error {
+  readonly statusCode: number; // HTTP status, or 0 for client-side validation errors
+  readonly errorCode: string; // e.g. "INVALID_STK_REQUEST", "OAUTH_AUTHENTICATION_FAILED"
+  readonly endpoint?: string; // which Daraja path was being called, if any
+  readonly suggestion?: string; // a human-readable fix, when the SDK knows one
+  readonly docUrl?: string;
+  readonly rawResponse?: unknown; // Daraja's raw JSON body, for anything not surfaced above
+}
+```
+
+## Catching errors
+
+```ts
+import { Daraja, DarajaError } from "@daraja/sdk";
+
+try {
+  await daraja.stkPush({
+    businessShortCode: "174379",
+    passkey: process.env.MPESA_PASSKEY!,
+    transactionType: "CustomerPayBillOnline",
+    amount: 1,
+    partyA: "254708374149",
+    partyB: "174379",
+    phoneNumber: "254708374149",
+    callBackURL: "https://example.com/callbacks/stk",
+    accountReference: "INV-1042",
+  });
+} catch (error) {
+  if (error instanceof DarajaError) {
+    console.error(error.errorCode, error.message);
+    if (error.suggestion) console.error("Suggestion:", error.suggestion);
+  } else {
+    throw error; // something genuinely unexpected  don't swallow it
+  }
+}
+```
+
+## Two error categories
+
+<Callout type="info" title="Client-side validation vs. Daraja rejection">
+
+`DarajaError` is thrown for two different reasons, distinguishable by `statusCode`:
+
+- **`statusCode === 0`** the SDK caught a bad request shape _before_ it ever left your machine (e.g. a malformed MSISDN, a callback URL over HTTP in production). No network call happened.
+- **`statusCode > 0`** Daraja itself responded with an HTTP error. The SDK read `errorMessage` / `ResultDesc` / `message` off the response body (Daraja is inconsistent about which field it uses) and normalized it onto `error.message`.
+
+</Callout>
+
+This distinction matters operationally: a `statusCode === 0` error is a bug in your calling code, worth fixing before deploy. A `statusCode > 0` error is Daraja telling you something about the transaction itself (insufficient funds, invalid shortcode, etc.) and often needs to be shown to the end user or logged for support.
+
+## Terminal-friendly formatting
+
+`DarajaError` overrides `toString()` and the Node.js `util.inspect` hook, so `console.log(error)` in a terminal prints a readable, color-coded box (colors respect `NO_COLOR`) instead of a raw stack dump:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠  Safaricom Daraja Error
+
+Code        INVALID_STK_REQUEST
+Status      N/A (Client Error)
+Message     amount must be between 1 and 250000 KES (Safaricom's
+            per-transaction limit), but received 500000.
+
+Suggestion
+Check the field named in the message against the M-Pesa Express
+(STK Push) request schema.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+If you're logging structured JSON instead (Pino, Winston, a log aggregator), reach for the individual fields `errorCode`, `statusCode`, `endpoint`, `rawResponse` rather than the formatted string.
+
+## Common `errorCode` values
+
+| `errorCode`                                     | Meaning                                                                                                   |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `INVALID_CREDENTIALS`                           | `consumerKey`/`consumerSecret` failed validation see [Configuration](/docs/getting-started/configuration) |
+| `INVALID_ENVIRONMENT`                           | `environment` wasn't `"sandbox"` or `"production"`                                                        |
+| `INVALID_TIMEOUT`                               | `timeout` wasn't a positive finite number                                                                 |
+| `INVALID_CALLBACK_URL`                          | A callback URL failed validation see [Callback URLs](/docs/core-concepts/callback-urls)                   |
+| `INVALID_STK_REQUEST`                           | M-Pesa Express push/query request failed validation                                                       |
+| `INVALID_C2B_REQUEST`                           | C2B registerUrl/simulate request failed validation                                                        |
+| `INVALID_B2C_TOPUP_REQUEST`                     | B2C Top Up request failed validation                                                                      |
+| `INVALID_B2B_HAKIKISHA_REQUEST`                 | B2B Hakikisha request failed validation                                                                   |
+| `INVALID_QR_REQUEST`                            | Dynamic QR request failed validation                                                                      |
+| `INVALID_DYNAMIC_OFFERS_REQUEST`                | Dynamic Offers request failed validation                                                                  |
+| `INVALID_SWAP_REQUEST` / `INVALID_IMSI_REQUEST` | Swap/IMSI request failed validation (bad MSISDN, usually)                                                 |
+| `INVALID_MOBILE_NUMBER_VALIDATION_REQUEST`      | KYC validation request failed validation                                                                  |
+| `SIMULATE_NOT_AVAILABLE_IN_PRODUCTION`          | You called `c2b.simulate()` with `environment: 'production'`                                              |
+| `OAUTH_AUTHENTICATION_FAILED`                   | Daraja rejected your credentials at the token endpoint                                                    |
+| `MALFORMED_OAUTH_RESPONSE`                      | Daraja returned 200 with an unexpected body shape                                                         |
+| `REQUEST_TIMEOUT`                               | The request didn't complete within your configured `timeout`                                              |
+| `NETWORK_ERROR`                                 | A `fetch` failure below the HTTP layer (DNS, connection reset, etc.)                                      |
+| `API_REQUEST_FAILED`                            | Fallback code for a Daraja error response Safaricom didn't tag with its own `errorCode`                   |
+
+Endpoint-specific `errorCode`s and status-code details are covered on each endpoint's own page under [Endpoints](/docs/endpoints).
