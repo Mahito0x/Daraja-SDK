@@ -1,7 +1,26 @@
 {
   "name": "@lumierelabs/daraja",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "daraja",
+    "mpesa",
+    "safaricom",
+    "safaricom-api",
+    "daraja-sdk",
+    "typescript",
+    "payments"
+  ],
+  "homepage": "https://github.com/Mahito0x/Daraja-SDK#readme",
+  "bugs": {
+    "url": "https://github.com/Mahito0x/Daraja-SDK/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mahito0x/Daraja-SDK.git",
+    "directory": "packages/sdk"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
