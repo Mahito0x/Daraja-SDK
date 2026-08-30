@@ -253,35 +253,29 @@ export default function Footer() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <Button
-                    size="sm"
-                    className="h-9 rounded-full bg-foreground px-5 text-xs font-semibold text-background border border-foreground hover:bg-foreground/90"
+                  <Link
+                    href="/docs/getting-started/installation"
+                    aria-label="Get started with the Daraja SDK"
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-foreground bg-foreground px-5 text-xs font-semibold text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <Link href="/docs/getting-started/installation">
-                      Get Started
-                    </Link>
-                  </Button>
+                    Get Started
+                  </Link>
                 </motion.div>
 
                 <motion.div
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-full border-border/60 bg-transparent text-foreground px-5 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
+                  <Link
+                    href={GITHUB_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="View the Daraja SDK GitHub repository"
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-border/60 bg-transparent px-5 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <Link
-                      href={GITHUB_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1.5"
-                    >
-                      <GitHub className="h-3.5 w-3.5" />
-                      GitHub
-                    </Link>
-                  </Button>
+                    <GitHub className="h-3.5 w-3.5" />
+                    GitHub
+                  </Link>
                 </motion.div>
               </div>
             </motion.div>
@@ -310,20 +304,15 @@ export default function Footer() {
                 whileHover={{ scale: 1.08, y: -2 }}
                 whileTap={{ scale: 0.94 }}
               >
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-lg border-border/60 bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground hover:border-emerald-500/40 transition-colors"
+                <Link
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-transparent text-muted-foreground transition-colors hover:border-emerald-500/40 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <Link
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </Link>
-                </Button>
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </Link>
               </motion.div>
             ))}
           </motion.div>

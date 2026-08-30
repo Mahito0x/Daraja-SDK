@@ -292,6 +292,7 @@ export function CodeShowcase() {
 
                 [&_code]:font-mono
               "
+              // skipcq: JS-0440 - Safe syntax-highlighted code block HTML
               dangerouslySetInnerHTML={{ __html: highlightedCode }}
             />
           )}

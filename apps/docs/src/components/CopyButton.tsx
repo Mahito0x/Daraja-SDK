@@ -50,6 +50,7 @@ export function CopyButton({ text, className }: CopyButtonProps) {
       variant="ghost"
       size="icon"
       layout
+      aria-label={copied ? "Copied to clipboard" : "Copy code"}
       className={cn(
         "h-7 w-7 p-0 relative disabled:opacity-100 cursor-pointer shrink-0 overflow-hidden rounded-md",
         className,

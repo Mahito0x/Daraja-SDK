@@ -6,9 +6,15 @@ import {
   AISearchPanel,
   AISearchTrigger,
 } from "@/components/ai/search";
-import { MessageCircle, MessageCircleIcon } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
+
+export const metadata = {
+  title: "Daraja SDK Documentation",
+  description:
+    "Official documentation, guides, and API references for the Daraja SDK.",
+};
 
 export default function Layout({ children }: LayoutProps<"/docs">) {
   return (

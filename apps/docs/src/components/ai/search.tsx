@@ -252,6 +252,7 @@ export function AISearchInput(props: ComponentProps<"form">) {
     setInput(e.target.value);
     localStorage.setItem(StorageKeyInput, e.target.value);
     const el = e.target;
+    // skipcq JS-0440
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
