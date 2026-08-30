@@ -11,9 +11,9 @@ import { cn } from "@/lib/cn";
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 
 export const metadata = {
-  title: "Daraja SDK Documentation",
+  title: "Documentation",
   description:
-    "Official documentation, guides, and API references for the Daraja SDK.",
+    "Official guides, API references, and integration tutorials for the Daraja SDK.",
 };
 
 export default function Layout({ children }: LayoutProps<"/docs">) {

@@ -2,7 +2,7 @@ import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { baseOptions } from "@/lib/layout.shared";
 
 export const metadata = {
-  title: "Daraja SDK - Official Documentation & Developer Tools",
+  title: "Daraja SDK — Guides & API Reference",
   description:
     "Build robust integrations with the Daraja SDK using our modern developer tools, guides, and comprehensive API documentation.",
 };

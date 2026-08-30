@@ -25,7 +25,7 @@ export function rehypeWrapWords() {
   return (tree: Root) => {
     visit(tree, ["text", "element"], (node, index, parent) => {
       if (node.type === "element" && node.tagName === "pre") return "skip";
-      if (node.type !== "text" || !parent || index === undefined) return;
+      if (node.type !== "text" || !parent || index === undefined) return null;
 
       const words = node.value.split(/(?=\s)/);
 

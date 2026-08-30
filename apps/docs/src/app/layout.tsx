@@ -13,8 +13,8 @@ const npmUrl = "https://www.npmjs.com/package/@lumierelabs/daraja";
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Daraja SDK — Type-safe M-Pesa for TypeScript",
-    template: "%s | Daraja SDK",
+    default: "Daraja SDK — Type-safe M-Pesa",
+    template: "%s | Daraja",
   },
   description:
     "Daraja SDK gives TypeScript developers a type-safe, edge-ready interface for Safaricom M-Pesa APIs, token lifecycle management, and webhook parsing.",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "Payments",
   ],
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION,
+    google: "2xFtCff32fpOw9mx676W36N5-EBw3wBwGfpPBLp2tUs",
   },
   openGraph: {
     type: "website",

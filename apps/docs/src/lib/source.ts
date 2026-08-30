@@ -23,7 +23,7 @@ export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
   icon(icon) {
-    if (!icon) return;
+    if (!icon) return null;
 
     const CustomIcon = Icons[icon as keyof typeof Icons] as
       ComponentType<{ className?: string }> | undefined;
@@ -34,7 +34,7 @@ export const source = loader({
     if (LucideIcon)
       return createElement(LucideIcon, { className: "size-4 shrink-0" });
 
-    return undefined;
+    return null;
   },
 });
 

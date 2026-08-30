@@ -189,6 +189,7 @@ export async function POST(req: Request) {
             type: "text",
             text: `[Client Context: ${JSON.stringify(part.data)}]`,
           };
+        return undefined;
       },
     },
   );
