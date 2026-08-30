@@ -6,12 +6,11 @@
 
 Auto-caching OAuth tokens. Timezone-correct STK passwords, generated for you. Safaricom's own field misspellings, normalized behind a clean interface not papered over.
 
-[![npm package](https://shieldcn.dev/npm/@lumierelabs%2Fdaraja.svg?variant=branded&size=xs&split=true)](https://www.npmjs.com/package/@lumierelabs/daraja)
-[![downloads](https://shieldcn.dev/npm/dm/@lumierelabs/daraja.svg?variant=branded&size=xs)](https://www.npmjs.com/package/@lumierelabs/daraja)
-[![license](https://shieldcn.dev/npm/license/@lumierelabs%2Fdaraja.svg?variant=branded&size=xs&split=true)](./LICENSE)
+[![npm](https://shieldcn.dev/npm/@lumierelabs/daraja.svg?variant=branded&size=xs&split=true)](https://www.npmjs.com/package/@lumierelabs/daraja)
+[![license](https://shieldcn.dev/npm/license/@lumierelabs/daraja.svg?variant=branded&size=xs&split=true)](https://www.npmjs.com/package/@lumierelabs/daraja)
 [![types](https://shieldcn.dev/npm/types/@lumierelabs%2Fdaraja.svg?size=xs&theme=blue&split=true&logo=typescript)](https://www.typescriptlang.org/)
-[![dependencies](https://shieldcn.dev/badge/Dependencies-0%20deps.svg?variant=branded&size=xs&split=true&logo=lu%3ABox)](./package.json)
-[![stars](https://shieldcn.dev/github/Mahito0x/Daraja-SDK/stars.svg?variant=branded&size=xs&split=true)](https://github.com/Mahito0x/Daraja-SDK)
+[![ci](https://shieldcn.dev/github/Mahito0x/Daraja-SDK/ci.svg?variant=outline&size=xs&split=true)](https://github.com/Mahito0x/Daraja-SDK/actions)
+[![dependencies](https://shieldcn.dev/badge/dependencies-0-neutral.svg?variant=branded&size=xs&split=true&logo=lu%3ABox)](./package.json)[![stars](https://shieldcn.dev/github/Mahito0x/Daraja-SDK/stars.svg?variant=branded&size=xs&split=true)](https://github.com/Mahito0x/Daraja-SDK)
 
 [Documentation](http://darajasdk.vercel.app/docs) · [Quickstart](http://darajasdk.vercel.app/docs/getting-started/quickstart) · [Report a Bug](https://github.com/Mahito0x/Daraja-SDK/issues) · [Request a Feature](https://github.com/Mahito0x/Daraja-SDK/issues)
 

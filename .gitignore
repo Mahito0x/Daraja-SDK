@@ -6,6 +6,12 @@ node_modules/
 .env
 .env.*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
+packages/**/.env
+packages/**/.env.*
+!packages/**/.env.example
 
 # Build and generated output
 .next/
