@@ -31,7 +31,7 @@ export class C2BClient {
   // Shared helpers
   // ---------------------------------------------------------------------
 
-  private validateShortCode(shortCode: unknown): number {
+  private static validateShortCode(shortCode: unknown): number {
     if (typeof shortCode !== "string" && typeof shortCode !== "number") {
       throw new DarajaError({
         message: `shortCode must be a string or number, but received type "${typeof shortCode}".`,
@@ -67,7 +67,7 @@ export class C2BClient {
       });
     }
 
-    const shortCode = this.validateShortCode(request.shortCode);
+    const shortCode = C2BClient.validateShortCode(request.shortCode);
 
     const { responseType } = request;
     if (
@@ -161,7 +161,7 @@ export class C2BClient {
       });
     }
 
-    const shortCode = this.validateShortCode(request.shortCode);
+    const shortCode = C2BClient.validateShortCode(request.shortCode);
 
     const { commandId, amount, msisdn, billRefNumber } = request;
     if (

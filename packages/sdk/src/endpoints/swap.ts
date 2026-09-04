@@ -16,7 +16,7 @@ export class SwapClient {
    * Validates a Swap request field-by-field and returns the wire body,
    * or throws a descriptive DarajaError describing exactly what's wrong.
    */
-  private validateAndTransform(request: SwapRequest): SwapWireRequest {
+  private static validateAndTransform(request: SwapRequest): SwapWireRequest {
     if (request === null || typeof request !== "object") {
       throw new DarajaError({
         message: "Swap request must be an object.",
@@ -60,7 +60,7 @@ export class SwapClient {
    * ```
    */
   public async check(request: SwapRequest): Promise<SwapResponse> {
-    const body = this.validateAndTransform(request);
+    const body = SwapClient.validateAndTransform(request);
 
     return this.http.request<SwapResponse>("/imsi/v2/checkATI", {
       method: "POST",

@@ -43,7 +43,10 @@ export class MpesaExpressClient {
   // Shared helpers
   // ---------------------------------------------------------------------
 
-  private validateShortCode(shortCode: unknown, fieldName: string): string {
+  private static validateShortCode(
+    shortCode: unknown,
+    fieldName: string,
+  ): string {
     if (typeof shortCode !== "string" && typeof shortCode !== "number") {
       throw new DarajaError({
         message: `${fieldName} must be a string or number, but received type "${typeof shortCode}".`,
@@ -72,7 +75,10 @@ export class MpesaExpressClient {
     return asString;
   }
 
-  private validatePhoneNumber(value: unknown, fieldName: string): string {
+  private static validatePhoneNumber(
+    value: unknown,
+    fieldName: string,
+  ): string {
     if (typeof value !== "string") {
       throw new DarajaError({
         message: `${fieldName} must be a string, but received type "${typeof value}".`,
@@ -89,7 +95,7 @@ export class MpesaExpressClient {
     return trimmed;
   }
 
-  private buildAuthFields(businessShortCode: string, passkey: string) {
+  private static buildAuthFields(businessShortCode: string, passkey: string) {
     if (typeof passkey !== "string" || !passkey.trim()) {
       throw new DarajaError({
         message: "passkey is required and must be a non-empty string.",
@@ -142,11 +148,11 @@ export class MpesaExpressClient {
       });
     }
 
-    const businessShortCode = this.validateShortCode(
+    const businessShortCode = MpesaExpressClient.validateShortCode(
       request.businessShortCode ?? this.http.getShortcode(),
       "businessShortCode",
     );
-    const { timestamp, password } = this.buildAuthFields(
+    const { timestamp, password } = MpesaExpressClient.buildAuthFields(
       businessShortCode,
       request.passkey ?? this.http.getPasskey(),
     );
@@ -181,12 +187,15 @@ export class MpesaExpressClient {
       });
     }
 
-    const partyA = this.validatePhoneNumber(request.partyA, "partyA");
-    const partyB = this.validateShortCode(
+    const partyA = MpesaExpressClient.validatePhoneNumber(
+      request.partyA,
+      "partyA",
+    );
+    const partyB = MpesaExpressClient.validateShortCode(
       request.partyB ?? this.http.getShortcode(),
       "partyB",
     );
-    const phoneNumber = this.validatePhoneNumber(
+    const phoneNumber = MpesaExpressClient.validatePhoneNumber(
       request.phoneNumber,
       "phoneNumber",
     );
@@ -282,11 +291,11 @@ export class MpesaExpressClient {
       });
     }
 
-    const businessShortCode = this.validateShortCode(
+    const businessShortCode = MpesaExpressClient.validateShortCode(
       request.businessShortCode ?? this.http.getShortcode(),
       "businessShortCode",
     );
-    const { timestamp, password } = this.buildAuthFields(
+    const { timestamp, password } = MpesaExpressClient.buildAuthFields(
       businessShortCode,
       request.passkey ?? this.http.getPasskey(),
     );

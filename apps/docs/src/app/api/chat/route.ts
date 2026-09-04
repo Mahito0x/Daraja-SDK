@@ -265,24 +265,21 @@ export async function POST(req: Request) {
           }
 
           if (matchingDocs.length > 0) {
-            docsResultsMarkdown =
-              "\n\nHere are the most relevant documentation guides for your question:\n\n" +
-              matchingDocs
-                .map(
-                  (d) =>
-                    `* [${d.title}](${d.url})${d.description ? ` — ${d.description}` : ""}`,
-                )
-                .join("\n");
+            docsResultsMarkdown = `\n\nHere are the most relevant documentation guides for your question:\n\n${matchingDocs
+              .map(
+                (d) =>
+                  `* [${d.title}](${d.url})${d.description ? ` — ${d.description}` : ""}`,
+              )
+              .join("\n")}`;
           }
         } catch (searchErr) {
           console.error("[AI Search] Offline search failed:", searchErr);
         }
       }
 
-      const fallbackContent =
-        "Pole! The AI went for a quick chai break. " +
-        (docsResultsMarkdown ||
-          "Check the docs directly or try again in a sec.");
+      const fallbackContent = `Pole! The AI went for a quick chai break. ${
+        docsResultsMarkdown || "Check the docs directly or try again in a sec."
+      }`;
 
       const id = crypto.randomUUID();
       writer.write({ type: "text-start", id });

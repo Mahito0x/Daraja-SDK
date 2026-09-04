@@ -37,7 +37,7 @@ export class MobileNumberValidationClient {
    * Validates a request field-by-field and returns the wire body, or
    * throws a descriptive DarajaError describing exactly what's wrong.
    */
-  private validateAndTransform(
+  private static validateAndTransform(
     request: MobileNumberValidationRequest,
   ): MobileNumberValidationWireRequest {
     if (request === null || typeof request !== "object") {
@@ -119,7 +119,7 @@ export class MobileNumberValidationClient {
   public async validate(
     request: MobileNumberValidationRequest,
   ): Promise<MobileNumberValidationResponse> {
-    const body = this.validateAndTransform(request);
+    const body = MobileNumberValidationClient.validateAndTransform(request);
 
     return this.http.request<MobileNumberValidationResponse>(
       "/v1/KYC-validation/validateID",

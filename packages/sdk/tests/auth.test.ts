@@ -194,7 +194,7 @@ describe("AuthManager — credential validation", () => {
   });
 
   it("rejects a key containing internal whitespace (line-wrap / copy-paste artifact)", async () => {
-    const brokenKey = VALID_KEY.slice(0, 24) + " " + VALID_KEY.slice(24);
+    const brokenKey = `${VALID_KEY.slice(0, 24)} ${VALID_KEY.slice(24)}`;
     await expectDarajaError(
       () => attempt({ consumerKey: brokenKey }),
       "INVALID_CREDENTIALS",
@@ -203,7 +203,7 @@ describe("AuthManager — credential validation", () => {
   });
 
   it("rejects a key with invalid characters and names the offending characters", async () => {
-    const badKey = VALID_KEY.slice(0, -2) + "-_";
+    const badKey = `${VALID_KEY.slice(0, -2)}-_`;
     await expectDarajaError(
       () => attempt({ consumerKey: badKey }),
       "INVALID_CREDENTIALS",
@@ -221,7 +221,7 @@ describe("AuthManager — credential validation", () => {
   });
 
   it("rejects a consumer secret that is too long, with an exact character count", async () => {
-    const longSecret = VALID_SECRET + "AB"; // 66 instead of 64
+    const longSecret = `${VALID_SECRET}AB`; // 66 instead of 64
     await expectDarajaError(
       () => attempt({ consumerSecret: longSecret }),
       "INVALID_CREDENTIALS",

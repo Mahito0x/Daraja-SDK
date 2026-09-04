@@ -3,14 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  ShieldCheck,
-  ExternalLink,
-  Code2,
-  KeyRound,
-  GitCommit,
-} from "lucide-react";
+import { ArrowUpRight, KeyRound, GitCommit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Astro,

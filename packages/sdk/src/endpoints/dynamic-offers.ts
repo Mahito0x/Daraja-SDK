@@ -76,7 +76,7 @@ export class DynamicOffersClient {
     );
   }
 
-  private validatePurchaseRequest(
+  private static validatePurchaseRequest(
     request: DynamicOffersPurchaseRequest,
   ): DynamicOffersPurchaseWireRequest {
     if (request === null || typeof request !== "object") {
@@ -177,7 +177,7 @@ export class DynamicOffersClient {
   public async purchase(
     request: DynamicOffersPurchaseRequest,
   ): Promise<DynamicOffersPurchaseResponse> {
-    const body = this.validatePurchaseRequest(request);
+    const body = DynamicOffersClient.validatePurchaseRequest(request);
 
     return this.http.request<DynamicOffersPurchaseResponse>(
       "/v1/dynamic-offers/facebook-bundle/purchase",

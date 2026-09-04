@@ -26,18 +26,17 @@ const tabs: CodeTab[] = [
 const daraja = Daraja({
   consumerKey: process.env.DARAJA_CONSUMER_KEY!,
   consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: "174379",
+  passkey: process.env.MPESA_PASSKEY!,
+  callbackUrl: "https://example.com/api/callbacks/stk",
   environment: "sandbox",
 })
 
 const push = await daraja.stkPush({
-  businessShortCode: "174379",
-  passkey: process.env.MPESA_PASSKEY!,
   transactionType: "CustomerPayBillOnline",
   amount: 1,
   partyA: "254708374149",
-  partyB: "174379",
   phoneNumber: "254708374149",
-  callBackURL: "https://example.com/api/callbacks/stk",
   accountReference: "INV-1042",
   transactionDesc: "Order #1042",
 })
@@ -51,22 +50,26 @@ console.log(push.CheckoutRequestID)`,
     filename: "app/api/checkout/route.ts",
     icon: Nextjs,
     code: `import { NextResponse } from "next/server"
-import { daraja } from "@/lib/daraja"
-import { DarajaError } from "@lumierelabs/daraja"
+import { Daraja, DarajaError } from "@lumierelabs/daraja"
+
+const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: "174379",
+  passkey: process.env.MPESA_PASSKEY!,
+  callbackUrl: \`\${process.env.APP_URL}/api/callbacks/stk\`,
+  environment: "sandbox",
+})
 
 export async function POST(request: Request) {
   const { phoneNumber, amount, orderRef } = await request.json()
 
   try {
     const push = await daraja.stkPush({
-      businessShortCode: "174379",
-      passkey: process.env.MPESA_PASSKEY!,
       transactionType: "CustomerPayBillOnline",
       amount,
       partyA: phoneNumber,
-      partyB: "174379",
       phoneNumber,
-      callBackURL: \`\${process.env.APP_URL}/api/callbacks/stk\`,
       accountReference: orderRef,
       transactionDesc: "Order payment",
     })
@@ -90,22 +93,26 @@ export async function POST(request: Request) {
     filename: "src/pages/api/checkout.ts",
     icon: Astro,
     code: `import type { APIRoute } from "astro"
-import { daraja } from "../../lib/daraja"
-import { DarajaError } from "@lumierelabs/daraja"
+import { Daraja, DarajaError } from "@lumierelabs/daraja"
+
+const daraja = Daraja({
+  consumerKey: import.meta.env.DARAJA_CONSUMER_KEY,
+  consumerSecret: import.meta.env.DARAJA_CONSUMER_SECRET,
+  shortcode: "174379",
+  passkey: import.meta.env.MPESA_PASSKEY,
+  callbackUrl: \`\${import.meta.env.APP_URL}/api/callbacks/stk\`,
+  environment: "sandbox",
+})
 
 export const POST: APIRoute = async ({ request }) => {
   const { phoneNumber, amount, orderRef } = await request.json()
 
   try {
     const push = await daraja.stkPush({
-      businessShortCode: "174379",
-      passkey: import.meta.env.MPESA_PASSKEY,
       transactionType: "CustomerPayBillOnline",
       amount,
       partyA: phoneNumber,
-      partyB: "174379",
       phoneNumber,
-      callBackURL: \`\${import.meta.env.APP_URL}/api/callbacks/stk\`,
       accountReference: orderRef,
     })
 

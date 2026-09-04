@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Example: Checking a customer's last SIM swap date (fraud check).
  *
@@ -5,9 +6,16 @@
  */
 import { Daraja, SwapClient, DarajaError } from "..";
 
-const daraja = new Daraja({
-  consumerKey: process.env.CONSUMER_KEY!,
-  consumerSecret: process.env.CONSUMER_SECRET!,
+function assertEnvVar(name: string, value?: string): string {
+  if (!value) {
+    throw new Error(`Missing environment variable ${name}`);
+  }
+  return value;
+}
+
+const daraja = Daraja({
+  consumerKey: assertEnvVar("CONSUMER_KEY", process.env.CONSUMER_KEY),
+  consumerSecret: assertEnvVar("CONSUMER_SECRET", process.env.CONSUMER_SECRET),
   environment: "sandbox",
 });
 
@@ -19,8 +27,6 @@ async function main() {
     console.log("Last swap date:", result.lastSwapDate);
 
     if (SwapClient.wasRecentlySwapped(result)) {
-      // SIM was swapped within the last 3 months — treat as higher risk,
-      // e.g. require step-up auth before a password reset or payout.
       console.log("⚠️  Recently swapped — flag for extra verification.");
     } else {
       console.log("✅ No recent swap.");

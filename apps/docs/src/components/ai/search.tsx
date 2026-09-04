@@ -19,8 +19,6 @@ import {
   RefreshCw,
   SearchIcon,
   Send,
-  Sparkles,
-  Trash2,
   UserRound,
   X,
 } from "lucide-react";
@@ -55,7 +53,6 @@ import {
   type UIToolInvocation,
 } from "ai";
 import { Markdown } from "../markdown";
-import { string } from "zod";
 
 export type ChatUIMessage = UIMessage<
   never,
