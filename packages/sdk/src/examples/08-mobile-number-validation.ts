@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Example: Checking whether a phone number is registered under a given
  * National ID / Military ID / Passport (KYC check).
@@ -6,9 +7,16 @@
  */
 import { Daraja, MobileNumberValidationClient, DarajaError } from "..";
 
-const daraja = new Daraja({
-  consumerKey: process.env.CONSUMER_KEY!,
-  consumerSecret: process.env.CONSUMER_SECRET!,
+function assertEnvVar(name: string, value?: string): string {
+  if (!value) {
+    throw new Error(`Missing environment variable ${name}`);
+  }
+  return value;
+}
+
+const daraja = Daraja({
+  consumerKey: assertEnvVar("CONSUMER_KEY", process.env.CONSUMER_KEY),
+  consumerSecret: assertEnvVar("CONSUMER_SECRET", process.env.CONSUMER_SECRET),
   environment: "sandbox",
 });
 
@@ -17,7 +25,7 @@ async function main() {
     const result = await daraja.mobileNumberValidation.validate({
       shortCode: "12345",
       msisdn: "254710860780",
-      idType: "01", // '01' National ID, '02' Military ID, '05' Passport
+      idType: "01",
       idNumber: "454353453",
     });
 

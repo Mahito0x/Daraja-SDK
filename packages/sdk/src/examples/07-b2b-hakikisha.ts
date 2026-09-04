@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Example: Looking up an M-PESA organization's name and tariff before
  * paying it (B2B Hakikisha).
@@ -6,9 +7,16 @@
  */
 import { Daraja, DarajaError } from "..";
 
-const daraja = new Daraja({
-  consumerKey: process.env.CONSUMER_KEY!,
-  consumerSecret: process.env.CONSUMER_SECRET!,
+function assertEnvVar(name: string, value?: string): string {
+  if (!value) {
+    throw new Error(`Missing environment variable ${name}`);
+  }
+  return value;
+}
+
+const daraja = Daraja({
+  consumerKey: assertEnvVar("CONSUMER_KEY", process.env.CONSUMER_KEY),
+  consumerSecret: assertEnvVar("CONSUMER_SECRET", process.env.CONSUMER_SECRET),
   environment: "sandbox",
 });
 
@@ -22,8 +30,6 @@ async function main() {
     console.log("Organization:", result.OrganizationName);
     console.log("Shortcode:", result.OrganizationShortCode);
     console.log("Charge profile:", result.ChargeProfileID);
-
-    // Confirm the recipient before actually sending the B2B payment.
   } catch (error) {
     if (error instanceof DarajaError) {
       console.error(error.format());

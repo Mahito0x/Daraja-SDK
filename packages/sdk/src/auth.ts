@@ -84,10 +84,10 @@ export class AuthManager {
    * Strips accidental outer quotes, hidden newlines/tabs, and surrounding
    * whitespace that commonly slip in from `.env` files or copy-paste.
    */
-  private sanitizeCredential(val: string): string {
+  private static sanitizeCredential(val: string): string {
     return val
       .trim()
-      .replace(/^["']|["']$/g, "") // Strip surrounding single/double quotes
+      .replace(/^['"]|['"]$/g, "") // Strip surrounding single/double quotes
       .replace(/[\r\n\t]/g, "") // Strip hidden newline/tab characters
       .trim();
   }
@@ -117,7 +117,7 @@ export class AuthManager {
       });
     }
 
-    const sanitized = this.sanitizeCredential(raw);
+    const sanitized = AuthManager.sanitizeCredential(raw);
 
     // 3. Empty after sanitization (was whitespace/quotes only)
     if (!sanitized) {

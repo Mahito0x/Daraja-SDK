@@ -1,5 +1,4 @@
 import type { SVGProps } from "react";
-import Image, { type ImageProps } from "next/image";
 
 export const GitHub = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 1024 1024" fill="none">

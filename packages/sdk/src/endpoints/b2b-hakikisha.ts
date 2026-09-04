@@ -28,7 +28,7 @@ export class B2BHakikishaClient {
    * Daraja-shaped (PascalCase) wire body, or throws a descriptive
    * DarajaError describing exactly what's wrong.
    */
-  private validateAndTransform(
+  private static validateAndTransform(
     request: B2BHakikishaRequest,
   ): B2BHakikishaWireRequest {
     if (request === null || typeof request !== "object") {
@@ -88,7 +88,7 @@ export class B2BHakikishaClient {
   public async query(
     request: B2BHakikishaRequest,
   ): Promise<B2BHakikishaResponse> {
-    const body = this.validateAndTransform(request);
+    const body = B2BHakikishaClient.validateAndTransform(request);
 
     return this.http.request<B2BHakikishaResponse>("/sfcverify/v1/query/info", {
       method: "POST",

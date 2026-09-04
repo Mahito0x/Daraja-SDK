@@ -39,7 +39,10 @@ function validateShortCode(shortCode: unknown, fieldName: string): string {
 export class B2CTopUpClient {
   constructor(private readonly http: HttpClient) {}
 
-  private validateAndTransform(request: B2CTopUpRequest): B2CTopUpWireRequest {
+  private static validateAndTransform(
+    request: B2CTopUpRequest,
+    http: HttpClient,
+  ): B2CTopUpWireRequest {
     if (request === null || typeof request !== "object") {
       throw new DarajaError({
         message: "B2C top up request must be an object.",
@@ -120,7 +123,7 @@ export class B2CTopUpClient {
       });
     }
 
-    const environment = this.http.getEnvironment();
+    const environment = http.getEnvironment();
     const resolvedQueueTimeOutURL = validateCallbackUrl(
       queueTimeOutURL,
       "queueTimeOutURL",
@@ -164,14 +167,14 @@ export class B2CTopUpClient {
    *   amount: 239,
    *   accountReference: '353353',
    *   remarks: 'OK',
-   *   queueTimeOutURL: 'https://example.com/callbacks/timeout',
-   *   resultURL: 'https://example.com/callbacks/result',
+   *   queueTimeOutURL: '[https://example.com/callbacks/timeout](https://example.com/callbacks/timeout)',
+   *   resultURL: '[https://example.com/callbacks/result](https://example.com/callbacks/result)',
    * });
    * console.log(accepted.ResponseDescription);
    * ```
    */
   public async topUp(request: B2CTopUpRequest): Promise<B2CTopUpResponse> {
-    const body = this.validateAndTransform(request);
+    const body = B2CTopUpClient.validateAndTransform(request, this.http);
 
     return this.http.request<B2CTopUpResponse>("/mpesa/b2b/v1/paymentrequest", {
       method: "POST",

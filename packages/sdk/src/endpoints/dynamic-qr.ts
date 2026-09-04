@@ -35,7 +35,7 @@ export class DynamicQRClient {
    * Daraja-shaped (PascalCase) wire body, or throws a descriptive
    * DarajaError describing exactly what's wrong.
    */
-  private validateAndTransform(
+  private static validateAndTransform(
     request: DynamicQRRequest,
   ): DynamicQRWireRequest {
     if (request === null || typeof request !== "object") {
@@ -179,7 +179,7 @@ export class DynamicQRClient {
    * ```
    */
   public async generate(request: DynamicQRRequest): Promise<DynamicQRResponse> {
-    const body = this.validateAndTransform(request);
+    const body = DynamicQRClient.validateAndTransform(request);
 
     return this.http.request<DynamicQRResponse>("/mpesa/qrcode/v1/generate", {
       method: "POST",

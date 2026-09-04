@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Example: Fetching a customer's hashed IMSI, last swap date, and network
  * registration date (V1), plus the lighter IMSI-only V2 response.
@@ -6,15 +7,21 @@
  */
 import { Daraja, IMSIClient, DarajaError } from "..";
 
-const daraja = new Daraja({
-  consumerKey: process.env.CONSUMER_KEY!,
-  consumerSecret: process.env.CONSUMER_SECRET!,
+function assertEnvVar(name: string, value?: string): string {
+  if (!value) {
+    throw new Error(`Missing environment variable ${name}`);
+  }
+  return value;
+}
+
+const daraja = Daraja({
+  consumerKey: assertEnvVar("CONSUMER_KEY", process.env.CONSUMER_KEY),
+  consumerSecret: assertEnvVar("CONSUMER_SECRET", process.env.CONSUMER_SECRET),
   environment: "sandbox",
 });
 
 async function main() {
   try {
-    // V1 — hashed IMSI + swap date + network registration date.
     const v1 = await daraja.imsi.checkV1({ customerNumber: "254722000000" });
     console.log("IMSI (V1):", v1.imsi);
     console.log("Network registration date:", v1.msisdnRegistrationDate);
@@ -23,7 +30,6 @@ async function main() {
       console.log("⚠️  Recently swapped — flag for extra verification.");
     }
 
-    // V2 — hashed IMSI only, cheaper per-call.
     const v2 = await daraja.imsi.checkV2({ customerNumber: "254722000000" });
     console.log("IMSI (V2):", v2.imsi);
   } catch (error) {

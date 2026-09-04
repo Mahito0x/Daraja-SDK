@@ -28,7 +28,7 @@ export class IMSIClient {
    * Validates an IMSI request field-by-field and returns the wire body,
    * or throws a descriptive DarajaError describing exactly what's wrong.
    */
-  private validateAndTransform(request: IMSIRequest): IMSIWireRequest {
+  private static validateAndTransform(request: IMSIRequest): IMSIWireRequest {
     if (request === null || typeof request !== "object") {
       throw new DarajaError({
         message: "IMSI request must be an object.",
@@ -66,7 +66,7 @@ export class IMSIClient {
    * ```
    */
   public async checkV1(request: IMSIRequest): Promise<IMSIResponseV1> {
-    const body = this.validateAndTransform(request);
+    const body = IMSIClient.validateAndTransform(request);
 
     return this.http.request<IMSIResponseV1>(IMSI_V1_PATH, {
       method: "POST",
@@ -85,7 +85,7 @@ export class IMSIClient {
    * ```
    */
   public async checkV2(request: IMSIRequest): Promise<IMSIResponseV2> {
-    const body = this.validateAndTransform(request);
+    const body = IMSIClient.validateAndTransform(request);
 
     return this.http.request<IMSIResponseV2>(IMSI_V2_PATH, {
       method: "POST",
