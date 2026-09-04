@@ -11,6 +11,9 @@ import { TypeTable } from "fumadocs-ui/components/type-table";
 interface DarajaConfig {
   consumerKey: string;
   consumerSecret: string;
+  shortcode?: string; // default shortcode for STK Push/query
+  passkey?: string; // default Lipa Na M-Pesa Online passkey
+  callbackUrl?: string; // default callback URL for STK Push
   environment?: "sandbox" | "production"; // default: 'sandbox'
   timeout?: number; // default: 10000 (ms)
 }
@@ -29,6 +32,21 @@ interface DarajaConfig {
         "Your Daraja app Consumer Secret. Must be exactly 64 alphanumeric characters.",
       type: "string",
       required: true,
+    },
+    shortcode: {
+      description:
+        "Default business shortcode used by M-Pesa Express STK Push and query requests when the request does not provide one.",
+      type: "string",
+    },
+    passkey: {
+      description:
+        "Default Lipa Na M-Pesa Online passkey used by M-Pesa Express STK Push and query requests when the request does not provide one.",
+      type: "string",
+    },
+    callbackUrl: {
+      description:
+        "Default callback URL used by M-Pesa Express STK Push requests when the request does not provide callBackURL.",
+      type: "string",
     },
     environment: {
       description:
@@ -81,6 +99,13 @@ Daraja({
 - `'production'` points at `https://api.safaricom.co.ke`, and additionally **requires HTTPS on every callback URL** (`callBackURL`, `confirmationUrl`, `validationUrl`, `queueTimeOutURL`, `resultURL`). Passing an `http://` callback URL in production throws `INVALID_CALLBACK_URL` immediately instead of letting Daraja reject it later.
 
 Any value outside `'sandbox'` / `'production'` throws `INVALID_ENVIRONMENT` at construction time.
+
+## STK Push defaults
+
+`shortcode`, `passkey`, and `callbackUrl` are optional configuration defaults for
+M-Pesa Express. A value supplied directly to `push()` or `query()` takes
+precedence. If no value is available in either place, the normal request
+validation error is thrown.
 
 ## `timeout`
 

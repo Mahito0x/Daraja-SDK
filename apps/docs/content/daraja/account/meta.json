@@ -1,0 +1,10 @@
+{
+  "title": "Account & Ledger",
+  "icon": "Landmark",
+  "pages": [
+    "account-balance",
+    "transaction-status",
+    "reversals",
+    "pull-transactions"
+  ]
+}

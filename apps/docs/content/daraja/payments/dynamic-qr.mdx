@@ -1,0 +1,63 @@
+---
+title: Dynamic QR
+description: Generate a QR code that a customer scans in the M-PESA or My Safaricom app to pay a specific amount to a specific merchant.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/mpesa/qrcode/v1/generate
+```
+
+## Overview
+
+Generates a QR code that customers scan with the My Safaricom App or M-PESA app to capture a Till number and amount, then authorize payment at participating Lipa na M-PESA merchant outlets.
+
+## Request
+
+```json
+{
+  "MerchantName": "TEST SUPERMARKET",
+  "RefNo": "Invoice Test",
+  "Amount": 1,
+  "TrxCode": "BG",
+  "CPI": "373132",
+  "Size": "300"
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `MerchantName` | The M-PESA merchant/company name. | String | `TEST-Supermarket` |
+| `RefNo` | Transaction reference. | String | `xewr34fer4t` |
+| `Amount` | Amount for the sale. | Numeric | `2000` |
+| `TrxCode` | Transaction type: `BG` (Buy Goods/Till), `WA` (withdraw at agent), `PB` (Pay Bill), `SM` (send money to a mobile number), `SB` (send to business, business number in MSISDN format). | String | `BG` |
+| `CPI` | Credit Party Identifier: a mobile number, business number, agent till, Pay Bill, or Buy Goods number, depending on `TrxCode`. | String | `174379` |
+| `Size` | QR image size in pixels; always rendered square. | String | `300` |
+
+## Response
+
+```json
+{
+  "ResponseCode": "AG_20191219_000043fdf61864fe9ff5",
+  "RequestID": "16738-27456357-1",
+  "ResponseDescription": "QR Code Successfully Generated.",
+  "QRCode": "iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAIAAAD2HxkiAAAHtElEQVR42u3d23rqIBAGUN//pbNv91c1cpwMsP7L1lg..."
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `ResponseCode` | Documented as returning the transaction type. | Alphanumeric string |
+| `ResponseDescription` | Status of the request. | `QR Code Successfully Generated` |
+| `QRCode` | Base64-encoded PNG image data. | Alphanumeric string |
+
+<Callout type="warn" title="Defect in the source material">
+Two things carried directly from Safaricom's own sample. First, `ResponseCode` is described as returning "the Transaction Type," but the sample value shown is a conversation-style ID (`AG_20191219_000043fdf61864fe9ff5`), not a transaction type code; which is actually correct hasn't been independently confirmed. Second, the sample `QRCode` base64 string ends with a stray period (`...ErkJggg==."`) immediately before the closing quote, which is not part of valid base64 and has been trimmed in the excerpt above.
+</Callout>
+
+## Testing and Go Live
+
+This is a synchronous API with no dedicated Testing or Go Live section published on Safaricom's own page for it, beyond the standard sandbox-vs-production endpoint pattern used across Daraja: attach the Dynamic QR product to a sandbox app, generate a token from the [Authorization API](/daraja/authorization), and call the endpoint above. Go Live follows the same [Organization Portal](/daraja/organization-portal) path as the rest of the collections APIs once you're ready to move to a live short code.

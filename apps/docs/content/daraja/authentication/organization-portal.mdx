@@ -1,0 +1,207 @@
+---
+title: Organization Portal & Go Live
+description: Creating operators, assigning API roles, and generating security credentials on the M-PESA Organization Portal. Referenced by nearly every collection and disbursement API.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+
+<Callout type="info" title="Why this page exists on its own">
+  Safaricom repeats this entire walkthrough, almost word for word, at the bottom
+  of most individual API pages (C2B, M-PESA Express, B2C, Reversals, Transaction
+  Status, Pull Transactions, and others all carry their own copy). Rather than
+  reproducing it a dozen times, it's collected here once. Each API page links
+  back to this page under its own "Go Live" section instead.
+</Callout>
+
+## What the portal is
+
+The **M-PESA Organization Portal** (https://org.ke.m-pesa.com/orglogin.action) is where a business manages the operational side of its M-PESA account: users, roles, statements, balances, and fund movements between accounts. Daraja's APIs act on this account; the portal is where the humans behind that account are set up.
+
+Access requires a **Business Administrator** role to exist under your short code (Pay Bill or Till). Before that can happen, the settlement option on your short code needs to be set to **Bank**, via a Head Office application. To apply for a Head Office for your short code or Store Number, contact [M-PESABusiness@Safaricom.co.ke](mailto:M-PESABusiness@Safaricom.co.ke); the same team then guides the creation of the first Business Administrator username.
+
+## First-time login
+
+<Steps>
+  <Step>
+    ### Access the portal
+
+    Go to https://org.ke.m-pesa.com in your browser.
+
+  </Step>
+
+  <Step>
+    ### Enter shortcode
+
+    Enter your short code (the Bulk Payment Number).
+
+  </Step>
+
+  <Step>
+    ### Input administrator username
+
+    Enter the Business Administrator username received via email.
+
+  </Step>
+
+  <Step>
+    ### Enter temporary password
+
+    Enter the first-time password from the same email.
+
+    <Callout type="warn">
+      The initial password is case-sensitive. Note that any trailing full stop at the end of the emailed password is punctuation, not part of the actual credential.
+    </Callout>
+
+  </Step>
+
+  <Step>
+    ### Solve captcha verification
+
+    Enter the verification code shown on screen, then click continue.
+
+  </Step>
+
+  <Step>
+    ### Verify SMS OTP
+
+    Enter the OTP sent to your registered mobile line to proceed to the credentials setup page.
+
+  </Step>
+
+  <Step>
+    ### Configure new credentials
+
+    Set a new password alongside two mandatory security questions and answers that fulfill the stated password rules.
+
+  </Step>
+
+  <Step>
+    ### Finalize activation
+
+    Submit the form to complete setup and activate the account.
+
+  </Step>
+</Steps>
+
+After activation, subsequent logins only need username, short code, password, and an SMS OTP.
+
+<Callout type="warn" title="If the administrator role goes dormant">
+  Safaricom's documentation says a dormant Business Administrator role can be
+  reactivated by emailing
+  [M-PESABusiness@Safaricom.co.ke](mailto:M-PESABusiness@Safaricom.co.ke), after
+  which you can log in and reactivate any other dormant users yourself.
+</Callout>
+
+## M-PESA account types
+
+| Account                         | Purpose                                                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| MMF / Working Account           | Holding account funds move into before a business withdrawal.                                                                      |
+| Utility Account                 | Where customer payments (Pay Bill) land.                                                                                           |
+| Merchant Account                | Where customer payments (Buy Goods / Till) land.                                                                                   |
+| Charges Paid Account            | Debited for transaction fees; always shows as a negative balance until settled.                                                    |
+| Organization Settlement Account | Runs the settlement calculation, moving funds from Utility to the MMF account and clearing the Charges Paid Account automatically. |
+
+<Callout type="info">
+  Safaricom notes that the standalone transaction type "Move funds from Utility
+  to MMF" no longer exists on the portal, because the automatic settlement
+  process now handles it.
+</Callout>
+
+## Portal roles
+
+| Role                   | Can do                                                                          | Notes                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Business Administrator | Creates other operators and assigns their roles.                                | Cannot view transactions. The first one is created by Safaricom.                |
+| Business Manager       | Views statements, initiates and approves/rejects transactions, withdraws funds. | Also the role typically given the "Set Restricted ORG API Password" permission. |
+| Business Auditor       | View-only / read-only rights.                                                   | Cannot view transactions either, per Safaricom's documentation.                 |
+| Business Web Operator  | Initiates transactions, accesses statements, checks balance.                    |                                                                                 |
+
+### Creating a Business Manager
+
+<Steps>
+  <Step>
+    Log in as the Business Administrator, go to **Operators**, click **Add**.
+  </Step>
+  <Step>
+    Enter the new operator's username, and set access channel to **Web**.
+  </Step>
+  <Step>Select the default web profile.</Step>
+  <Step>
+    Assign the **Business Manager** and **Set Restricted ORG API Password**
+    roles.
+  </Step>
+  <Step>Enter the operator's KYC information and submit.</Step>
+</Steps>
+
+### Creating an API user (the "Initiator")
+
+This is the operator whose username and password become the `Initiator` and `SecurityCredential` values in API requests such as B2C, B2B, Transaction Status, Account Balance, and Reversals.
+
+<Steps>
+  <Step>
+    Log in as the Business Administrator, go to **Operators**, click **Add**.
+  </Step>
+  <Step>
+    Enter the API initiator's username, and set access channel to **API** (not
+    Web).
+  </Step>
+  <Step>Select the default web profile.</Step>
+  <Step>
+    Assign the API role(s) relevant to what this initiator will do, from the
+    table below.
+  </Step>
+  <Step>Enter KYC information and submit.</Step>
+</Steps>
+
+### Setting the API user's password
+
+<Steps>
+  <Step>
+    Log in as a user holding the **Set Restricted ORG API Password** role,
+    typically the Business Manager.
+  </Step>
+  <Step>Go to **My Functions** &gt; **Operator Management**.</Step>
+  <Step>
+    Search for the API username, select it, and choose **Operations** &gt; **Set
+    Password**.
+  </Step>
+</Steps>
+
+<Callout type="warn">
+  Safaricom's documentation asks that you avoid `@` and `.` when setting this
+  password. This is a stricter rule than the one quoted on individual API pages
+  for the *initiator* password itself (which allows `#`, `&`, `%`, `$`, and
+  treats `@` as an ordinary character); the two guidelines are not entirely
+  consistent with each other in Safaricom's own material, and neither is
+  explicitly reconciled in what Safaricom publishes.
+</Callout>
+
+## API roles reference
+
+| API                | Required role                        |
+| ------------------ | ------------------------------------ |
+| B2C                | ORG B2C API Initiator                |
+| Business Pay Bill  | Business Paybill Org API Initiator   |
+| Business Buy Goods | Business Buy Goods Org API Initiator |
+| Transaction Status | Transaction Status Query ORG API     |
+| Account Balance    | Balance Query ORG API                |
+| Reversals          | Org Reversals Initiator              |
+| Tax Remittance     | Tax Remittance to KRA API            |
+| Set Password role  | Set Restricted ORG API Password      |
+
+## Generating a SecurityCredential
+
+Covered in full on the [Introduction](/docs/daraja) page: encrypt the base64-encoded initiator password against M-PESA's public certificate with RSA and PKCS#1.5 padding, then base64-encode the result.
+
+## Applying for a live Pay Bill, Till, or B2C account
+
+Email [M-PESABusiness@Safaricom.co.ke](mailto:M-PESABusiness@Safaricom.co.ke). For a full one-account setup (a short code that can both receive and disburse), Safaricom's business channel is https://www.safaricom.co.ke/business/sme/m-pesa-payment-solutions.
+
+## Support
+
+- Daraja Chatbot, on the developer portal.
+- Incident Management page, on the developer portal, for production issues.
+- [apisupport@safaricom.co.ke](mailto:apisupport@safaricom.co.ke) for API support.
+- [M-PESABusiness@Safaricom.co.ke](mailto:M-PESABusiness@Safaricom.co.ke) for onboarding, Head Office applications, and organization portal administrator creation.

@@ -1,0 +1,126 @@
+---
+title: B2B Hakikisha
+description: Look up the registered name and applicable tariff for an M-PESA organization account before paying it.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Lets a partner confirm the name and tariff of an M-PESA organization account before sending money to it, the kind of check the name "Hakikisha" ("confirm" in Swahili) is describing.
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/sfcverify/v1/query/info
+```
+
+## Overview
+
+Returns the organization name and applicable charge profile for a given short code, so a merchant can confirm the destination is correct and understand the fees before paying via a B2B transaction.
+
+<Callout type="info">
+This is documented as **synchronous**, unlike most of the B2B/B2C family: the answer comes back directly in the HTTP response, with no callback URL involved.
+</Callout>
+
+## How it works
+
+1. The merchant authenticates via the [Authorization API](/daraja/authorization).
+2. The merchant calls this endpoint with the target short code and identifier type.
+3. The API responds directly with the organization name and tariff.
+4. The merchant decides whether to proceed with the payment.
+
+## Prerequisites
+
+- Daraja account and sandbox app.
+- Test data from the simulator section.
+- For go-live: a live Pay Bill/Till with Business Admin/Manager operators created.
+
+## Request
+
+**Headers**
+
+| Key | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `Authorization` | `Bearer <access_token>` |
+
+**Body**
+
+```json
+{
+  "IdentifierType": "4",
+  "Identifier": "666677"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `IdentifierType` | `2` for a Lipa na M-PESA Till Number or agent till; `4` for a Pay Bill, B2C account, or any other short code type. | `4` |
+| `Identifier` | The short code being queried. | `666677` |
+
+## Response
+
+```json
+{
+  "ConversationID": "410c-48e1-b4ab-57d897c8c7a0141968",
+  "ResponseCode": "4000",
+  "ResponseMessage": "Success",
+  "DetailedMessage": "Request received successfully",
+  "OrganizationShortCode": "666677",
+  "OrganizationName": "Daraja",
+  "ChargeProfileID": "20013"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `ConversationID` | Global unique identifier for the request. | `92713e02-970c-47ac-93f8-409058f2c58d` |
+| `ResponseCode` | Status of the query. | `4000` |
+| `ResponseMessage` | Success or error description. | `Success` |
+| `DetailedMessage` | A more detailed status message. | `Request received successfully` |
+| `OrganizationShortCode` | The queried short code (or Till Number, if `IdentifierType` was `2`). | `666677` |
+| `OrganizationName` | Registered store/organization name for that short code. | `Daraja` |
+| `ChargeProfileID` | The applicable tariff's ID. | `20013` |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own field description for `ResponseCode` says "0 means successful processing," but the sample response directly above it, and the sample value in the same table row, both show `4000` as the success code, not `0`. Both are reproduced as documented; which is actually correct hasn't been independently confirmed.
+</Callout>
+
+## Error codes
+
+| Code | Meaning |
+|---|---|
+| 0 | Success, details fetched |
+| 1 (or any other) | Request rejected |
+| 500 | Invalid parameter input |
+| 401.001 | Invalid access token |
+
+<Callout type="warn" title="Defect in the source material">
+This error table lists `0` as success, directly contradicting the `4000` shown as the success code in the Response Body sample above it, on the same page. Both come from Safaricom's own documentation and are reproduced as published.
+</Callout>
+
+## Charge profile mapping
+
+| Charge profile | ID |
+|---|---|
+| B2B Tariff 2 | 20129 |
+| Gaming Customer Bouquet Tariff | 20144 |
+| Gaming Mgao Tariff | 20143 |
+| Gaming Business Bouquet Tariff | 20142 |
+
+Safaricom's own page notes to "find the applicable tariffs for the various services below" and then does not actually list them beyond the mapping above; the fuller tariff sheets referenced (B2B Tariff, Paybill tariffs, Lipa na M-Pesa buy goods tariffs) sit elsewhere on Safaricom's business site rather than in the Daraja API documentation itself.
+
+## Testing
+
+**Daraja Simulator**: create a test app with the B2B Hakikisha product attached.
+
+**Postman**: token from the sandbox OAuth endpoint, then call the endpoint above.
+
+## Go Live
+
+See [Organization Portal & Go Live](/daraja/organization-portal).
+
+## FAQs
+
+**Can I query organization details for both Pay Bills and Till Numbers?** Yes, using `IdentifierType` `4` or `2` respectively.
+
+**Are there different tariff structures?** Yes: a Mgao Tariff splits charges between customer and business, a Business Bouquet Tariff puts all charges on the business, and a Customer Bouquet Tariff puts all charges on the customer.

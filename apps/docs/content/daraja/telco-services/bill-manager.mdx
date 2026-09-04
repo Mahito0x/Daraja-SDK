@@ -1,0 +1,338 @@
+---
+title: Bill Manager
+description: Send e-invoices, receive payment reconciliation data, and manage a business's opt-in details on M-PESA Bill Manager.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+M-PESA Bill Manager gives a business and its customers a single platform to send, receive, pay, and reconcile bills.
+
+<Callout type="warn" title="Defect in the source material">
+Every endpoint on Safaricom's own Bill Manager documentation page, with a single exception noted below, is written against the **production** host, `api.safaricom.co.ke`, with no separate sandbox host given anywhere on the page. This is unlike every other API in this reference, which documents a `sandbox.safaricom.co.ke` host for testing. Whether a sandbox environment exists for Bill Manager and simply isn't documented, or whether it's genuinely production-only from first integration, is not something Safaricom's own material clarifies.
+</Callout>
+
+## Onboarding (Opt-In)
+
+**Endpoint**
+
+```
+https://api.safaricom.co.ke/v1/billmanager-invoice/optin
+```
+
+The first call to make: opts your short code in as a Bill Manager biller. Once it succeeds, your short code is whitelisted for every other Bill Manager endpoint.
+
+- Uses your regular Daraja access token, the same as any other API.
+- The same Consumer Key can be used across multiple short codes belonging to it.
+
+### Request
+
+```json
+{
+  "shortcode": "718003",
+  "email": "youremail@gmail.com",
+  "officialContact": "0710XXXXXX",
+  "sendReminders": "1",
+  "logo": "image",
+  "callbackurl": "http://my.server.com/bar/callback"
+}
+```
+
+| Field | Description | Type |
+|---|---|---|
+| `shortcode` | Your Pay Bill or Buy Goods number (5 to 6 digits). | Numeric, required |
+| `email` | Official contact email, shown on invoices and receipts. | String, required |
+| `officialContact` | Official contact phone number, shown on invoices and receipts. | Numeric, required |
+| `sendReminders` | `0` disables, `1` enables SMS reminders sent 7 and 3 days before, and on, the due date. | Boolean, required |
+| `logo` | Embedded in invoices and receipts. | JPEG/JPG, optional |
+| `callbackurl` | Where payment pushes land; see Payments and Reconciliation below. | URL, required |
+
+### Response
+
+```json
+{
+  "app_key": "AG_2376487236_2010759fd5662ef6d054",
+  "resmsg": "Success",
+  "rescode": "200"
+}
+```
+
+`app_key` is the identifier you receive once onboarded; `rescode` `200` means success, any other code an error.
+
+## Single Invoicing
+
+**Endpoint**
+
+```
+https://api.safaricom.co.ke/v1/billmanager-invoice/single-invoicing
+```
+
+Sends one customized e-invoice by SMS to a specified Safaricom number. Customers can still pay via USSD, SIM toolkit, the M-PESA App, or the Safaricom App directly to your Pay Bill, as long as they reference the correct `accountReference`.
+
+### Request
+
+```json
+{
+  "externalReference": "#9932340",
+  "billedFullName": "John Doe",
+  "billedPhoneNumber": "07XXXXXXXX",
+  "billedPeriod": "August 2021",
+  "invoiceName": "Jentrys",
+  "dueDate": "2021-10-12",
+  "accountReference": "1ASD678H",
+  "amount": "800",
+  "invoiceItems": [
+    { "itemName": "food", "amount": "700" },
+    { "itemName": "water", "amount": "100" }
+  ]
+}
+```
+
+| Field | Description | Type |
+|---|---|---|
+| `externalReference` | Your own unique invoice identifier; must be unique or the invoice won't send. | Varchar, required |
+| `billedFullName` | Recipient's name, shown in the SMS. | String, required |
+| `billedPhoneNumber` | Must be a Safaricom number. | Numeric, required |
+| `billedPeriod` | Month and year. | Date (M/Y), required |
+| `invoiceName` | Descriptive name for what's being billed. | Varchar, required |
+| `dueDate` | Date the invoice is due; 3 reminders sent (7 days, 3 days, and day of). | Varchar, required |
+| `accountReference` | Uniquely identifies the customer: a name, business name, property unit, and so on. | Varchar, required |
+| `amount` | Total invoice amount, no commas. | Numeric, required |
+| `invoiceItems` | Line items, each with `itemName` and `amount`. | Optional |
+
+### Response
+
+```json
+{
+  "Status_Message": "Invoice sent successfully",
+  "resmsg": "Success",
+  "rescode": "200"
+}
+```
+
+## Bulk Invoicing
+
+**Endpoint**
+
+```
+https://api.safaricom.co.ke/v1/billmanager-invoice/bulk-invoicing
+```
+
+Same fields as Single Invoicing, sent as a JSON array under a `bulk` structure, up to 1000 invoices per call. `appKey` (from onboarding) must be included in the header of every request.
+
+### Request
+
+```json
+[
+  {
+    "externalReference": "1107",
+    "billedFullName": "John Doe",
+    "billedPhoneNumber": "0722000000",
+    "billedPeriod": "August 2021",
+    "invoiceName": "Jentrys",
+    "dueDate": "2021-09-15 00:00:00.00",
+    "accountReference": "A1",
+    "amount": "2000",
+    "invoiceItems": [
+      { "itemName": "food", "amount": "1000" },
+      { "itemName": "water", "amount": "1000" }
+    ]
+  }
+]
+```
+
+### Response
+
+```json
+{
+  "Status_Message": "Invoice sent successfully",
+  "resmsg": "Success",
+  "rescode": "200"
+}
+```
+
+## Payments and Reconciliation
+
+**Endpoint**
+
+```
+https://api.safaricom.co.ke/v1/billmanager-invoice/reconciliation
+```
+
+Requires your short code to already be onboarded, since this is how Bill Manager pushes payment data to you for acknowledgment.
+
+### Flow
+
+1. A customer pays your Pay Bill (via USSD, SIM toolkit, either app, or a Bill Manager invoice) with the correct account reference.
+2. Bill Manager pushes the payment to your `callbackurl` (registered at onboarding) for acknowledgment.
+3. You reconcile on your end and send an acknowledgment back to Bill Manager.
+4. Bill Manager sends the customer a receipt SMS once your acknowledgment is processed.
+
+Payment details are retried up to 5 times to your callback URL before Bill Manager gives up.
+
+### Payment push (sent to you)
+
+```json
+{
+  "transactionId": "{trandID}",
+  "paidAmount": "{50}",
+  "msisdn": "254710119383",
+  "dateCreated": "2021-09-15",
+  "accountReference": "LGHJIO789",
+  "shortCode": "349350555"
+}
+```
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own sample wraps two field values in stray curly braces, `"{trandID}"` and `"{50}"`, as if they were unresolved template placeholders rather than actual sample data. Reproduced exactly as documented.
+</Callout>
+
+### Your acknowledgment
+
+```json
+{
+  "paymentDate": "2021-10-01",
+  "paidAmount": "800",
+  "accountReference": "Balboa95",
+  "transactionId": "PJB53MYR1N",
+  "phoneNumber": "0710XXXXXX",
+  "fullName": "John Doe",
+  "invoiceName": "School Fees",
+  "externalReference": "955"
+}
+```
+
+Must include: payment date, paid amount, account reference, external reference, transaction ID, customer phone number, customer full name, and invoice name.
+
+### Response
+
+```json
+{ "resmsg": "Success", "rescode": "200" }
+```
+
+## Cancel Invoice
+
+A partially or fully paid invoice cannot be cancelled.
+
+**Cancel single invoice**
+
+```
+https://api.safaricom.co.ke/v1/billmanager-invoice/cancel-single-invoice
+```
+
+```json
+{ "externalReference": "113" }
+```
+
+**Cancel bulk invoices**
+
+```
+https://sandbox.safaricom.co.ke/v1/billmanager-invoice/cancel-bulk-invoices
+```
+
+```json
+[
+  { "externalReference": "113" },
+  { "externalReference": "113" }
+]
+```
+
+<Callout type="warn" title="Defect in the source material">
+This is the one Bill Manager endpoint documented against `sandbox.safaricom.co.ke` rather than `api.safaricom.co.ke`, inconsistent with every other endpoint on this page, including the single-invoice cancellation right above it. Reproduced exactly as published.
+</Callout>
+
+**Successful response**
+
+```json
+{
+  "Status_Message": "Invoice cancelled successfuly.",
+  "resmsg": "Success",
+  "rescode": "200",
+  "errors": []
+}
+```
+
+<Callout type="info">
+"successfuly" is spelled with one "l" in Safaricom's own sample response, kept as written.
+</Callout>
+
+**Error response**
+
+```json
+{
+  "Status_Message": "partially or fully paid invoices cannot be cancelled.",
+  "resmsg": "Conflict",
+  "rescode": "409",
+  "errors": []
+}
+```
+
+## Updating Opt-in Details
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/v1/billmanager-invoice/change-optin-details
+```
+
+### Request
+
+```json
+{
+  "shortcode": "718003",
+  "email": "youremail@gmail.com",
+  "officialContact": "0710XXXXXX",
+  "sendReminders": 1,
+  "logo": "image",
+  "callbackurl": "/api.example.com/payments?callbackURL=http://my.server.com/bar"
+}
+```
+
+### Response
+
+```json
+{ "resmsg": "Success", "rescode": "200" }
+```
+
+### Errors
+
+```json
+{
+  "Status_Message": "Biller already Registered",
+  "resmsg": "Action Forbidden",
+  "rescode": "409"
+}
+```
+
+```json
+{
+  "Status_Message": "Invalid consumerkey/shortcode",
+  "resmsg": "Action Forbidden",
+  "rescode": "409"
+}
+```
+
+## Error reference by endpoint
+
+**Onboarding**
+
+| Error | Cause | Fix |
+|---|---|---|
+| `409 Action Forbidden: Biller already Registered` | Invalid short code | Use a short code not already onboarded. |
+| `409 Action Forbidden: Invalid consumer key/short code` | Wrong credentials | Use the correct consumer key/short code pair. |
+
+**Single Invoicing**
+
+| Error | Cause | Fix |
+|---|---|---|
+| `409 Action Forbidden: Invalid consumer key/short code` | Wrong credentials | Use the correct pair. |
+| `409 Action forbidden: Another entry exist with the same externalReference number` | Duplicate reference | Use a different `externalReference`. |
+| `409 Action forbidden: Incorrect phone number format` | Bad format | Use `254722XXXXXX` or `0722XXXXXX`. |
+| `409 Action forbidden: Incorrect due date format` | Bad format | Use `yymmdd`. |
+
+**Bulk Invoicing**
+
+Same four errors as Single Invoicing above.
+
+<Callout type="warn" title="Defect in the source material">
+Two of Safaricom's own error tables document the correct due date format as `yymmdd`, while every request sample on the same page uses full dates like `2021-09-15` or `2021-09-15 00:00:00.00`. Both come directly from Safaricom's documentation and are reproduced as published; which format the live endpoint actually enforces hasn't been independently confirmed.
+</Callout>

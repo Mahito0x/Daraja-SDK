@@ -1,6 +1,7 @@
 import type { SVGProps } from "react";
+import Image, { type ImageProps } from "next/image";
 
-const GitHub = (props: SVGProps<SVGSVGElement>) => (
+export const GitHub = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 1024 1024" fill="none">
     <path
       fillRule="evenodd"
@@ -12,7 +13,7 @@ const GitHub = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const X = (props: SVGProps<SVGSVGElement>) => (
+export const X = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} fill="none" viewBox="0 0 1200 1227">
     <path
       fill="currentColor"
@@ -21,7 +22,7 @@ const X = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Discord = (props: SVGProps<SVGSVGElement>) => (
+export const Discord = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 256 199" preserveAspectRatio="xMidYMid">
     <path
       d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z"
@@ -30,7 +31,7 @@ const Discord = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Pnpm = (props: SVGProps<SVGSVGElement>) => (
+export const Pnpm = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
     xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -99,7 +100,7 @@ const Pnpm = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const NPM = (props: SVGProps<SVGSVGElement>) => (
+export const NPM = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 2500 2500">
     <path fill="#c00" d="M0 0h2500v2500H0z" />
     <path
@@ -109,7 +110,7 @@ const NPM = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Yarn = (props: SVGProps<SVGSVGElement>) => (
+export const Yarn = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 518 518"
@@ -125,7 +126,7 @@ const Yarn = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Bun = (props: SVGProps<SVGSVGElement>) => (
+export const Bun = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 80 70">
     <path d="M71.09 20.74c-.16-.17-.33-.34-.5-.5s-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5A26.46 26.46 0 0 1 75.5 35.7c0 16.57-16.82 30.05-37.5 30.05-11.58 0-21.94-4.23-28.83-10.86l.5.5.5.5.5.5.5.5.5.5.5.5.5.5C19.55 65.3 30.14 69.75 42 69.75c20.68 0 37.5-13.48 37.5-30 0-7.06-3.04-13.75-8.41-19.01Z" />
     <path
@@ -184,7 +185,7 @@ const Bun = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Nextjs = (props: SVGProps<SVGSVGElement>) => (
+export const Nextjs = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 180 180">
     <mask
       height="180"
@@ -238,7 +239,7 @@ const Nextjs = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Astro = (props: SVGProps<SVGSVGElement>) => (
+export const Astro = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} fill="none" viewBox="0 0 85 107">
     <path
       fill="currentColor"
@@ -268,7 +269,7 @@ const Astro = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const ReactRouter = (props: SVGProps<SVGSVGElement>) => (
+export const ReactRouter = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 94 61" fill="none">
     <path
       d="M72.7315 20.9357C70.0548 20.0941 68.6725 20.3778 65.8649 20.071C61.5246 19.5976 59.7954 17.9013 59.0619 13.5356C58.6514 11.0985 59.1361 7.53022 58.0881 5.32106C56.0839 1.10875 51.3943 -0.780439 46.6828 0.297843C42.7049 1.20956 39.3951 5.18518 39.2117 9.266C39.0021 13.9254 41.657 17.901 46.2156 19.273C48.3814 19.9261 50.6825 20.2548 52.9444 20.4214C57.0925 20.7238 57.4113 23.0297 58.5335 24.9277C59.2409 26.1243 59.9264 27.3034 59.9264 30.8714C59.9264 34.4394 59.2365 35.6185 58.5335 36.8151C57.4113 38.7087 56.0271 39.9491 51.879 40.2559C49.6171 40.4225 47.3116 40.7513 45.1502 41.4044C40.5916 42.7807 37.9367 46.7519 38.1463 51.4113C38.3297 55.4921 41.6395 59.4678 45.6174 60.3795C50.3289 61.4621 55.0185 59.5686 57.0227 55.3563C58.075 53.1471 58.6514 50.6443 59.0619 48.2072C59.7998 43.8414 61.5289 42.1451 65.8649 41.6717C68.6725 41.3649 71.5783 41.6717 74.2093 40.177C76.9895 38.1456 79.4734 35.0968 79.4734 30.8714C79.4734 26.6459 76.7967 22.2156 72.7315 20.9357Z"
@@ -289,7 +290,7 @@ const ReactRouter = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Expressjs = (props: SVGProps<SVGSVGElement>) => (
+export const Expressjs = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 32 32">
     <path
       fill="currentColor"
@@ -298,7 +299,7 @@ const Expressjs = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const TypeScript = (props: SVGProps<SVGSVGElement>) => (
+export const TypeScript = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 256 256" preserveAspectRatio="xMidYMid">
     <path
       d="M20 0h216c11.046 0 20 8.954 20 20v216c0 11.046-8.954 20-20 20H20c-11.046 0-20-8.954-20-20V20C0 8.954 8.954 0 20 0Z"
@@ -311,7 +312,7 @@ const TypeScript = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const Webhook = (props: SVGProps<SVGSVGElement>) => (
+export const Webhook = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 32 32" fill="none">
     <path
       fill="currentColor"
@@ -334,22 +335,6 @@ const Webhook = (props: SVGProps<SVGSVGElement>) => (
     <path fill="currentColor" d="M4.5 28.25h23v1.5h-23z" />
   </svg>
 );
-
-export {
-  GitHub,
-  X,
-  Discord,
-  Pnpm,
-  NPM,
-  Yarn,
-  Bun,
-  Nextjs,
-  Astro,
-  ReactRouter,
-  Expressjs,
-  TypeScript,
-  Webhook,
-};
 
 export const Icons = {
   GitHub,

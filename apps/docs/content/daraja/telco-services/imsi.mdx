@@ -1,0 +1,133 @@
+---
+title: IMSI
+description: Retrieve the hashed IMSI, last SIM swap date, and network age for a Safaricom number, combining several fraud signals into one call.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+Returns the International Mobile Subscriber Identity (hashed) for a Safaricom number, along with the SIM's last swap date and network age, in one call. IMSI numbers change if a line's physical SIM is replaced, which is what makes this useful as a fraud signal alongside [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network).
+
+**Endpoint**
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own documentation gives the endpoint as `https://sandbox.safaricom.co.ke/{imsi_path_suffix}`, a URL with an unresolved template placeholder still in it rather than an actual path. No working sandbox path is given anywhere else on the page. This is reproduced exactly as published, since substituting a guessed path here would misrepresent what Safaricom actually documents.
+</Callout>
+
+## Two versions
+
+| Version | Returns |
+|---|---|
+| IMSI V1 | Hashed IMSI, Age on Network (under 6 months), Swap Date (under 3 months) |
+| IMSI V2 | Hashed IMSI only |
+
+## Onboarding
+
+Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; onboarding to production follows a signed commercial agreement.
+
+| API calls per month | V1 charge (KES) | V2 charge (KES) |
+|---|---|---|
+| 0 to 200,000 | 7.50 | 4.00 |
+| 200,001 to 500,000 | 6.00 | 3.50 |
+| 500,001 to 1,000,000 | 4.50 | 2.50 |
+| 1,000,001 to 5,000,000 | 3.00 | 1.75 |
+| Over 5,000,000 | 2.00 | 1.25 |
+
+Both exclusive of VAT; charges don't apply to unsuccessful calls.
+
+## How it works
+
+1. The organization sends the customer's phone number to Daraja.
+2. Daraja authenticates the request and forwards it to M-PESA.
+3. M-PESA returns the hashed IMSI, age on network, and last swap date, which Daraja relays back.
+
+<Callout type="warn" title="Defect in the source material">
+As with [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network), the "Good to Know" section calls this API asynchronous, while the request/response pair documented returns everything directly with no callback involved.
+</Callout>
+
+## Use cases
+
+- Risk scoring for loans, withdrawals, and high-value disbursements.
+- Secure onboarding to mobile banking, combining SIM and network-based checks.
+- Triggering step-up authentication (OTP, extra verification) on weak signals.
+- Continuous fraud monitoring for digital wallets and banking apps.
+- Verifying SIM swap activity before cheque clearance or account changes.
+
+## Request
+
+```json
+{ "customerNumber": "254722000000" }
+```
+
+## Response
+
+**IMSI V1**
+
+```json
+{
+  "requestRefID": "971f-4359-b611-6845a1be45ef280786",
+  "responseCode": "200",
+  "responseDesc": "Success",
+  "imsi": "9233817055099406",
+  "lastSwapDate": "01-05-2022",
+  "msisdnRegistrationDate": "01-03-2022",
+  "customerNumber": "254722000000"
+}
+```
+
+**IMSI V2**
+
+```json
+{
+  "requestRefID": "93b1-4738-94b2-52a821a080656018",
+  "responseCode": "200",
+  "responseDesc": "Success!",
+  "imsi": "5814906447239506",
+  "customerNumber": "254707727976"
+}
+```
+
+<Callout type="info">
+`responseDesc` carries a trailing exclamation mark, `"Success!"`, in Safaricom's own V2 sample, but plain `"Success"` in the V1 sample directly above it. Both are reproduced as documented.
+</Callout>
+
+| Field | Description |
+|---|---|
+| `requestRefID` | Unique ID per request. |
+| `responseCode` | `200` success; other values indicate an error. |
+| `imsi` | Hashed IMSI value. |
+| `lastSwapDate` | (V1 only) `01-01-1900` default if swapped over 3 months ago. |
+| `msisdnRegistrationDate` | (V1 only) SIM's registration date. |
+| `customerNumber` | Echoed back. |
+
+## Error codes
+
+Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `500`, `501`, `502`, `503`, `504`, matching the descriptions given on [Age on Network](/daraja/age-on-network) and [SWAP](/daraja/swap).
+
+## Testing
+
+**Daraja Simulator**: create a test app with the IMSI product attached.
+
+**Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the endpoint above (once you have a resolved path; see the defect note under Endpoint).
+
+## Go Live
+
+Email `apisupport@safaricom.co.ke`. Submit company registration details for billing and a signed commercial agreement.
+
+## FAQs
+
+<Accordions>
+<Accordion title="What does the IMSI API do?">
+Lets partners query an MSISDN's network age, registration date, and last swap date as a fraud-prevention signal.
+</Accordion>
+<Accordion title="What should I do if I get an error?">
+Check `responseCode` and `responseDesc`, confirm parameters are correctly formatted, then retry or contact support.
+</Accordion>
+<Accordion title="Who is eligible?">
+Any registered company; an M-PESA Pay Bill or Till number is recommended but not mandatory.
+</Accordion>
+</Accordions>
+
+<Callout type="warn" title="Ironic detail in the source material">
+Safaricom's own IMSI page closes with "These FAQs should help you understand and utilize the IMSI API effectively," which is accurate here, but the same sentence also appears verbatim at the bottom of the unrelated [M-Pesa Ratiba](/daraja/mpesa-ratiba) FAQ section, where it refers to the wrong API entirely. Noted on that page rather than here, since this is the page the sentence actually belongs to.
+</Callout>

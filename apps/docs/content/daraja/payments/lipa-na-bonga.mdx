@@ -1,0 +1,184 @@
+---
+title: Lipa na Bonga
+description: Let a customer pay a merchant using accumulated Bonga loyalty points instead of M-PESA balance.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
+Bonga is Safaricom's loyalty rewards scheme. This API lets merchants who accept Lipa na M-PESA (Pay Bill or Buy Goods) also accept payment in Bonga points, redeemed on the customer's behalf.
+
+## How it works
+
+1. The customer selects "Lipa na Bonga" in the partner's channel (e.g. a website), enters the phone number to deduct points from and the number of points, and sees the conversion rate: **KES 0.2 per Bonga point**.
+2. The deduction request goes through Daraja to the Bonga system.
+3. If the phone number isn't eligible, the channel is told to retry or use a different number.
+4. If eligible, an STK push asks the customer for their M-PESA PIN.
+5. On successful PIN validation, the Bonga balance is checked against the points required.
+6. If sufficient, points are deducted and the equivalent amount is transferred to the merchant's Pay Bill or Till.
+7. A callback is posted to the URLs registered for [C2B](/daraja/c2b) transactions, since Safaricom treats the resulting payment as a C2B transaction for notification purposes.
+
+<Callout type="warn">
+If M-PESA fails to transfer funds to the merchant despite the Bonga deduction going through, the points are reversed and the customer is told to try again.
+</Callout>
+
+On success, the customer receives two SMS notifications: one confirming the points redemption and new Bonga balance, and one confirming the payment amount, merchant, and account reference.
+
+## Prerequisites
+
+- Daraja account and sandbox app.
+- A live Pay Bill/Till with Business Admin/Manager operators created, for Go Live.
+
+## Calculate Points
+
+Converts a points value into its Kenyan Shilling equivalent.
+
+| Environment | Endpoint |
+|---|---|
+| Sandbox | `https://sandbox.safaricom.co.ke/v1/lipa/na/bonga/calculate-points` |
+| Production | `https://api.safaricom.co.ke/v1/lipa/na/bonga/calculate-points` |
+
+### Request
+
+```json
+{ "points": "40" }
+```
+
+### Response
+
+```json
+{
+  "header": {
+    "requestRefId": "55b2b8bd-0be4-4430-b0dc-792efccdc690",
+    "responseCode": 200,
+    "responseMessage": "Success",
+    "customerMessage": "Request executed successfully.",
+    "timestamp": "2025-02-24T12:29:05.484864516"
+  },
+  "body": {
+    "amount": "8",
+    "points": "40",
+    "rate": "0.2"
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `amount` | KES equivalent of the points supplied. |
+| `points` | Points echoed back. |
+| `rate` | Conversion rate; documented at KES 0.2 per point. |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own Response Parameter Definition table for this endpoint gives sample values of `responseCode: 404` and `responseMessage: Fail`, and describes `customerMessage` with the example "Sorry, you are not registered on Bonga," despite the Response Body sample directly above it showing a successful `200`/`Success` response. Both come from the same page and are reproduced as published; the field table appears to describe a failure case while labeled as documenting the general response shape.
+</Callout>
+
+## Redeem Points
+
+| Environment | Endpoint |
+|---|---|
+| Sandbox | `https://sandbox.safaricom.co.ke/v1/lipa/na/bonga/redeem-paybill` |
+| Production | `https://api.safaricom.co.ke/v1/lipa/na/bonga/redeem-paybill` |
+
+### Request
+
+```json
+{
+  "msisdn": "254720776155",
+  "amount": 50,
+  "bongaPoints": 20,
+  "conversionRate": 0.2,
+  "shortCode": "888880",
+  "shortCodeType": "till",
+  "receiverPartyName": "test",
+  "callBackURL": "https://mydomain.com/path"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `msisdn` | The customer's number. | `254722000000` |
+| `amount` | KES equivalent being redeemed. | `50` |
+| `bongaPoints` | Points to deduct. | `20` |
+| `conversionRate` | Rate applied (KES 0.2 per point). | `0.2` |
+| `shortCode` | The receiving Pay Bill/Till. | `54321` |
+| `shortCodeType` | `till` or `paybill`. | `till` |
+| `receiverPartyName` | Display name for the receiving party. | `John` |
+| `callBackURL` | Result callback URL. | `https://mydomain.com/path` |
+
+### Response
+
+```json
+{
+  "header": {
+    "requestRefId": "a53a2939-7361-482f-ba1e-ccd51504acd3",
+    "responseCode": 200,
+    "responseMessage": "Operation Successfully.",
+    "customerMessage": "Dear customer, your request was processed successfully",
+    "timestamp": "2026-03-10T09:54:28.456847481"
+  },
+  "body": null
+}
+```
+
+## Callback
+
+<Tabs items={['Successful', 'Failed (incorrect PIN)']}>
+<Tab value="Successful">
+```json
+{
+  "MerchantRequestID": "1133344577",
+  "CheckoutRequestID": "ws_CO_13042026131325500742856607",
+  "ResultCode": "0",
+  "ResultDesc": "The service request is processed successfully.",
+  "CallbackMetadata": [
+    { "Name": "Amount", "Value": "100" },
+    { "Name": "MpesaReceiptNumber", "Value": "UDD060N8CI" },
+    { "Name": "PhoneNumber", "Value": "254742***607" }
+  ]
+}
+```
+</Tab>
+<Tab value="Failed (incorrect PIN)">
+```json
+{
+  "MerchantRequestID": "1133344578",
+  "CheckoutRequestID": "ws_CO_13042026131449788742856607",
+  "ResultCode": "2001",
+  "ResultDesc": "The initiator information is invalid."
+}
+```
+</Tab>
+</Tabs>
+
+## Result codes
+
+| Code | Meaning |
+|---|---|
+| 6000 | Success |
+| 6001 | Fail |
+| 6004 | Server error |
+| 6005 | Invalid credentials |
+| 6006 | Missing parts in the request body |
+| 6007 | CBS unavailable / system busy |
+| 6008 | STK unavailable / system busy |
+| 6009 | Broker unavailable / system busy |
+| 1037 | DS timeout, customer's SIM has no STK applet |
+| 6011 | Database unavailable |
+| 2001 | Wrong PIN entered |
+| 1031 | STK push timeout, customer didn't enter PIN in time |
+| 17 | Reversal failed, account balance limit (KES 100,000) reached |
+
+## Testing and Go Live
+
+**Daraja Simulator** with the Lipa na Bonga product attached.
+
+**Postman**: token from the sandbox OAuth endpoint, then call the Calculate Points or Redeem Points endpoint above.
+
+Going live follows [Organization Portal & Go Live](/daraja/organization-portal): a short code, organization name, and M-PESA admin/manager username submitted via the portal's Go Live tab.
+
+## FAQs
+
+**Who can earn Bonga points?** Any Safaricom customer, 1 point per KES 10 spent on calls, SMS, or data, or 1 point per qualifying M-PESA transaction charge of KES 100 or more.
+
+**How can a customer access Bonga directly?** `*126#`, `*100#` (prepaid), `*200#` (postpaid), `*456#`, the My Safaricom App, or Safaricom's Zuri virtual assistant.

@@ -1,0 +1,107 @@
+---
+title: Age on Network
+description: Look up the date a Safaricom phone number was first registered on the network.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/registration/lookup/v1/checkATI
+```
+
+## Overview
+
+Returns the original registration date of a SIM card, i.e. how long a given Safaricom number has existed on the network. Safaricom lists this as useful for KYC checks, onboarding validation, compliance monitoring, fraud prevention, and analytics, and notes it specifically as able to confirm whether a SIM's age on network is under six months.
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own "Good to Know" section for this API states it is **asynchronous**, but the request/response pair documented for it returns the registration date directly in the HTTP response, with no callback URL field anywhere in the request body and no callback payload documented. As published, this API reads as synchronous in practice; both statements come from Safaricom's own page.
+</Callout>
+
+## How it works
+
+1. The organization sends the customer's phone number to Daraja.
+2. Daraja authenticates the request and forwards it to Safaricom's CRM system.
+3. The CRM system returns the SIM's registration date.
+
+## Onboarding
+
+Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; a commercial agreement is required before production access.
+
+| API calls per month | Charge (KES, excl. VAT) |
+|---|---|
+| 0 to 200,000 | 4.00 |
+| 200,001 to 500,000 | 3.50 |
+| 500,001 to 1,000,000 | 2.50 |
+| 1,000,001 to 5,000,000 | 1.75 |
+| Over 5,000,000 | 1.25 |
+
+Charges don't apply to unsuccessful calls.
+
+## Request
+
+```json
+{ "customerNumber": "254722000000" }
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `customerNumber` | MSISDN to check, 12-digit `254XXXXXXXXX` format. | `2547XXXXXXXX` |
+
+## Response
+
+```json
+{
+  "requestRefID": "93b1-4738-94b2-52a821a080656023",
+  "responseCode": "200",
+  "responseDesc": "Success",
+  "msisdnRegistrationDate": "01-01-1900",
+  "customerNumber": "254722000000"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `requestRefID` | Unique ID per request. | `4277-415525-1` |
+| `responseCode` | `200` success; any other value is an error. | `200` |
+| `responseDesc` | Status message. | `Success` |
+| `msisdnRegistrationDate` | The SIM's registration date, or a message stating registration is more than a year old, per Safaricom's field description. | `2019-01-12` |
+| `customerNumber` | Echoed back. | `254722000000` |
+
+<Callout type="info">
+The sample `msisdnRegistrationDate` value Safaricom shows, `01-01-1900`, is a date well before mobile telephony existed in Kenya, let alone Safaricom's own 2000 launch. It reads as a placeholder or null-date convention rather than a genuine sandbox result, though Safaricom's documentation doesn't say so explicitly.
+</Callout>
+
+## Error codes
+
+Standard HTTP status codes: `400` Bad Request, `401` Unauthorized, `403` Forbidden, `404` Not Found, `405` Method Not Allowed, `408` Request Timeout, `429` Too Many Requests, `500` Internal Server Error, `501` Not Implemented, `502` Bad Gateway, `503` Service Unavailable, `504` Gateway Timeout.
+
+## Testing
+
+**Daraja Simulator**: create a test app with the Age on Network product attached.
+
+**Postman**: generate an access token from the sandbox OAuth endpoint using your Consumer Key and Secret, then call the endpoint above.
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own Postman instructions list identical URLs for both Sandbox and Production when generating an access token, both pointing at `sandbox.safaricom.co.ke`. The production OAuth host used consistently elsewhere in Daraja's documentation is `api.safaricom.co.ke`; this appears to be a copy-paste error on Safaricom's part, reproduced here as published rather than silently corrected.
+</Callout>
+
+## Go Live
+
+Email `apisupport@safaricom.co.ke`. You'll need to submit company registration details (for billing) and a signed commercial agreement.
+
+## FAQs
+
+<Accordions>
+<Accordion title="How does the API work under the hood?">
+It integrates with the organization's payment gateway or CRM system to securely process requests and return registration details, per Safaricom's documentation.
+</Accordion>
+<Accordion title="What should I do if I get an error?">
+Check `responseCode` and `responseDesc`, confirm all parameters are correctly formatted, then retry or contact support.
+</Accordion>
+<Accordion title="Who is eligible?">
+Any registered company. An M-PESA Pay Bill or Till number is recommended but not mandatory, depending on the business model.
+</Accordion>
+</Accordions>

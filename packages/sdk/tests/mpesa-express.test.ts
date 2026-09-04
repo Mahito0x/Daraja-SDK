@@ -48,6 +48,7 @@ async function expectDarajaError(
 function makeClient(
   fetchImpl: typeof fetch,
   environment: "sandbox" | "production" = "sandbox",
+  config: { shortcode?: string; passkey?: string; callbackUrl?: string } = {},
 ) {
   global.fetch = fetchImpl as typeof fetch;
   // Uses the no-`new` call style — this is how the SDK is meant to be used.
@@ -55,6 +56,7 @@ function makeClient(
     consumerKey: VALID_KEY,
     consumerSecret: VALID_SECRET,
     environment,
+    ...config,
   });
 }
 
@@ -107,6 +109,39 @@ describe("Daraja.stkPush (M-Pesa Express push)", () => {
     expect(sentBody.Timestamp).toMatch(/^\d{14}$/);
     expect(typeof sentBody.Password).toBe("string");
     expect(sentBody.Password.length).toBeGreaterThan(0);
+  });
+
+  it("uses configured shortcode, passkey, and callback URL when omitted", async () => {
+    const fetchMock = withTokenThen({
+      MerchantRequestID: "x",
+      CheckoutRequestID: "x",
+      ResponseCode: "0",
+      ResponseDescription: "ok",
+      CustomerMessage: "ok",
+    });
+    const daraja = makeClient(fetchMock, "sandbox", {
+      shortcode: "174379",
+      passkey: VALID_PUSH_REQUEST.passkey,
+      callbackUrl: "https://example.com/configured-callback",
+    });
+    const {
+      businessShortCode: _businessShortCode,
+      passkey: _passkey,
+      partyB: _partyB,
+      callBackURL: _callBackURL,
+      ...withoutConfiguredFields
+    } = VALID_PUSH_REQUEST;
+
+    await daraja.stkPush(withoutConfiguredFields);
+
+    const sentBody = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(sentBody.BusinessShortCode).toBe(174379);
+    expect(sentBody.PartyB).toBe(174379);
+    expect(sentBody.CallBackURL).toBe(
+      "https://example.com/configured-callback",
+    );
+    const decoded = Buffer.from(sentBody.Password, "base64").toString("utf-8");
+    expect(decoded).toContain(`174379${VALID_PUSH_REQUEST.passkey}`);
   });
 
   it("generates Password as Base64(ShortCode + Passkey + Timestamp)", async () => {

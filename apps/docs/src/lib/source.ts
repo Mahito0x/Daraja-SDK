@@ -7,7 +7,7 @@ import { Icons } from "@/components/Icons";
 import { icons as LucideIcons } from "lucide-react";
 
 const docs = defineDocs({
-  dir: "content/docs",
+  dir: "content",
   docs: {
     schema: pageSchema,
     postprocess: {

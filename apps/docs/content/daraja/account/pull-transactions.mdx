@@ -1,0 +1,185 @@
+---
+title: Pull Transactions
+description: Retrieve a list of C2B transactions on your account for a recent period, to recover missed callback notifications.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+A reconciliation tool: lets a partner pull every C2B transaction made under their Pay Bill/Till within the last 48 hours, including ones whose callback never reached the registered URL because of downtime on the merchant's side.
+
+## How it works
+
+<Callout type="info">
+This is a two-step API: register your short code once (Register Pull), then query transactions repeatedly afterward (Query Pull Transaction).
+</Callout>
+
+1. The merchant registers their short code for pulling via API. This is required only once, and the short code must belong to a user already live in production.
+2. When callback notifications are missed (for example, due to downtime), the merchant sends a request to retrieve transactions for the affected period.
+3. The merchant reconciles using the returned data.
+
+## Prerequisites
+
+- Daraja account and sandbox app.
+- A live Pay Bill/Till with Business Admin/Manager operators and an existing C2B integration already registered, for Go Live.
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom documents this API as asynchronous in its "Good to Know" section, but also states the method is POST for registration and GET for the transaction query itself, with the query returning data directly in the HTTP response rather than via a callback. That makes the query call read as synchronous in practice; both statements are Safaricom's own and are reproduced as published.
+</Callout>
+
+## Register Pull
+
+**Endpoint**
+
+```
+POST https://sandbox.safaricom.co.ke/pulltransactions/v1/register
+```
+
+**Headers**
+
+| Key | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `Authorization` | `Bearer <access_token>` |
+
+### Request
+
+```json
+{
+  "ShortCode": "600000",
+  "RequestType": "Pull",
+  "NominatedNumber": "0722000000",
+  "CallBackURL": "https://domain/path"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `ShortCode` | Organization short code used at Go Live. | `17831` |
+| `RequestType` | Defaults to, and is documented as, `Pull`. | `Pull` |
+| `NominatedNumber` | The Safaricom MSISDN associated with the account using Pull. | `254722000000` |
+| `CallBackURL` | A valid, secure URL. | `https://mydomain.com/confirmation` |
+
+### Response
+
+```json
+{
+  "ResponseRefID": "feb5e3f2-fbc-4745-844c-ee37b546f627",
+  "ResponseStatus": "1000",
+  "ShortCode": "600000",
+  "ResponseDescription": "Shortcode Registered Successfully"
+}
+```
+
+| Code | Meaning |
+|---|---|
+| `1000` | Short code registered successfully |
+| `1001` | Short code already registered |
+
+## Query Pull Transaction
+
+**Headers**
+
+| Key | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `Authorization` | `Bearer <access_token>` |
+
+### Request
+
+```json
+{
+  "ShortCode": "600000",
+  "StartDate": "2020-08-04 8:36:00",
+  "EndDate": "2020-08-16 10:10:000",
+  "OffSetValue": "0"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `ShortCode` | Your Pay Bill/Till number. | `17843` |
+| `StartDate` / `EndDate` | Period to query, formatted `YYYY-MM-DD HH:MM:SS`. | `2019-07-31 20:35:21` |
+| `OffSetValue` | Pagination offset, starting at `0`. To get results 101 to 200, pass `100`. | `100` |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own sample request writes `EndDate` as `"2020-08-16 10:10:000"`, with three trailing zeros on the seconds component rather than two. Reproduced exactly as documented.
+</Callout>
+
+### Response
+
+```json
+{
+  "ResponseRefID": "26178-42530161-2",
+  "ResponseCode": "1000",
+  "ResponseMessage": "Success",
+  "Response": [
+    [
+      {
+        "transactionId": "yzlyrEsRG1",
+        "trxDate": "2020-08-05T10:13:00Z",
+        "msisdn": 722000000,
+        "sender": "UAT2",
+        "transactiontype": "c2b-pay-bill-debit",
+        "billreference": "37207636392",
+        "amount": "168.00",
+        "organizationname": "Daraja Pull API Test"
+      }
+    ]
+  ]
+}
+```
+
+| Field | Description |
+|---|---|
+| `transactionId` | The M-PESA transaction ID. |
+| `trxDate` | Completion timestamp. |
+| `msisdn` | The paying customer's number. |
+| `transactiontype` | e.g. `c2b-pay-bill-debit`. |
+| `billreference` | Account reference, for Pay Bill transactions. |
+| `amount` | Amount transacted. |
+| `organizationname` | Organization name as registered at Go Live. |
+
+<Callout type="info">
+`Response` is documented as an array of arrays (note the double `[[ ]]` in the sample above), not a flat array. When no transactions exist for the period, Safaricom documents the body as `"Transaction": "[[]]"`, a field name that doesn't match `Response` used in the successful sample; both are reproduced as documented.
+</Callout>
+
+### Response codes
+
+| Code | Meaning |
+|---|---|
+| `1000` | Success, transactions fetched |
+| `1001` | No transactions available for the period |
+
+### Error codes
+
+| Code | Meaning |
+|---|---|
+| `400.001` | Invalid short code |
+| `401.001` | Invalid access token |
+| `500` | Failed to retrieve transactions; no transactions available for the short code |
+
+## Testing and Go Live
+
+**Daraja Simulator** with the C2B product attached (Pull Transactions builds on an existing C2B integration, so it's tested alongside it), registering URLs before each simulation and using `CustomerPayBillOnline` or `CustomerBuyGoodsOnline`.
+
+**Postman**: token from the sandbox OAuth endpoint, then call the register or query endpoint above.
+
+Going live follows [Organization Portal & Go Live](/daraja/organization-portal); this API additionally requires an already-registered C2B integration on the short code.
+
+## FAQs
+
+<Accordions>
+<Accordion title="Can I pull transactions other than C2B?">
+No. Safaricom documents this API as C2B-only.
+</Accordion>
+<Accordion title="Can I query without registering first?">
+No, registration is required before any query will succeed.
+</Accordion>
+<Accordion title="How far back can I pull transactions?">
+Up to 48 hours.
+</Accordion>
+<Accordion title="Where do I find my nominated number?">
+It's the number used when registering the short code, and it's also visible in the short code's KYC details on the M-PESA Organization Portal.
+</Accordion>
+</Accordions>

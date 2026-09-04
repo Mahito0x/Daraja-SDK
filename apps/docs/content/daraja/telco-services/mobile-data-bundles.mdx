@@ -1,0 +1,214 @@
+---
+title: Mobile Data Bundles
+description: Let users browse, discover, and buy Safaricom mobile data bundles without leaving your app.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Lets a partner app surface Safaricom's mobile data bundle offers directly to a user and complete the purchase inline, without sending them to USSD or a separate app.
+
+**Base path**
+
+```
+https://sandbox.safaricom.co.ke/v1/dynamic-offers/{path_suffix}
+```
+
+<Callout type="warn" title="Defect in the source material">
+The base path is documented with a literal, unresolved `{path_suffix}` placeholder in Safaricom's own page, the same pattern seen on [IMSI](/daraja/imsi). The three concrete endpoints below (fetch, purchase, status) are given in full elsewhere on the same page, so the placeholder appears to be a leftover from how the page was templated rather than a working path on its own.
+</Callout>
+
+## Key capabilities
+
+- Check whether a user is eligible to purchase.
+- Fetch available data offers.
+- Fulfill an order and allocate network resources.
+- Query a transaction's status.
+
+## How it works
+
+1. The merchant authenticates via the [Authorization API](/daraja/authorization).
+2. The merchant calls the fetch-offers endpoint; the user is validated in the same call.
+3. Available offers are returned to the app.
+4. The user picks one and purchases it.
+5. The order is fulfilled and resources are allocated.
+6. Both merchant and user are notified of the outcome.
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own page contradicts itself on synchronicity: the "How It Works" section states the API "is asynchronous," while the "Good to Know" section two paragraphs later states it "is Synchronous (for query/fetch operations)." Both statements come from the same page and are reproduced as published.
+</Callout>
+
+## Prerequisites
+
+- Daraja account and sandbox app.
+- Live Pay Bill/Till with Business Admin/Manager operators created, for Go Live.
+
+## Fetch Offers
+
+```
+GET https://sandbox.safaricom.co.ke/v1/dynamic-offers/fetch?msisdn={pass_msisdn}
+```
+
+### Request
+
+```json
+{
+  "params": { "msisdn": "254708374149" }
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `msisdn` | The mobile number in session. | `254722000000` |
+
+### Response
+
+```json
+{
+  "id": "mock-response-id",
+  "desc": "Mock offers retrieved successfully",
+  "status": "200",
+  "relatedSusbscription": [
+    { "desc": "254708374149", "name": "mock-msisdn" }
+  ],
+  "lineItem": {
+    "characteristicsValue": [
+      {
+        "offerName": "Weekly 2GB",
+        "uniqueOfferingId": "50512026",
+        "offerValidity": 7,
+        "resourceAccId": 1001,
+        "resourceValue": 2048,
+        "offerPrice": 99,
+        "offerUssdName": "Weekly 2GB",
+        "offeringId": 20001,
+        "offerSource": "MOCK",
+        "locationId": 1,
+        "subscribed": 0,
+        "childOffers": [
+          {
+            "offerName": "Daily Booster 500MB",
+            "offerValidity": 1,
+            "resourceAccId": 1101,
+            "resourceValue": 500,
+            "offerPrice": 20,
+            "offerUssdName": "*544*20#",
+            "parentOfferId": 1001
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+<Callout type="info">
+`relatedSusbscription` is spelled that way, missing a "b," in Safaricom's own response schema, and the `"mock-"` prefixed values throughout suggest this sample is a stub response rather than a live sandbox capture; both are reproduced as documented.
+</Callout>
+
+## Offer Purchase
+
+```
+POST https://sandbox.safaricom.co.ke/v1/dynamic-offers/facebook-bundle/purchase
+```
+
+<Callout type="warn" title="Defect in the source material">
+The path segment `facebook-bundle` is Safaricom's own; nothing about the request body or response below is specific to Facebook, and the page never explains the naming. It's reproduced as documented rather than assumed to be a general-purpose path.
+</Callout>
+
+### Request
+
+```json
+{
+  "offeringId": "28042021",
+  "accountId": "2572",
+  "price": "5",
+  "resourceAmount": "50",
+  "validity": "1",
+  "msisdn": "795898572",
+  "transactionId": "1",
+  "paymentMode": "airtime"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `msisdn` | Customer's mobile number. | `254722000000` |
+| `offeringId` | Unique product ID. | `28042021` |
+| `paymentMode` | `airtime` or `m-pesa`. | `airtime` |
+| `accountId` | Account holding the resources. | `2572` |
+| `price` | Product price. | `10` |
+| `resourceAmount` | Resource amount awarded, in MB. | `50` |
+| `validity` | Product validity, in days or hours. | `1` |
+| `transactionId` | Correlation/conversation value. | `12345678901` |
+
+### Response
+
+```json
+{
+  "header": {
+    "requestRefId": "ac5633a7-ad08-4b61-8e77-30d83903fb58",
+    "responseCode": 200,
+    "responseMessage": "operation successful",
+    "customerMessage": "Bundle purchase was successful",
+    "timestamp": "2023-06-08T16:38:01.838453"
+  }
+}
+```
+
+## Check Status
+
+```
+GET https://sandbox.safaricom.co.ke/v2/bundles/get/status?id={transactionId}&serviceAccountId={id}
+```
+
+- `id`: the `transactionId` from the purchase request.
+- `serviceAccountId`: `0` for dynamic offers, per Safaricom's documentation, though the sample request below shows `1`.
+
+### Request
+
+```json
+{
+  "params": {
+    "serviceAccountId": "1",
+    "id": "3698520171121111347306"
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "responseId": "788797897889",
+  "responseDesc": "Successful bundle purchase",
+  "responseStatus": "1000",
+  "responseCreated": "20230609143000543"
+}
+```
+
+## Error codes
+
+| Code | Meaning | Fix |
+|---|---|---|
+| 400 | Technical error / bad request | Retry, verify service availability, or validate MSISDN format. |
+| 401 | Unauthorized, invalid access token | Refresh the access token; check expiry. |
+| 403 or 400 | Insufficient balance / operation failed | Check account balance before processing. |
+| 503 | Service unavailable | Retry later. |
+| 500 | Invalid parameter input | Check request body attributes. |
+| 200 | Success | Transaction completed. |
+
+<Callout type="warn" title="Defect in the source material">
+This table's "Insufficient Balance / Operation Failed" row lists both `403` and `400` as its code, a pairing not resolved elsewhere in Safaricom's own documentation, and `400` also separately means "Technical Error / Bad Request" in the row above it. Both are reproduced as published.
+</Callout>
+
+## Testing and Go Live
+
+**Daraja Simulator**: create a test app with the Dynamic Offers product attached.
+
+**Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the endpoints above.
+
+Going live means submitting a live Pay Bill/Till short code, organization name, and M-PESA admin/manager username on the Go Live tab; see [Organization Portal & Go Live](/daraja/organization-portal).
+
+## Onboarding documents
+
+Safaricom's own page lists these as required for onboarding, beyond the standard Daraja app setup: Certificate of Incorporation, CR.12 (not older than 3 months), company KRA PIN, a data privacy policy, a signed NDA, and a proposed customer journey layout.

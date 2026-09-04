@@ -1,12 +1,13 @@
 import { source } from "@/lib/source";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { baseOptions } from "@/lib/layout.shared";
+import { MessageCircle } from "lucide-react";
+import Image from "next/image";
 import {
   AISearch,
   AISearchPanel,
   AISearchTrigger,
 } from "@/components/ai/search";
-import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 
@@ -18,7 +19,41 @@ export const metadata = {
 
 export default function Layout({ children }: LayoutProps<"/docs">) {
   return (
-    <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
+    <DocsLayout
+      tree={source.getPageTree()}
+      {...baseOptions()}
+      tabs={[
+        {
+          title: "SDK Docs",
+          // icon: <Boxes className="size-4" />,
+          icon: (
+            <Image
+              src="/logomark.svg"
+              alt="Safaricom logo"
+              width={80}
+              height={32}
+              className="w-14 h-6 object-contain"
+            />
+          ),
+          description: "TypeScript SDK guides & setup.",
+          url: "/docs/sdk",
+        },
+        {
+          title: "Daraja API",
+          icon: (
+            <Image
+              src="/safaricom.svg"
+              alt="Safaricom logo"
+              width={80}
+              height={32}
+              className="w-14 h-6 object-contain"
+            />
+          ),
+          description: "Raw REST endpoints & specs.",
+          url: "/docs/daraja",
+        },
+      ]}
+    >
       <AISearch>
         <AISearchPanel />
         <AISearchTrigger

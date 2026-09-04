@@ -26,18 +26,17 @@ import { Daraja } from "@lumierelabs/daraja";
 const daraja = Daraja({
   consumerKey: process.env.DARAJA_CONSUMER_KEY!,
   consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
   environment: "sandbox",
 });
 
 const { CheckoutRequestID } = await daraja.stkPush({
-  businessShortCode: "174379",
-  passkey: process.env.MPESA_PASSKEY!,
   transactionType: "CustomerPayBillOnline",
   amount: 1,
   partyA: "254708374149",
-  partyB: "174379",
   phoneNumber: "254708374149",
-  callBackURL: "https://example.com/callbacks/stk",
   accountReference: "INV-1042",
 });
 ```
@@ -100,18 +99,17 @@ import { Daraja } from "@lumierelabs/daraja";
 export const daraja = Daraja({
   consumerKey: process.env.DARAJA_CONSUMER_KEY!,
   consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
   environment: "sandbox", // 'production' when you go live
 });
 
 const push = await daraja.stkPush({
-  businessShortCode: "174379",
-  passkey: process.env.MPESA_PASSKEY!,
   transactionType: "CustomerPayBillOnline",
   amount: 1,
   partyA: "254708374149", // customer's phone (debited)
-  partyB: "174379", // your paybill (credited)
   phoneNumber: "254708374149", // where the STK prompt is sent
-  callBackURL: "https://example.com/callbacks/stk",
   accountReference: "INV-1042",
 });
 
@@ -203,17 +201,23 @@ class DarajaError extends Error {
 interface DarajaConfig {
   consumerKey: string;
   consumerSecret: string;
+  shortcode?: string; // default shortcode for STK Push/query
+  passkey?: string; // default Lipa Na M-Pesa Online passkey
+  callbackUrl?: string; // default callback URL for STK Push
   environment?: "sandbox" | "production"; // default: 'sandbox'
   timeout?: number; // default: 10000 (ms)
 }
 ```
 
-| Option           | Type                        | Default     | Description                                                     |
-| ---------------- | --------------------------- | ----------- | --------------------------------------------------------------- |
-| `consumerKey`    | `string`                    | —           | **Required.** Exactly 48 alphanumeric characters.               |
-| `consumerSecret` | `string`                    | —           | **Required.** Exactly 64 alphanumeric characters.               |
-| `environment`    | `'sandbox' \| 'production'` | `'sandbox'` | `'production'` requires HTTPS on every callback URL.            |
-| `timeout`        | `number`                    | `10000`     | Milliseconds before a request is aborted via `AbortController`. |
+| Option           | Type                        | Default     | Description                                                            |
+| ---------------- | --------------------------- | ----------- | ---------------------------------------------------------------------- |
+| `consumerKey`    | `string`                    | —           | **Required.** Exactly 48 alphanumeric characters.                      |
+| `consumerSecret` | `string`                    | —           | **Required.** Exactly 64 alphanumeric characters.                      |
+| `shortcode`      | `string`                    | `""`        | Default shortcode for M-Pesa Express STK Push and query requests.      |
+| `passkey`        | `string`                    | `""`        | Default Lipa Na M-Pesa Online passkey for STK Push and query requests. |
+| `callbackUrl`    | `string`                    | `""`        | Default callback URL for STK Push requests.                            |
+| `environment`    | `'sandbox' \| 'production'` | `'sandbox'` | `'production'` requires HTTPS on every callback URL.                   |
+| `timeout`        | `number`                    | `10000`     | Milliseconds before a request is aborted via `AbortController`.        |
 
 Full validation pipeline (placeholder detection, key/secret swap detection, sanitization): **[Configuration →](http://darajasdk.vercel.app/docs/getting-started/configuration)**
 

@@ -1,0 +1,182 @@
+---
+title: B2C
+description: Send money from a business short code to a registered M-PESA customer (bulk disbursements).
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+Business to Customer, also referred to by Safaricom as **Bulk Disbursements**.
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest
+```
+
+## Overview
+
+Moves money from a business account to a customer's M-PESA wallet.
+
+<Callout type="warn">
+Going live requires either a dedicated Bulk Disbursement Account with a B2C short code, or converting an existing Pay Bill/Till into a "one account" capable of both receiving and disbursing. Applications go through Safaricom's [business channel](https://www.safaricom.co.ke/business/sme/m-pesa-payment-solutions).
+</Callout>
+
+## How it works
+
+1. The merchant sends a payment request.
+2. Daraja validates and authenticates it, forwards it to M-PESA, and acknowledges the merchant.
+3. M-PESA validates the initiator details and processes the transaction.
+4. M-PESA posts the result to the merchant's callback URL.
+5. The customer receives an SMS confirming the payment.
+
+## Prerequisites
+
+- Daraja account and sandbox app.
+- `InitiatorName`: the API operator's username, available on the Test Credentials page for sandbox.
+- `InitiatorPassword`, encrypted into a `SecurityCredential` using M-PESA's public key certificate (see [Introduction](/daraja) and [Organization Portal & Go Live](/daraja/organization-portal)).
+- A live B2C shortcode, or Pay Bill/Till converted to "one account", with Business Admin/Manager operators created.
+
+<Callout type="warn" title="Password character limits">
+Safaricom's documentation restricts the initiator password to `#`, `&`, `%`, and `$` as special characters; parentheses are rejected. `@` is documented as *not* being treated as special on M-PESA.
+</Callout>
+
+## Request
+
+```json
+{
+  "OriginatorConversationID": "600997_Test_32et3241ed8yu",
+  "InitiatorName": "testapi",
+  "SecurityCredential": "RC6E9WDxXR4b9X2c6z3gp0oC5Th ==",
+  "CommandID": "BusinessPayment",
+  "Amount": "10",
+  "PartyA": "600992",
+  "PartyB": "254705912645",
+  "Remarks": "remarked",
+  "QueueTimeOutURL": "https://mydomain.com/path",
+  "ResultURL": "https://mydomain.com/path",
+  "Occassion": "ChristmasPay"
+}
+```
+
+| Field | Description | Required | Sample value |
+|---|---|---|---|
+| `OriginatorConversationID` | Your own unique ID, used to avoid double-disbursement and to check status before retrying. | Yes | `600997_Test_32et3241ed8yu` |
+| `InitiatorName` | API operator's username. | Yes | `johndoe` |
+| `SecurityCredential` | Encrypted initiator password. | Yes | (encrypted string) |
+| `CommandID` | `SalaryPayment`, `BusinessPayment`, or `PromotionPayment`. | Yes | `BusinessPayment` |
+| `Amount` | Transaction amount. | Yes | `11` |
+| `PartyA` | Your B2C short code. | Yes | `600997` |
+| `PartyB` | Recipient's MSISDN, 12 digits, no plus sign. | Yes | `254705912645` |
+| `Remarks` | 2 to 100 characters. | Yes | Free text |
+| `QueueTimeOutURL` | Timeout notification URL. | Yes | `https://mydomain.com/b2c/timedout` |
+| `ResultURL` | Result notification URL. | Yes | `https://mydomain.com/b2c/result` |
+| `Occassion` (sic) | 1 to 100 characters, optional. | No | Free text |
+
+<Callout type="warn" title="Defect in the source material">
+The optional field is spelled `Occassion`, with a double "s", in Safaricom's own request schema. It's kept exactly as documented, since that's the literal field name the API expects.
+</Callout>
+
+<Callout type="info" title="CommandID options">
+`SalaryPayment` is documented as supporting both registered and unregistered M-PESA customers, but Safaricom's own text immediately adds that sending to unregistered numbers is no longer supported, which leaves the practical difference between `SalaryPayment` and `BusinessPayment` unclear from the documentation alone. `PromotionPayment` behaves like `BusinessPayment` but the SMS sent to the customer is phrased as a congratulatory message.
+</Callout>
+
+## Response
+
+```json
+{
+  "ConversationID": "AG_20240706_20106e9209f64bebd05b",
+  "OriginatorConversationID": "600997_Test_32et3241ed8yu",
+  "ResponseCode": "0",
+  "ResponseDescription": "Accept the service request successfully."
+}
+```
+
+## Callback payload
+
+```json
+{
+  "Result": {
+    "ResultType": 0,
+    "ResultCode": 0,
+    "ResultDesc": "The service request is processed successfully.",
+    "OriginatorConversationID": "53e3-4aa8-9fe0-8fb5e4092cdd3533373",
+    "ConversationID": "AG_20240706_2010364430d9bbdaf872",
+    "TransactionID": "SG632NMUAB",
+    "ResultParameters": {
+      "ResultParameter": [
+        { "Key": "TransactionAmount", "Value": 10 },
+        { "Key": "TransactionReceipt", "Value": "SG632NMUAB" },
+        { "Key": "ReceiverPartyPublicName", "Value": "254705912645 - NICHOLAS JOHN SONGOK" },
+        { "Key": "TransactionCompletedDateTime", "Value": "06.07.2024 22:48:52" },
+        { "Key": "B2CUtilityAccountAvailableFunds", "Value": 8959269.6 },
+        { "Key": "B2CWorkingAccountAvailableFunds", "Value": 1199371.0 },
+        { "Key": "B2CRecipientIsRegisteredCustomer", "Value": "Y" },
+        { "Key": "B2CChargesPaidAccountAvailableFunds", "Value": -1980.0 }
+      ]
+    },
+    "ReferenceData": {
+      "ReferenceItem": {
+        "Key": "QueueTimeoutURL",
+        "Value": "https://internalsandbox.safaricom.co.ke/mpesa/b2cresults/v1/submit"
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `ResultType` | Usually `0`. |
+| `ResultCode` | `0` for success; see the result code table below for others. |
+| `TransactionID` | M-PESA transaction ID, also sent to the customer by SMS. |
+| `TransactionAmount` / `TransactionReceipt` | Amount transacted and the receipt number. |
+| `ReceiverPartyPublicName` | Recipient's number and registered name. |
+| `B2CUtilityAccountAvailableFunds`, `B2CWorkingAccountAvailableFunds`, `B2CChargesPaidAccountAvailableFunds` | Post-transaction balances on the relevant B2C accounts. |
+| `B2CRecipientIsRegisteredCustomer` | `Y` or `N`. |
+
+## Result codes
+
+| Code | Meaning | Explanation |
+|---|---|---|
+| 0 | Success | Processed on M-PESA. |
+| 1 | Insufficient balance | Not enough funds in the Utility account. |
+| 2 | Declined, below minimum limit | Amount too small. |
+| 3 | Declined, above maximum limit | Amount too large. |
+| 4 | Declined, would exceed daily limit | Customer daily transfer limit is KES 500,000. |
+| 8 | Declined, would exceed maximum balance | Customer balance cap is KES 500,000. |
+| 11 | DebitParty in invalid state | B2C account isn't active. |
+| 21 | Initiator not allowed | Missing ORG B2C API Initiator role. |
+| 2001 | Initiator information invalid | Wrong username, wrong encrypted password, or wrong certificate/algorithm used to encrypt it. |
+| 2006 | Account rule declined | Account isn't active. |
+| 2028 | Not permitted by product assignment | `PartyA` isn't provisioned for B2C. |
+| 2040 | Credit party customer type unsupported | Customer isn't registered. |
+| 8006 | Security credential locked | Business Administrator needs to unlock it. |
+| `SFC_IC0003` | Operator does not exist | Invalid or non-existent recipient MSISDN. |
+
+## Testing
+
+**Daraja Simulator**: create a test app with the Business to Customer product attached.
+
+**Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the endpoint above.
+
+## Go Live
+
+See [Organization Portal & Go Live](/daraja/organization-portal) for the admin/manager and API initiator setup this API depends on.
+
+## FAQs
+
+<Accordions>
+<Accordion title="Why is my balance insufficient even though I have money in the account?">
+B2C debits the **Utility** account specifically, not the MMF/Working account. Move funds across first (manually via My Functions &gt; Initiate Transaction, or automated using the B2B API with `CommandID: BusinessTransferFromMMFToUtility`, which requires whitelisting from `apisupport@safaricom.co.ke`).
+</Accordion>
+<Accordion title="Can I reverse a B2C transaction with the Reversals API?">
+No. Safaricom documents this as needing to be done manually on the M-PESA portal.
+</Accordion>
+<Accordion title="Do I need a passkey for B2C?">
+No. Passkeys are specific to M-PESA Express/STK Push.
+</Accordion>
+<Accordion title="What are the transaction limits?">
+Minimum KES 10, maximum KES 250,000 per transaction, maximum customer balance KES 500,000, maximum daily value KES 500,000.
+</Accordion>
+</Accordions>

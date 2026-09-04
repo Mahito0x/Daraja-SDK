@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Pnpm, NPM, Yarn, Bun } from "./Icons";
 import { CopyButton } from "./CopyButton";
@@ -77,11 +76,7 @@ export function InstallCommand(props: InstallCommandProps) {
               title={`Switch to ${item.label}`}
             >
               {isActive && (
-                <motion.span
-                  layoutId="install-pm-highlight"
-                  className="absolute inset-0 rounded-lg bg-black/[0.06] dark:bg-white/10"
-                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                />
+                <span className="absolute inset-0 rounded-lg bg-black/[0.06] dark:bg-white/10" />
               )}
               <Icon className="relative h-3.5 w-3.5 shrink-0" />
               <span className="relative">{item.label}</span>

@@ -143,12 +143,12 @@ export class MpesaExpressClient {
     }
 
     const businessShortCode = this.validateShortCode(
-      request.businessShortCode,
+      request.businessShortCode ?? this.http.getShortcode(),
       "businessShortCode",
     );
     const { timestamp, password } = this.buildAuthFields(
       businessShortCode,
-      request.passkey,
+      request.passkey ?? this.http.getPasskey(),
     );
 
     if (
@@ -182,13 +182,16 @@ export class MpesaExpressClient {
     }
 
     const partyA = this.validatePhoneNumber(request.partyA, "partyA");
-    const partyB = this.validateShortCode(request.partyB, "partyB");
+    const partyB = this.validateShortCode(
+      request.partyB ?? this.http.getShortcode(),
+      "partyB",
+    );
     const phoneNumber = this.validatePhoneNumber(
       request.phoneNumber,
       "phoneNumber",
     );
     const callBackURL = validateCallbackUrl(
-      request.callBackURL,
+      request.callBackURL ?? this.http.getCallbackUrl(),
       "callBackURL",
       this.http.getEnvironment(),
     );
@@ -280,12 +283,12 @@ export class MpesaExpressClient {
     }
 
     const businessShortCode = this.validateShortCode(
-      request.businessShortCode,
+      request.businessShortCode ?? this.http.getShortcode(),
       "businessShortCode",
     );
     const { timestamp, password } = this.buildAuthFields(
       businessShortCode,
-      request.passkey,
+      request.passkey ?? this.http.getPasskey(),
     );
 
     if (

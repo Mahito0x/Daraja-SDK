@@ -1,0 +1,20 @@
+{
+  "title": "Daraja API",
+  "root": true,
+  "icon": "Landmark",
+  "pages": [
+    "index",
+    "---Authentication---",
+    "authentication",
+    "---Collections---",
+    "payments",
+    "---Disbursements---",
+    "disbursements",
+    "---B2B Transfers---",
+    "b2b",
+    "---Account Operations---",
+    "account",
+    "---Value Added Services---",
+    "telco-services"
+  ]
+}

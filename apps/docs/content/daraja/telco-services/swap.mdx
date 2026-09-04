@@ -1,0 +1,107 @@
+---
+title: SWAP
+description: Look up the last date a Safaricom SIM card was swapped, as a fraud-prevention signal.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/imsi/v2/checkATI
+```
+
+## Overview
+
+Returns the last date a given SIM card was swapped. Safaricom frames this and the [IMSI](/daraja/imsi) API together as a response to SIM-swap fraud targeting mobile and internet banking customers. If the SIM was swapped more than three months ago, the API returns a default date of `01-01-1900` rather than the actual date.
+
+## How it works
+
+1. The organization sends the customer's phone number to Daraja.
+2. Daraja authenticates the request and forwards it to M-PESA.
+3. M-PESA returns the last swap date, which Daraja relays back.
+
+<Callout type="warn" title="Defect in the source material">
+As with [Age on Network](/daraja/age-on-network), Safaricom's own "Good to Know" section calls this API asynchronous, while the documented request and response return the answer directly with no callback URL field and no callback payload shown anywhere on the page.
+</Callout>
+
+## Onboarding
+
+Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; onboarding includes both sandbox and production access once a commercial agreement is signed.
+
+| API calls per month | Charge (KES, excl. VAT) |
+|---|---|
+| 0 to 200,000 | 1.20 |
+| 200,001 to 500,000 | 0.90 |
+| 500,001 to 1,000,000 | 0.70 |
+| 1,000,001 to 5,000,000 | 0.60 |
+| Over 5,000,000 | 0.50 |
+
+## Use cases
+
+- Due diligence on high-risk mobile/internet banking transactions.
+- Verifying a line hasn't been swapped before clearing cheque payments.
+- Controls on loan disbursements and high-value B2C payouts.
+- Blocking password resets shortly after a detected SIM swap.
+- Post-incident fraud investigation and chargeback dispute support.
+
+## Request
+
+```json
+{ "customerNumber": "254722000000" }
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `customerNumber` | MSISDN to check. | `2547XXXXXXXX` |
+
+## Response
+
+```json
+{
+  "requestRefID": "4277-415525-1",
+  "responseCode": "200",
+  "responseDesc": "Success",
+  "lastSwapDate": "01-01-1900 00:00"
+}
+```
+
+| Field | Description |
+|---|---|
+| `requestRefID` | Unique ID for the request. |
+| `responseCode` | `200` success; any other value an error. |
+| `responseDesc` | Status message. |
+| `lastSwapDate` | Date of last swap, or the `01-01-1900 00:00` default if the swap was more than 3 months ago. |
+
+## Error codes
+
+Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `500`, `501`, `502`, `503`, `504`, with the same descriptions documented across Safaricom's identity-check APIs (see [Age on Network](/daraja/age-on-network) for the full text).
+
+## Testing
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own "Get Auth Token" section for this API reads "generate access token API API here," with the word "API" duplicated. Reproduced as published.
+</Callout>
+
+**Daraja Simulator**: create a test app with the SWAP product attached.
+
+**Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the endpoint above.
+
+## Go Live
+
+Email `apisupport@safaricom.co.ke`. You'll need to submit company registration details for billing and a signed commercial agreement.
+
+## FAQs
+
+<Accordions>
+<Accordion title="What does the SWAP API do?">
+Lets partners query the last SIM swap date of a phone number, as a fraud-prevention signal, per Safaricom's documentation.
+</Accordion>
+<Accordion title="What should I do if I get an error?">
+Check `responseCode` and `responseDesc`, confirm parameters are correctly formatted, then retry or contact support.
+</Accordion>
+<Accordion title="Who is eligible?">
+Any registered company; an M-PESA Pay Bill or Till number is recommended but not mandatory.
+</Accordion>
+</Accordions>

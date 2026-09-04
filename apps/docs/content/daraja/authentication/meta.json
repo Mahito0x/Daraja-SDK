@@ -1,0 +1,5 @@
+{
+  "title": "Authentication",
+  "icon": "KeyRound",
+  "pages": ["authorization", "organization-portal"]
+}

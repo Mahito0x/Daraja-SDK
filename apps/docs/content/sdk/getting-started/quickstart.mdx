@@ -25,6 +25,9 @@ import { Daraja } from "@lumierelabs/daraja";
 export const daraja = Daraja({
   consumerKey: process.env.DARAJA_CONSUMER_KEY!,
   consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
   environment: "sandbox", // 'production' when you go live
 });
 ```
@@ -41,14 +44,12 @@ export const daraja = Daraja({
 import { daraja } from "./daraja";
 
 const push = await daraja.stkPush({
-  businessShortCode: "174379",
-  passkey: process.env.MPESA_PASSKEY!,
   transactionType: "CustomerPayBillOnline",
   amount: 1,
   partyA: "254708374149", // customer's phone (debited)
-  partyB: "174379", // your paybill (credited)
+  // partyB defaults to the configured shortcode
   phoneNumber: "254708374149", // where the STK prompt is sent
-  callBackURL: "https://example.com/callbacks/stk",
+  // callBackURL defaults to the configured callbackUrl
   accountReference: "INV-1042", // shown on the customer's phone, max 12 chars
   transactionDesc: "Order #1042",
 });
@@ -212,8 +213,6 @@ If your callback never arrives  dropped webhook, firewall, whatever  poll instea
 
 ```ts
 const status = await daraja.stkPushQuery({
-  businessShortCode: '174379',
-  passkey: process.env.MPESA_PASSKEY!,
   checkoutRequestId: push.CheckoutRequestID,
 });
 

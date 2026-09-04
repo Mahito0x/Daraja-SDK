@@ -1,0 +1,145 @@
+---
+title: B2C Account Top Up
+description: Move funds from a Pay Bill's Working account directly into a B2C shortcode's disbursement account.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Lets a business load funds into a B2C shortcode for disbursement, moving money from the sender's MMF/Working account into the recipient's Utility account.
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest
+```
+
+<Callout type="info">
+This is the same underlying endpoint documented for [Business Pay Bill](/daraja/business-paybill) and [Business Buy Goods](/daraja/business-buy-goods); Safaricom's B2B family of APIs share one URL and are distinguished by `CommandID`. Here it's `BusinessPayToBulk`.
+</Callout>
+
+## Request
+
+```json
+{
+  "Initiator": "testapi",
+  "SecurityCredential": "IAJVUHDGj0yDU3aop/WI9oSPhkW3DVlh7EAt3iRyymTZhljpzCNnI/xFKZNooOf8PUFgjmEOihUnB24adZDOv3Ri0Citk60LgMQnib0gjsoc9WnkHmGYqGtNivWE20jyIDUtEKLlPr3snV4d/H54uwSRVcsATEQPNl5n3+EGgJFIKQzZbhxDaftMnxQNGoIHF9+77tfIFzvhYQen352F4D0SmiqQ91TbVc2Jdfx/wd4HEdTBU7S6ALWfuCCqWICHMqCnpCi+Y/ow2JRjGYHdfgmcY8pP5oyH25uQk1RpWV744aj2UROjDrxTnE7a6tDN6G/dA21MXKaIsWJT/JyyXg==",
+  "CommandID": "BusinessPayToBulk",
+  "SenderIdentifierType": "4",
+  "RecieverIdentifierType": "4",
+  "Amount": "239",
+  "PartyA": "600979",
+  "PartyB": "600000",
+  "AccountReference": "353353",
+  "Requester": "254708374149",
+  "Remarks": "OK",
+  "QueueTimeOutURL": "https://mydomain/path/timeout",
+  "ResultURL": "https://mydomain/path/result"
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `CommandID` | Only `BusinessPayToBulk` for this API. | String | `BusinessPayToBulk` |
+| `Initiator` | API operator username, needs the Org Business Pay To Bulk API initiator role. | String | `johndoe` |
+| `SecurityCredential` | Encrypted initiator password. | String | (encrypted string) |
+| `PartyA` | Your short code, debited. | Number | `600979` |
+| `SenderIdentifierType` | Only `4` is allowed. | Number | `4` |
+| `PartyB` | Recipient B2C short code, credited. | Number | `600000` |
+| `RecieverIdentifierType` (sic) | Only `4` is allowed. | Number | `4` |
+| `Requester` | Optional; the consumer's mobile number, if paying on their behalf. | Mobile | `254708374149` |
+| `Amount` | Transaction amount. | Number | `300` |
+| `Remarks` | Up to 100 characters. | String | Free text |
+| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs. | URL | `https://domain:port/path` |
+
+<Callout type="warn" title="Defect in the source material">
+`RecieverIdentifierType` is spelled that way, "Reciever" rather than "Receiver," throughout Safaricom's B2B family of APIs. It's kept exactly as documented, since it's the literal field name the API expects. Safaricom's own sample value for `CommandID` in this API's Request Parameter Definition table is also given, in one place, as `BusinessPayToBullk` (an extra "l"), which is reproduced here in this note rather than in the table itself, since the actual field only accepts `BusinessPayToBulk`.
+</Callout>
+
+## Response
+
+```json
+{
+  "OriginatorConversationID": "5118-111210482-1",
+  "ConversationID": "AG_20230420_2010759fd5662ef6d054",
+  "ResponseCode": "0",
+  "ResponseDescription": "Accept the service request successfully."
+}
+```
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own response parameter table for this API is headed "Repsonse Parameter Definition" (missing the first "s" in "Response"), and lists the field itself as `OriginatorConverstionID` rather than `OriginatorConversationID`. The response body sample above is spelled correctly; only the table heading and one field-name row in Safaricom's documentation carry the typo.
+</Callout>
+
+## Callback payload
+
+```json
+{
+  "Result": {
+    "ResultType": "0",
+    "ResultCode": "0",
+    "ResultDesc": "The service request is processed successfully",
+    "OriginatorConversationID": "626f6ddf-ab37-4650-b882-b1de92ec9aa4",
+    "ConversationID": "12345677dfdf89099B3",
+    "TransactionID": "QKA81LK5CY",
+    "ResultParameters": {
+      "ResultParameter": [
+        { "Key": "DebitAccountBalance", "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}" },
+        { "Key": "Amount", "Value": "190.00" },
+        { "Key": "DebitPartyAffectedAccountBalance", "Value": "Working Account|KES|346568.83|6186.83|340382.00|0.00" },
+        { "Key": "TransCompletedTime", "Value": "20221110110717" },
+        { "Key": "DebitPartyCharges", "Value": "" },
+        { "Key": "ReceiverPartyPublicName", "Value": "000000 - Biller Company" },
+        { "Key": "Currency", "Value": "KES" },
+        { "Key": "InitiatorAccountCurrentBalance", "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}" }
+      ]
+    },
+    "ReferenceData": {
+      "ReferenceItem": [
+        { "Key": "BillReferenceNumber", "Value": "19008" },
+        { "Key": "QueueTimeoutURL", "Value": "https://mydomain.com/b2b/businessbuygoods/queue/" }
+      ]
+    }
+  }
+}
+```
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own sample for the `ReceiverPartyPublicName` value is not valid JSON at all: it renders as `"Value":000000– Biller Companty` in their documentation, an unquoted number followed by an em dash and the misspelling "Companty" for "Company." The version above is corrected to valid JSON (`"000000 - Biller Company"`) purely so the sample can parse; the real returned value has not been independently confirmed against a live sandbox call.
+</Callout>
+
+| Field | Description |
+|---|---|
+| `ResultType` / `ResultCode` / `ResultDesc` | Standard result envelope; `0` is success. |
+| `TransactionID` | M-PESA transaction ID. |
+| `DebitAccountBalance`, `DebitPartyAffectedAccountBalance`, `InitiatorAccountCurrentBalance` | Balances on the sending organization's accounts, in mixed formats (delimited string in one field, a JSON-like `{Amount={...}}` string in others). |
+| `ReceiverPartyPublicName` | Recipient short code and public name. |
+| `DebitPartyCharges` | Fee charged, if any. |
+
+## Unsuccessful result
+
+```json
+{
+  "Result": {
+    "ResultType": 0,
+    "ResultCode": 2001,
+    "ResultDesc": "The initiator information is invalid.",
+    "OriginatorConversationID": "12337-23509183-5",
+    "ConversationID": "AG_20200120_0000657265d5fa9ae5c0",
+    "TransactionID": "OAK0000000",
+    "ResultParameters": {
+      "ResultParameter": { "Key": "BillReferenceNumber", "Value": 12323333 }
+    },
+    "ReferenceData": {
+      "ReferenceItem": [
+        { "Key": "BillReferenceNumber", "Value": 12323333 },
+        { "Key": "QueueTimeoutURL", "Value": "https://internalapi.safaricom.co.ke/mpesa/abresults/v1/submit" },
+        { "Key": "Occassion" }
+      ]
+    }
+  }
+}
+```
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own unsuccessful-result sample has multiple JSON structure problems: the `ResultParameters.ResultParameter` array is malformed, and the last `ReferenceItem` entry, `{"Key":"Occassion"}`, has no `Value` field at all. The version above is reformatted into valid JSON while keeping the same field names and values.
+</Callout>

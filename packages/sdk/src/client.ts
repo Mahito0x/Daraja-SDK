@@ -31,6 +31,18 @@ export class HttpClient {
     return this.config.environment;
   }
 
+  public getShortcode(): string {
+    return this.config.shortcode;
+  }
+
+  public getPasskey(): string {
+    return this.config.passkey;
+  }
+
+  public getCallbackUrl(): string {
+    return this.config.callbackUrl;
+  }
+
   /**
    * Makes an authenticated HTTP request to the Daraja API.
    * Automatically injects the Bearer token via AuthManager.

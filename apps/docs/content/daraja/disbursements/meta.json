@@ -1,0 +1,5 @@
+{
+  "title": "Payouts & Disbursements",
+  "icon": "Send",
+  "pages": ["b2c", "business-to-pochi", "b2c-account-top-up"]
+}

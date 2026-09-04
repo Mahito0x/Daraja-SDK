@@ -25,16 +25,33 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ## `push()`
 
+Configure shared STK values once when creating the client. Values supplied in
+an individual request override these defaults, which is useful when handling
+multiple businesses or shortcodes.
+
+```ts title="daraja.ts"
+import { Daraja } from "@lumierelabs/daraja";
+
+export const daraja = Daraja({
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
+  environment: "sandbox",
+});
+```
+
 ```ts
 interface StkPushRequest {
-  businessShortCode: string | number; // 5–7 digits
-  passkey: string;
+  businessShortCode?: string | number; // 5–7 digits; defaults to DarajaConfig.shortcode
+  passkey?: string; // defaults to DarajaConfig.passkey
   transactionType: "CustomerPayBillOnline" | "CustomerBuyGoodsOnline";
   amount: number; // whole number, 1–250,000 KES
   partyA: string; // format "254XXXXXXXXX"  debited
-  partyB: string | number; // your shortcode/till  credited
+  partyB?: string | number; // your shortcode/till; defaults to DarajaConfig.shortcode
   phoneNumber: string; // where the prompt is sent, usually === partyA
-  callBackURL: string;
+  callBackURL?: string; // defaults to DarajaConfig.callbackUrl
   accountReference: string; // max 12 characters  shown to the customer
   transactionDesc?: string; // max 13 characters, default "Payment"
 }
@@ -50,14 +67,10 @@ interface StkPushResponse {
 
 ```ts
 const result = await daraja.mpesaExpress.push({
-  businessShortCode: "174379",
-  passkey: process.env.MPESA_PASSKEY!, // Daraja's shared sandbox passkey starts "bfb279f9..."
   transactionType: "CustomerPayBillOnline",
   amount: 1,
   partyA: "254708374149",
-  partyB: "174379",
   phoneNumber: "254708374149",
-  callBackURL: "https://example.com/callbacks/stk",
   accountReference: "INV-1042",
   transactionDesc: "Order 1042",
 });
@@ -78,11 +91,13 @@ console.log(result.CheckoutRequestID); // e.g. "ws_CO_260820261234567890"
 
 ### Validation the SDK performs before sending
 
-- `businessShortCode` must be 5–7 digits
+- `businessShortCode` must be 5–7 digits, using `DarajaConfig.shortcode` when omitted
+- `passkey` uses `DarajaConfig.passkey` when omitted
+- `partyB` uses `DarajaConfig.shortcode` when omitted
 - `amount` must be a whole number between 1 and 250,000 (Safaricom's documented per-transaction cap)
 - `partyA` and `phoneNumber` must match `254XXXXXXXXX` (12 digits)
 - `accountReference` ≤ 12 characters, `transactionDesc` ≤ 13 characters
-- `callBackURL` goes through [callback URL validation](/docs/core-concepts/callback-urls)
+- `callBackURL` uses `DarajaConfig.callbackUrl` when omitted and goes through [callback URL validation](/docs/core-concepts/callback-urls)
 
 All failures throw `DarajaError` with `errorCode: 'INVALID_STK_REQUEST'`.
 
@@ -90,8 +105,8 @@ All failures throw `DarajaError` with `errorCode: 'INVALID_STK_REQUEST'`.
 
 ```ts
 interface StkQueryRequest {
-  businessShortCode: string | number; // same shortcode used in push()
-  passkey: string; // same passkey used in push()
+  businessShortCode?: string | number; // same shortcode used in push(), or DarajaConfig.shortcode
+  passkey?: string; // same passkey used in push(), or DarajaConfig.passkey
   checkoutRequestId: string; // CheckoutRequestID from push()'s response
 }
 
@@ -107,8 +122,6 @@ interface StkQueryResponse {
 
 ```ts
 const status = await daraja.mpesaExpress.query({
-  businessShortCode: "174379",
-  passkey: process.env.MPESA_PASSKEY!,
   checkoutRequestId: result.CheckoutRequestID,
 });
 

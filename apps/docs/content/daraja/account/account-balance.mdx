@@ -1,0 +1,177 @@
+---
+title: Account Balance
+description: Query the current balance of an organization's M-PESA business account.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Lets an organization query the current balance of its M-PESA business account. The API is asynchronous: your application submits a request and gets an immediate acknowledgment, then M-PESA sends the actual balance to your `ResultURL` afterward.
+
+**Endpoint**
+
+```
+Sandbox:    POST https://sandbox.safaricom.co.ke/mpesa/accountbalance/v1/query
+Production: POST https://api.safaricom.co.ke/mpesa/accountbalance/v1/query
+```
+
+## How it works
+
+1. Your application generates an OAuth access token.
+2. Your application submits an Account Balance request.
+3. Daraja authenticates and validates the request, then forwards it to M-PESA.
+4. M-PESA processes the balance query.
+5. Daraja immediately returns an acknowledgment.
+6. M-PESA sends the final balance to your `ResultURL`.
+7. If that callback can't be delivered, Safaricom's documentation states there are no automatic retries.
+
+## Authentication
+
+A valid OAuth token from the [Authorization API](/daraja/authorization), supplied as:
+
+```
+Authorization: Bearer <access_token>
+```
+
+## Request
+
+```json
+{
+  "Initiator": "testapiuser",
+  "SecurityCredential": "SAFVNChNHfVtXEZMBuVo+a1Hwr+DtrUVN3zVg==",
+  "CommandID": "AccountBalance",
+  "PartyA": "600000",
+  "IdentifierType": "4",
+  "Remarks": "ok",
+  "QueueTimeOutURL": "http://myservice:8080/queuetimeouturl",
+  "ResultURL": "http://myservice:8080/result"
+}
+```
+
+| Field | Description |
+|---|---|
+| `Initiator` | API user's username, authenticating the request. |
+| `SecurityCredential` | Encrypted initiator credential (see [Introduction](/daraja) for how this is generated). |
+| `CommandID` | Always `AccountBalance` for this API. |
+| `PartyA` | The short code whose balance is being queried. |
+| `IdentifierType` | `4` for an organization short code. |
+| `Remarks` | Free-text comment sent with the request. |
+| `QueueTimeOutURL` | Notified if the request times out. |
+| `ResultURL` | Receives the actual balance once processed. |
+
+## Initial response
+
+```json
+{
+  "OriginatorConversationID": "515-5258779-3",
+  "ConversationID": "AG_20200123_0000417fed8ed666e976",
+  "ResponseCode": "0",
+  "ResponseDescription": "Accept the service request successfully"
+}
+```
+
+<Callout type="warn">
+This response is only an acknowledgment that the request was accepted; it does not contain the balance itself.
+</Callout>
+
+## Callback
+
+```json
+{
+  "Result": {
+    "ResultType": "0",
+    "ResultCode": "0",
+    "ResultDesc": "The service request is processed successfully",
+    "OriginatorConversationID": "16917-22577599-3",
+    "ConversationID": "AG_20200206_00005e091a8ec6b9eac5",
+    "TransactionID": "OA90000000",
+    "ResultParameters": {
+      "ResultParameter": [
+        {
+          "Key": "AccountBalance",
+          "Value": "Working Account|KES|700000.00|700000.00|0.00|0.00&Float Account|KES|0.00|0.00|0.00|0.00&Utility Account|KES|228037.00|228037.00|0.00|0.00&Charges Paid Account|KES|-1540.00|-1540.00|0.00|0.00&Organization Settlement Account|KES|0.00|0.00|0.00|0.00"
+        },
+        { "Key": "BOCompletedTime", "Value": "20200109125710" }
+      ]
+    },
+    "ReferenceData": {
+      "ReferenceItem": {
+        "Key": "QueueTimeoutURL",
+        "Value": "https://internalsandbox.safaricom.co.ke/mpesa/abresults/v1/submit"
+      }
+    }
+  }
+}
+```
+
+### Decoding the AccountBalance value
+
+The balance itself arrives as a single delimited string, not structured JSON. Each account is separated by `&`, and within an account the fields are pipe-separated:
+
+```
+Account Name | Currency | Available Balance | Uncleared Funds | Reserved Funds | (further fields)
+```
+
+For example, `Working Account|KES|700000.00|700000.00|0.00|0.00` decodes to the Working Account, in KES, with an available balance of 700,000.00. Which accounts appear, and in what order, depends on what's associated with the queried organization.
+
+### M-PESA account types referenced here
+
+| Account | Purpose |
+|---|---|
+| Utility Account | Receives customer payments, Pay Bill accounts. |
+| Merchant Account | Receives customer payments, Buy Goods/Till accounts. |
+| Working (MMF) Account | Holds funds awaiting settlement. |
+| Charges Paid Account | Holds accrued charges per the organization's tariff. |
+| Organization Settlement Account | Runs settlement calculations before funds move to the Working account. |
+
+## Errors
+
+| Code | Description | HTTP |
+|---|---|---|
+| `401.002.01` | Invalid access token | 401 |
+| `400.002.02` | Bad request / invalid parameter | 400 |
+| `404.002.01` | Resource not found | 404 |
+| `405.001` | Method not allowed | 405 |
+| `500.002.1001` | Duplicate OriginatorConversationID | 500 |
+| `500.003.1001` | Internal server error | 500 |
+| `500.003.02` | Spike arrest violation | 500 |
+| `500.003.03` | Quota violation | 500 |
+
+### Lower-level M-PESA result codes
+
+| Code | Description |
+|---|---|
+| 15 | Duplicate detected |
+| 17 | Internal failure |
+| 18 | Initiator credential check failure |
+| 19 | Message sequencing failure |
+| 20 | Unresolved initiator |
+| 21 | Initiator-to-primary-party permission failure |
+| 22 | Initiator is not currently active |
+| 24 | Missing mandatory fields |
+| 25 | Invalid request parameters |
+| 26 | Traffic blocking condition |
+| 29 | Invalid command |
+| 100000000 | Request cached, awaiting resend |
+| 100000001 | System overloaded |
+| 100000002 | Throttling error |
+| 100000004 | Internal server error |
+| 100000005 | Invalid input value |
+| 100000007 | Service status abnormal |
+| 100000009 | API status abnormal |
+| 100000010 | Insufficient permissions |
+| 100000011 | Request rate limitation exceeded |
+| `00.002.1001` | Service under maintenance |
+
+## Permissions
+
+The initiator needs the **Balance Query ORG API** role (see [Organization Portal & Go Live](/daraja/organization-portal)), must be active, and must belong to the organization/short code hierarchy being queried; an organization cannot query an unrelated third party's short code through this API.
+
+## Testing
+
+**Daraja Simulator**, using your test app's credentials and Safaricom's predefined sandbox data.
+
+**Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the sandbox endpoint above.
+
+## Go Live
+
+Production access requires completing Safaricom's go-live requirements (live M-PESA setup, operators, permissions); see [Organization Portal & Go Live](/daraja/organization-portal). Production endpoints and credentials are issued once that's complete.

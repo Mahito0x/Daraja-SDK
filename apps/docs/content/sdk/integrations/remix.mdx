@@ -16,6 +16,9 @@ import { Daraja } from "@lumierelabs/daraja";
 export const daraja = Daraja({
   consumerKey: process.env.DARAJA_CONSUMER_KEY!,
   consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
   environment: process.env.NODE_ENV === "production" ? "production" : "sandbox",
 });
 ```
@@ -42,14 +45,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const push = await daraja.stkPush({
-      businessShortCode: '174379',
-      passkey: process.env.MPESA_PASSKEY!,
       transactionType: 'CustomerPayBillOnline',
       amount,
       partyA: phoneNumber,
-      partyB: '174379',
       phoneNumber,
-      callBackURL: `${process.env.APP_URL}/callbacks/stk`,
       accountReference: orderRef,
     });
 

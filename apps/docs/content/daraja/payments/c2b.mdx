@@ -1,0 +1,246 @@
+---
+title: C2B
+description: Register callback URLs and receive real-time notifications for Customer to Business payments made to a Pay Bill or Till number.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+Also called the **Register URL API**. Safaricom describes it as enabling merchants to receive real-time notifications for payments made to their Pay Bill or Till number.
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/mpesa/c2b/v2/registerurl
+```
+
+## Overview
+
+Funds move from a customer's M-PESA wallet to a merchant's short code, triggered from SIM Toolkit, the M-PESA app, the Safaricom app, USSD, the NI Push API, or the Dynamic QR Code API. This API registers two callback URLs against your short code:
+
+- **Validation URL**, called only if you've had External Validation enabled on your short code (off by default), giving you a chance to accept or reject a payment before it completes, for example by checking an account number.
+- **Confirmation URL**, called after a payment has completed successfully.
+
+<Callout type="info">
+Turning on Validation requires emailing `apisupport@safaricom.co.ke` or `M-pesabusiness@safaricom.co.ke`. It is not a setting you can flip from the portal directly.
+</Callout>
+
+## How it works
+
+<Steps>
+<Step>Customer initiates payment to your Pay Bill or Till number.</Step>
+<Step>M-PESA checks whether External Validation is enabled for your short code.</Step>
+<Step>If enabled, M-PESA calls your Validation URL and waits roughly 8 seconds for a response, then completes or cancels the transaction based on what you return, or based on the registered default action if your endpoint doesn't answer in time.</Step>
+<Step>If disabled (the default), M-PESA completes the transaction directly and calls your Confirmation URL.</Step>
+<Step>If no URLs are registered at all, M-PESA still completes the transaction.</Step>
+<Step>SMS notifications go to both customer and merchant regardless of whether your endpoints respond.</Step>
+</Steps>
+
+For transactions where a callback never lands, Safaricom points to the [Pull Transactions API](/daraja/pull-transactions) or the M-PESA Organization Portal as the fallback.
+
+### URL requirements
+
+- Publicly reachable IP address or domain name.
+- HTTPS required in production; HTTP is allowed in sandbox.
+- Avoid the words M-PESA, Safaricom, exe, exec, cmd, sql, query (or variants) anywhere in the URL.
+- Don't use public URL testers such as ngrok, mockbin, or requestbin in production; these are typically blocked by the gateway.
+
+<Callout type="warn">
+On sandbox, you can register (and overwrite) your URLs as many times as you like. In production, registration is a one-time call: changing the URLs afterward means deleting the existing ones first, from **Self Service &gt; URL Management** on the portal, and re-registering.
+</Callout>
+
+## Prerequisites
+
+- Daraja account and sandbox app, with a Consumer Key and Consumer Secret.
+- Test data from the simulator section for sandbox testing.
+- A live Pay Bill or Till number with Business Admin/Manager operators created, for [Go Live](/daraja/organization-portal).
+- An access token from the [Authorization API](/daraja/authorization).
+
+## Registering URLs
+
+### Request
+
+```json
+{
+  "ShortCode": "600984",
+  "ResponseType": "Either Cancelled or Completed",
+  "ConfirmationURL": "your confirmation URL",
+  "ValidationURL": "your validation URL"
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `ShortCode` | The Pay Bill or Till number the URLs apply to. | Numeric | `600996` |
+| `ResponseType` | What M-PESA does if your Validation URL is unreachable. `Completed` auto-accepts, `Cancelled` auto-rejects. | String | `Completed` or `Cancelled` |
+| `ValidationURL` | Called before completion, only if External Validation is enabled. | URL | `https://ip/domain:port/path` |
+| `ConfirmationURL` | Called after successful completion. | URL | `https://ip/domain:port/path` |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own note on this field says the words *Cancelled* and *Completed* "must be in sentence case and well-spelled", which is an odd instruction to have to give about your own enum values, but it is exactly what the documentation says, so it is reproduced as written.
+</Callout>
+
+### Response
+
+```json
+{
+  "OriginatorCoversationID": "6e86-45dd-91ac-fd5d4178ab523408729",
+  "ResponseCode": "0",
+  "ResponseDescription": "Success"
+}
+```
+
+<Callout type="warn" title="Defect in the source material">
+`OriginatorCoversationID` is spelled that way, missing the "n," in Safaricom's own response sample, and it appears consistently across their C2B documentation rather than as a one-off typo. It's kept exactly as documented, since that is the field name the response actually returns.
+</Callout>
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `OriginatorCoversationID` (sic) | Unique identifier for the request, returned by the API proxy. | Alphanumeric | Fewer than 20 characters |
+| `ResponseCode` | Whether the request was accepted. | Alphanumeric | `0` |
+| `ResponseDescription` | Status of the request. | String | `Success` |
+
+Once URLs are registered, no further development is needed on your side to trigger a payment during testing: use the simulator to preview what an incoming payment looks like.
+
+## Simulating a transaction
+
+### Request
+
+```json
+{
+  "ShortCode": 600984,
+  "CommandID": "Either CustomerBuyGoodsOnline or CustomerPayBillOnline",
+  "Amount": 1,
+  "Msisdn": 254708374149,
+  "BillRefNumber": "Account reference for Customer paybills and null for customer buy goods"
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `ShortCode` | The Pay Bill/Till number receiving the payment. | Numeric | `600996` |
+| `CommandID` | `CustomerBuyGoodsOnline` for a Till payment, `CustomerPayBillOnline` for a Pay Bill payment. | String | `CustomerPayBillOnline` |
+| `Amount` | Amount transacted. | Numeric | `10` |
+| `Msisdn` | The phone number the funds are debited from. Use the sandbox test number provided. | Numeric | `254708374149` |
+| `BillRefNumber` | Account reference for Pay Bill payments; usually blank for Buy Goods. | String | `"Test Ref"` |
+
+### Response
+
+```json
+{
+  "OriginatorCoversationID": "53e3-4aa8-9fe0-8fb5e4092cdd3405976",
+  "ResponseCode": "0",
+  "ResponseDescription": "Accept the service request successfully."
+}
+```
+
+## Callback payloads
+
+### Validation request
+
+Only sent to partners who have External Validation enabled.
+
+```json
+{
+  "TransactionType": "Pay Bill",
+  "TransID": "RKL51ZDR4F",
+  "TransTime": "20231121121325",
+  "TransAmount": "5.00",
+  "BusinessShortCode": "600966",
+  "BillRefNumber": "Sample Transaction",
+  "InvoiceNumber": "",
+  "OrgAccountBalance": "25.00",
+  "ThirdPartyTransID": "",
+  "MSISDN": "2547 ***** 126",
+  "FirstName": "NICHOLAS",
+  "MiddleName": "",
+  "LastName": ""
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `TransactionType` | `Buy Goods` or `Pay Bill`. | String | `Pay Bill` |
+| `TransID` | Unique M-PESA transaction ID, also sent to the customer by SMS. | Alphanumeric | `LHG31AA5TX` |
+| `TransTime` | `YYYYMMDDHHMMSS`. | Timestamp | `20170813154301` |
+| `TransAmount` | Amount paid. Whole numbers only. | Numeric | `100` |
+| `BusinessShortCode` | The receiving short code. | String | `654321` |
+| `BillRefNumber` | Account number for Pay Bill transactions. | String | Up to 20 alphanumeric characters |
+| `OrgAccountBalance` | Utility account balance. Blank on validation; the post-payment balance on confirmation. | Decimal | `30671` |
+| `ThirdPartyTransID` | Your own transaction ID, echoed back if supplied on a validation response. | String | `1234567890` |
+| `MSISDN` | Masked customer number. | String | `2547 * 126` |
+| `FirstName`, `MiddleName`, `LastName` | Customer's registered names. Can be empty. | String | `John` |
+
+### Accepting or rejecting a validation request
+
+To accept, respond with `ResultCode` `0` and `ResultDesc` `Accepted`:
+
+```json
+{ "ResultCode": "0", "ResultDesc": "Accepted" }
+```
+
+To reject, use any non-zero code from the table below and set `ResultDesc` to `Rejected`:
+
+```json
+{ "ResultCode": "C2B00011", "ResultDesc": "Rejected" }
+```
+
+| Result code | Meaning |
+|---|---|
+| `C2B00011` | Invalid MSISDN |
+| `C2B00012` | Invalid account number |
+| `C2B00013` | Invalid amount |
+| `C2B00014` | Invalid KYC details |
+| `C2B00015` | Invalid short code |
+| `C2B00016` | Other error |
+
+## Error codes
+
+| HTTP | Error | Cause | Fix |
+|---|---|---|---|
+| 500 | `500.003.1001` Internal Server Error | Server-side failure. | Confirm your setup matches the documentation and the correct endpoint is being called. |
+| 500 | `500.003.1001` URLs are already registered | A URL is already registered for this short code. | Delete the existing one and re-register. |
+| 400 | `400.003.01` Invalid Access Token | Wrong or expired token. | Regenerate the token; check for copy-paste errors. |
+| 400 | `400.003.02` Bad Request | Something is missing from the payload. | Check the request against the documentation. |
+| 500 | `500.003.03` Quota Violation | Too many requests per second. | Slow down; one request at a time while testing. |
+| 500 | `500.003.02` Spike Arrest Violation | Your endpoint is generating errors fast enough to trip a spike protection rule. | Confirm your endpoint is up and responding correctly. |
+| 404 | `404.003.01` Resource not found | Wrong endpoint. | Double check the URL. |
+| 404 | `404.001.04` Invalid Authenticator Header | All Daraja APIs except Authorization are POST; Authorization is GET. Mixing this up produces this error. | Use the correct HTTP method. |
+| 400 | `400.002.05` Invalid Request Payload | Malformed body. | Match the sample payload exactly. |
+| 500 | `500.003.1001` Duplicate notification info | URLs are already registered on the older aggregator/MPLS platform, which conflicts with Daraja registration. | Request deletion on the aggregator platform first. |
+
+## Testing
+
+**Daraja Simulator**: create a test app with the C2B product attached, register your URLs, then simulate with `CustomerPayBillOnline` or `CustomerBuyGoodsOnline`.
+
+**Postman**: generate a token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the sandbox endpoint above. A ready-made Postman collection is available from the portal once logged in.
+
+<Callout type="info">
+"Simulate C2B Request" is a sandbox-only feature; there's no equivalent simulated trigger in production, since production payments come from real customers.
+</Callout>
+
+## Go Live
+
+Attach the integration to a live Pay Bill or Till, using a short code, organization name, and M-PESA admin/manager username. See [Organization Portal & Go Live](/daraja/organization-portal) for creating those operators. Once approved, production endpoints are emailed to the developer on the account.
+
+## FAQs
+
+<Accordions>
+<Accordion title="What's the difference between C2B v1 and C2B v2?">
+v1 returned the customer's MSISDN as a SHA-256 hash. v2 (the version documented here) returns a masked MSISDN instead, e.g. `2547 * 126`. Both post as `application/json` via POST.
+</Accordion>
+<Accordion title="How often do I need to register URLs?">
+On sandbox, before each simulation. In production, once, then again only after deleting the previous registration.
+</Accordion>
+<Accordion title="How do I delete registered URLs?">
+Self Service &gt; URL Management on the developer portal. Deletion needs approval from two operators holding Business Manager or Business Administrator roles on the M-PESA Organization Portal.
+</Accordion>
+<Accordion title="How do I enable Validation on my short code?">
+Email `apisupport@safaricom.co.ke`. Safaricom's documentation puts the turnaround at roughly 6 hours.
+</Accordion>
+<Accordion title="Why am I not receiving notifications?">
+Usually a URL problem: not publicly reachable, using a blocked keyword, or a public tunneling/testing domain that the gateway rejects in production.
+</Accordion>
+</Accordions>
+

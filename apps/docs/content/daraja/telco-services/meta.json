@@ -1,0 +1,14 @@
+{
+  "title": "Telco & Identity API",
+  "icon": "Smartphone",
+  "pages": [
+    "bill-manager",
+    "mpesa-ratiba",
+    "mobile-number-validation",
+    "age-on-network",
+    "imsi",
+    "swap",
+    "iot-sim-management",
+    "mobile-data-bundles"
+  ]
+}

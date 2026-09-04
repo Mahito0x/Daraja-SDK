@@ -1,0 +1,179 @@
+---
+title: Introduction
+description: What this section is, how it was put together, and what to set up before calling any Daraja endpoint.
+icon: BookOpen
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+import { Cards, Card } from "fumadocs-ui/components/card";
+
+This section reports on the **[Safaricom Daraja API](https://developer.safaricom.co.ke/apis)**, the platform Safaricom publishes for integrating with M-PESA (B2C, C2B, B2B and related services). It is not Safaricom's documentation and it is not ours in the sense of describing something we built. It is a cleaned up, consistently formatted rendering of what Safaricom itself has published on the Daraja developer portal, reorganized so it reads as one coherent reference instead of two dozen separately written pages.
+
+<Callout type="info" title="How to read this section">
+Three rules apply on every page that follows:
+
+1. **The technical content is Safaricom's.** Endpoints, field names, sample payloads, error codes and limits are reproduced as Safaricom documents them, including the parts that are inconsistent, mislabeled, or copy-pasted from a different API. Nothing here is invented to make an endpoint look more coherent than Safaricom's own material shows it to be.
+2. **Known documentation defects are marked, not silently fixed.** Where Safaricom's own text contradicts itself, misspells a field name, or reuses text from a different product, that is called out in a callout box like this one, right where it occurs, instead of being quietly corrected. A misspelled parameter such as `RecieverIdentifierType` is kept exactly as Safaricom spells it, because that is the literal field name the API expects.
+3. **"Documented" and "confirmed working" are different things.** We have not exercised every endpoint in this reference against the sandbox ourselves. Where we have and the real behavior differs from what Safaricom's page says, that is written out as: _Safaricom documents X, but in practice we saw Y._ Where we have not tested an endpoint yet, no claim is made either way, and the page simply reports what Safaricom publishes. That coverage will grow over time rather than being asserted upfront.
+
+</Callout>
+
+Safaricom's own developer portal is still the primary source and the place to check for anything newer than this reference, particularly the interactive simulator and Postman collections, which cannot be reproduced here.
+
+## What Daraja is
+
+Daraja is Safaricom's API gateway for M-PESA, the mobile money service used across Kenya. Through it, a business can:
+
+- Receive payments into a Pay Bill or Till number (**C2B**, **M-PESA Express / STK Push**).
+- Send money out to customers or other businesses (**B2C**, **B2B** and its variants).
+- Query balances, transaction status, and reverse transactions.
+- Generate QR codes, manage recurring standing orders, issue e-invoices, and a handful of more specialized products (SIM management, identity checks, data bundles) covered later in this section.
+
+Every API sits behind the same OAuth layer and the same sandbox-to-production path, which is why that part is worth doing once, carefully, before opening any individual endpoint page.
+
+## From sandbox to live: the path in order
+
+<Steps>
+<Step>
+### Create a Daraja account and a sandbox app
+
+Register on the [Safaricom Developer Portal](https://developer.safaricom.co.ke). Once logged in, create an app under **My Apps** and attach the product(s) you intend to use (M-PESA Express, C2B, B2C, and so on). Creating the app immediately gives you a sandbox **Consumer Key** and **Consumer Secret**, plus, on the **Test Credentials** page, a set of ready-made sandbox values: test short codes, an `InitiatorName` / `InitiatorPassword` pair, and (where applicable) a passkey.
+
+</Step>
+<Step>
+### Generate an access token
+
+Every API call except the token request itself needs a Bearer token. Exchange your Consumer Key and Consumer Secret for one via the [Authorization API](/daraja/authorization) before calling anything else. Tokens last 3600 seconds (60 minutes); the simulator on the portal generates and refreshes these automatically, but your own code needs to handle expiry.
+
+> **Using the SDK?** [@lumierelabs/daraja](https://www.npmjs.com/package/@lumierelabs/daraja) handles OAuth token generation, in-memory caching, and automatic background refreshes completely under the hood so you never have to track token lifecycles manually. See the [SDK Authentication Guide](/docs/sdk/core-concepts/authentication).
+
+</Step>
+<Step>
+### Build and test against the sandbox
+
+Two ways to do this:
+
+- **Daraja Simulator**, built into the portal. It picks up your app's credentials and Safaricom's predefined sandbox test data automatically, so you can trigger a request without writing a client first.
+- **Your own code or Postman**, using the sandbox host (`sandbox.safaricom.co.ke`) and the credentials above. A Postman collection with pre-built requests for each product is available from the portal once you are logged in.
+
+For any API that posts a callback (a `CallBackURL`, `ResultURL`, `ConfirmationURL`, and so on), your endpoint has to be reachable from the internet. On localhost, that means a tunneling tool such as ngrok or LocalTunnel while you develop; production callback URLs must be HTTPS.
+
+</Step>
+<Step>
+### Apply for whatever you'll go live on
+
+Sandbox testing doesn't require a real M-PESA account. Production does. Depending on the product, that means one of:
+
+- A live **Pay Bill or Till number**, with a Business Administrator or Business Manager created on the [M-PESA Organization Portal](/daraja/organization-portal).
+- A **Bulk Disbursement (B2C) short code**, or an existing Pay Bill/Till converted to a "one account" that can both receive and disburse, applied for via Safaricom's business channels.
+- For the commercial, identity and connectivity APIs (Age on Network, IMSI, SWAP, Mobile Number Validation, M-PESA Ratiba, Mobile Data Bundles), a **signed commercial agreement**, arranged through `apisupport@safaricom.co.ke` or your account manager, ahead of any go-live conversation.
+
+This step is the one most worth starting early: it involves other people (a business team, sometimes Safaricom's onboarding team) and is not something a solo integration can shortcut.
+
+</Step>
+<Step>
+### Go live
+
+From the portal's **Go Live** tab, submit your organization's short code, organization name, and the M-PESA username of an admin or manager on that short code. Safaricom emails production endpoints and production Consumer Key/Secret once this is approved, and your sandbox app is converted in place rather than replaced. If you don't yet have an admin on the M-PESA Organization Portal, Safaricom's onboarding team (`M-PESABusiness@Safaricom.co.ke`) creates the first one.
+
+</Step>
+</Steps>
+
+<Callout type="warn" title="Portal Quirks">
+  Safaricom's official portal documentation gets surprisingly informal at this
+  step. Don't let the wording confuse you the actual requirement is
+  straightforward: submit your short code, organization name, and admin
+  username, then wait for email approval.
+</Callout>
+
+## Terminology
+
+A short glossary, taken from Safaricom's own "Getting Started" material:
+
+| Term                    | Meaning                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| M-PESA                  | Safaricom's mobile money transfer service.                                                                                                 |
+| Command ID              | The field that specifies which transaction type a request performs (`BusinessPayment`, `SalaryPayment`, `TransactionReversal`, and so on). |
+| Short code              | The number a Pay Bill, Buy Goods (Till), or B2C account is identified by, usually 5 to 7 digits.                                           |
+| Pay Bill                | A short code that collects recurring payments, typically with an account reference.                                                        |
+| Buy Goods / Till Number | A short code used for one-off retail purchases.                                                                                            |
+| REST                    | The architectural style Daraja's APIs are built on: HTTP verbs, JSON bodies, standard status codes (RFC 2616).                             |
+
+## Callbacks, whitelisting and certificates
+
+Most Daraja APIs are **asynchronous**: the initial HTTP response is only an acknowledgment that the request was accepted, and the actual result (success, failure, balance, and so on) arrives later at a `ResultURL`, `CallBackURL`, or `ConfirmationURL` you provide in the request. A few (B2B Hakikisha, Mobile Number Validation) are synchronous and return the answer directly.
+
+### IP whitelisting
+
+Safaricom's API gateway sends callbacks from a fixed set of addresses. Whitelist these if your infrastructure filters inbound traffic by IP:
+
+```
+196.201.214.200   196.201.214.206   196.201.213.114   196.201.214.207
+196.201.214.208   196.201.213.44    196.201.212.127   196.201.212.138
+196.201.212.129   196.201.212.136   196.201.212.74    196.201.212.69
+```
+
+### Generating a SecurityCredential
+
+APIs that require an `Initiator` and `SecurityCredential` (B2C, B2B, Reversals, Transaction Status, Account Balance) need the initiator's plaintext password encrypted with M-PESA's public certificate before it is sent. Safaricom's documented algorithm:
+
+<Steps>
+  <Step>
+    ### Convert password to bytes
+
+    Write the unencrypted initiator password into a byte array.
+
+  </Step>
+
+  <Step>
+    ### Encrypt with RSA PKCS#1.5
+
+    Encrypt it with M-PESA's public key certificate (an X.509 certificate, provided separately for sandbox and production) using RSA with **PKCS#1.5 padding**, not OAEP.
+
+  </Step>
+
+  <Step>
+    ### Base64 encode output
+
+    Base64-encode the resulting encrypted bytes. That string is the `SecurityCredential`.
+
+  </Step>
+</Steps>
+
+An online encryption tool for this is available on the portal's Test Credentials page, so you don't need to implement the RSA step by hand while testing. Make sure the certificate you encrypt against matches the environment (sandbox vs. production) you're calling.
+
+<Callout type="warn" title="Password character limits">
+  Safaricom's documentation notes that initiator passwords should stick to a
+  narrow set of special characters (`#`, `&`, `%`, `$`). Others, including
+  parentheses, may cause the password to be rejected. `@` is explicitly *not*
+  treated as special by M-PESA and can be used as an ordinary character.
+</Callout>
+
+### Receiving callbacks
+
+Your callback endpoint needs to be a publicly reachable HTTP listener accepting POST requests. If it's unreachable when M-PESA tries to deliver a result, the gateway logs a 503 and, per Safaricom's own documentation, does not automatically retry in most cases. Build accordingly: monitor the endpoint, and use the [Transaction Status](/daraja/transaction-status) or [Pull Transactions](/daraja/pull-transactions) APIs as a fallback reconciliation path rather than assuming every callback will land.
+
+### SSL certificates
+
+Safaricom separately offers commercial SSL certificates for general server security; these are unrelated to the M-PESA public key certificate above and are described on Safaricom's [domain and SSL store](https://domains.safaricom.co.ke/index.php?rp=/store/ssl-certificates).
+
+## Support channels
+
+- **Daraja Chatbot**, on the [developer portal](http://developer.safaricom.co.ke), for both development and production questions.
+- **Incident Management page**, on the portal, for raising a production incident directly.
+- **Email**: [apisupport@safaricom.co.ke](mailto:apisupport@safaricom.co.ke) for general API support, [M-PESABusiness@Safaricom.co.ke](M-PESABusiness@Safaricom.co.ke) for onboarding, live short codes, and M-PESA Organization Portal administrator creation.
+
+If something in this reference doesn't match what you're seeing in the sandbox or in production, it's worth cross-checking against Safaricom's own developer portal directly, since Daraja's documentation is occasionally updated without much notice.
+
+<Cards>
+  <Card title="Authorization" href="/daraja/authorization">
+    Generate the access token every other call depends on.
+  </Card>
+  <Card title="Organization Portal" href="/daraja/organization-portal">
+    Create the operators and roles a live short code needs.
+  </Card>
+  <Card title="C2B" href="/daraja/c2b">
+    Start with the most commonly integrated collection API.
+  </Card>
+</Cards>

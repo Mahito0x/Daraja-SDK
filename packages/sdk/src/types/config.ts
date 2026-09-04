@@ -18,6 +18,21 @@ export interface DarajaConfig {
   consumerSecret: string;
 
   /**
+   * Default Business Shortcode (Paybill, Till / Buy Goods, or B2C/B2B shortcode).
+   */
+  shortcode?: string;
+
+  /**
+   * Default Lipa Na M-Pesa Online Passkey used for STK Push / M-Pesa Express.
+   */
+  passkey?: string;
+
+  /**
+   * Default callback URL for asynchronous API responses (e.g., STK Push callbacks).
+   */
+  callbackUrl?: string;
+
+  /**
    * Target environment for API requests.
    * @default 'sandbox'
    */

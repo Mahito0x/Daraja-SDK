@@ -1,0 +1,394 @@
+---
+title: IoT SIM Management
+description: Manages the lifecycle of Safaricom IoT SIM cards and their messaging, across twelve related endpoints.
+icon: Cpu
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+
+Enables management automation and real time monitoring of IoT SIM cards.
+
+```text
+https://sandbox.safaricom.co.ke/simportal/{path_suffix}
+```
+
+<Callout
+  type="error"
+  title="This base endpoint also has an unfilled placeholder, and this product is not available for Go Live yet"
+>
+  The base URL is published exactly as shown, with a literal `{path_suffix}`
+  left in. Every specific endpoint documented below does have a complete path.
+  Separately, and more significantly, Safaricom's own documentation states
+  plainly under Go Live that VPN Group go live setup has not yet been
+  provisioned on Daraja for this product. As of this documentation, this entire
+  API family may only be usable in sandbox.
+</Callout>
+
+## Overview
+
+Covers two categories: SIM Operations, activating, suspending, renaming, and querying SIM cards, and Messaging, sending, searching, filtering, and deleting messages to and from SIM cards.
+
+<Callout
+  type="warn"
+  title="This requires a separate commercial product, not just a Daraja app"
+>
+  Beyond a Daraja account, this requires purchasing Safaricom's IoT SIM
+  Connectivity solution through the Safaricom Business Hub separately, which
+  assigns an active account number used to authenticate against this API family.
+</Callout>
+
+## How it works
+
+1. Retrieve the Consumer Key and Consumer Secret from a Daraja sandbox app.
+2. Authenticate against the Authorization API using Basic Authentication.
+3. Use the returned access token for every subsequent call documented below.
+
+## Prerequisites
+
+See [Getting Started](/daraja/getting-started) for the Daraja account and sandbox app itself. Beyond that, this requires active access to the IoT SIM Management platform via the Business Hub purchase mentioned above, and, if acting on another user's behalf, that user's admin username and account number.
+
+## Test data
+
+| Field      | Value                           |
+| ---------- | ------------------------------- |
+| `vpnGroup` | `1-555162310488_VPN`            |
+| `msisdns`  | `0110100606`, `0110100607`      |
+| `username` | `darajasandbox@safaricom.co.ke` |
+
+## The shared response shape
+
+Every endpoint below wraps its response in the same header, differing only in the `body` object nested inside it. Rather than repeating this on all twelve endpoints, it is documented once here.
+
+```json
+{
+  "header": {
+    "requestRefId": "9953-4cfa-a173-507eb79891fe237",
+    "responseCode": 200,
+    "responseMessage": "Success",
+    "customerMessage": "Operation Successful",
+    "timestamp": "2025-03-20T11:22:53.461865400"
+  },
+  "body": {}
+}
+```
+
+<Callout
+  type="warn"
+  title="Operation Successfull is Safaricom's own spelling, repeated across nearly every endpoint in this section"
+>
+  Published throughout this API family's documentation with an extra L,
+  Successfull instead of Successful. Shown corrected above and in the examples
+  below, since reproducing the same misspelling a dozen times adds nothing
+  beyond the first mention.
+</Callout>
+
+| Field             | Description                                              | Type    |
+| ----------------- | -------------------------------------------------------- | ------- |
+| `requestRefId`    | Unique identifier for the request.                       | String  |
+| `responseCode`    | Aligned to standard HTTP status codes.                   | Integer |
+| `responseMessage` | Technical response message.                              | String  |
+| `customerMessage` | Customer facing message.                                 | String  |
+| `timestamp`       | When the request was sent.                               | String  |
+| `body`            | Endpoint specific detail, documented per endpoint below. | Object  |
+
+## The shared error table
+
+Every endpoint below documents nearly the same five errors. Differences from this baseline are called out per endpoint where they exist.
+
+| Code                                                        | Cause                                                                 | Mitigation                                         |
+| ----------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------- |
+| `400` Bad Request, use your own vpnGroup                    | The account number given is not one the user is authorized to access. | Retry with an account number the user can access.  |
+| `401` Unauthorized, invalid access token                    | A null or expired token was used.                                     | Generate a new token and retry.                    |
+| `500` Failed to execute ExtractVariables, EV-FilterMessages | A missing or invalid payload was sent.                                | Match the request body to the documentation.       |
+| `401` User not permitted to carry out operation             | The username lacks the required permission.                           | Assign the permission, or use a different account. |
+| `404` No records were found                                 | The account number does not exist in the database.                    | Check the account number's format and retry.       |
+
+<Callout type="warn" title="Some endpoints use HTTP 200 to signal a failure">
+  Query Life Cycle Status, SIM Activation, Rename Asset, and Suspend or
+  Unsuspend Subscriber each additionally document a `200 No records found` or
+  `200 Operation Failed` case, meaning the MSISDN did not belong to the given
+  account. Using the success status code, 200, to also mean failure is unusual
+  and worth handling explicitly in your own error checking rather than assuming
+  any 200 response is a success.
+</Callout>
+
+## SIM operations
+
+### Get all SIMs
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/allsims
+```
+
+Fetches all SIMs on a given account.
+
+```json
+{
+  "vpnGroup": ["1-225560081663_VPN"],
+  "startAtIndex": "0",
+  "pageSize": "3",
+  "username": "user@safaricom.co.ke"
+}
+```
+
+<Callout type="warn" title="A typo in the request body sample">
+  Published as `startAtInde`, missing the final X. Corrected above to
+  `startAtIndex`.
+</Callout>
+
+| Parameter      | Description                                | Type   | Sample Value         |
+| -------------- | ------------------------------------------ | ------ | -------------------- |
+| `vpnGroup`     | The account number whose SIMs are queried. | String | `1-225560081663_VPN` |
+| `startAtIndex` | Index to start the response from.          | String | `1`                  |
+| `pageSize`     | Number of results expected.                | String | `5`                  |
+| `username`     | A user registered under the account.       | String | `johndoe@gmail.com`  |
+
+`body` returns an array under `Desc`, each entry describing one SIM:
+
+| Field               | Description                      |
+| ------------------- | -------------------------------- |
+| `life_cycle_status` | Network status of the SIM.       |
+| `iccid`             | The SIM's unique identifier.     |
+| `asset_name`        | Customer assigned name.          |
+| `activation_date`   | When the SIM was activated.      |
+| `expiry_date`       | Expected expiry year.            |
+| `imei`              | The device's IMEI.               |
+| `product_status`    | Status of the tariff assigned.   |
+| `imsi`              | The SIM's network identifier.    |
+| `msisdn`            | The SIM's IoT subscriber number. |
+| `vpn_group`         | The account the SIM belongs to.  |
+| `activation_agent`  | Who performed activation.        |
+
+### Query life cycle status
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/queryLifeCycleStatus
+```
+
+Checks a single SIM's current status.
+
+```json
+{
+  "msisdn": "300000020000",
+  "vpnGroup": "1-225560081663_VPN",
+  "username": "user@safaricom.co.ke"
+}
+```
+
+`body` returns `desc`, `status`, and `statusCode`.
+
+### Query customer info
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/querycustomerinfo
+```
+
+Checks both the SIM's status and the product or tariff assigned to it. Same request shape as Query Life Cycle Status.
+
+`body` returns `offeringName`, `offeringStatus`, `subscriberStatus`, `offeringId`, and `vpnGroup`.
+
+### SIM activation
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/simactivation
+```
+
+Activates a SIM. Same request shape as Query Life Cycle Status.
+
+`body` returns `Desc`, `requestId`, and `ID`, the activated MSISDN.
+
+### Get activation trends
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/getactivationtrends
+```
+
+Returns a graphable trend of operations performed on an account's SIMs over a date range.
+
+```json
+{
+  "vpnGroup": "1-225560081663_VPN",
+  "startDate": "20240221",
+  "stopDate": "20240421",
+  "username": "user@safaricom.co.ke"
+}
+```
+
+<Callout
+  type="warn"
+  title="The parameter table names this field differently from the request body"
+>
+  The table describes an `endDate` field. The actual request body sample uses
+  `stopDate` instead. Use the JSON body's field name shown above.
+</Callout>
+
+`body` returns `pooledTrend`, `suspendedTrend`, `dates`, `activeTrend`, and `idleTrend`, each an array of numbers, one per date in the range.
+
+### Rename asset
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/renameasset
+```
+
+```json
+{
+  "msisdn": "300000038722",
+  "vpnGroup": "1-225560081663_VPN",
+  "username": "test@safaricom.co.ke",
+  "assetName": "test11111"
+}
+```
+
+`body` returns `result` and `desc`.
+
+### Suspend or unsuspend a subscriber
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/suspend_unsuspend_sub
+```
+
+```json
+{
+  "msisdn": "300001000000",
+  "username": "user@safaricom.co.ke",
+  "vpnGroup": "1-225560081663_VPN",
+  "product": "14205001",
+  "operation": "resume"
+}
+```
+
+`operation` is either `suspend` or `resume`. `body` returns `statusCode` and `statusDesc`.
+
+## Messaging APIs
+
+### Search messages
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/searchmessages?pageNo=1&pageSize=50
+```
+
+```json
+{
+  "searchValue": "254300000100"
+}
+```
+
+`searchValue` is the SIM's number, prefixed with `254`.
+
+<Callout
+  type="warn"
+  title="This field is spelled two different ways across the response documentation"
+>
+  Safaricom's own response body sample uses `recepitId`. The accompanying
+  parameter table for the same response calls it `reciptId`. Every other
+  messaging endpoint on this page correctly uses `receiptId`. All three
+  spellings are reproduced faithfully in their respective original locations,
+  since which one the live API actually returns has not been tested here.
+</Callout>
+
+`body.content` returns an array of message objects: `id`, `receiptId`, `sourceAddr`, `msisdn`, `message`, `sourceSystem`, `processingStatus`, `messageId`, `date`, `deliverTime`, `description`, and `vpnGroup`. This same shape is reused by Filter Messages, Get All Messages, and Send Single Message below. `body.pageable` additionally carries standard pagination metadata, `pageNumber`, `pageSize`, `offset`, `paged`, `totalPages`, `totalElements`, and similar fields, matching common pagination conventions rather than anything Daraja specific.
+
+### Filter messages
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/filtermessages?pageNo=1&pageSize=10
+```
+
+```json
+{
+  "startDate": "02-05-2024 08:39:11",
+  "endDate": "02-10-2024 00:00:00",
+  "status": "1"
+}
+```
+
+Same response shape as Search Messages.
+
+### Get all messages
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/getallmessages?pageNo=1&pageSize=10
+```
+
+```json
+{
+  "vpnGroup": "1-24856327146_VPN",
+  "pageNo": 1,
+  "pageSize": 10
+}
+```
+
+Same response shape as Search Messages, across every message on the account rather than a filtered subset.
+
+### Send single message
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/sendsinglemessage
+```
+
+```json
+{
+  "msisdn": "300001172000",
+  "message": "Test",
+  "vpnGroup": "1-478205250000_VPN"
+}
+```
+
+`body` returns the created message object, in the same shape as a Search Messages result.
+
+### Delete message thread
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/deleteMessageThread
+```
+
+```json
+{
+  "msisdn": "254724751076"
+}
+```
+
+Deletes every message sent to the given SIM. `msisdn` is prefixed with `254`. `body` is `null` on success, only the shared header confirms the result.
+
+### Delete message
+
+```text
+POST https://sandbox.safaricom.co.ke/simportal/v1/deletemessage
+```
+
+```json
+{
+  "id": 3888
+}
+```
+
+Deletes a single message by its `id`, obtained from Search Messages or Get All Messages. `body` is `null` on success.
+
+## Testing
+
+<Callout
+  type="error"
+  title="Safaricom's own testing section for this API family describes C2B, not IoT SIM Management"
+>
+  The published Testing section for this page instructs creating a test app and
+  selecting the C2B product, then choosing between `CustomerPayBillOnline` and
+  `CustomerBuyGoodsOnline`, none of which has any relation to IoT SIM
+  Management. This appears to be copied wholesale from the C2B or Pull
+  Transactions page and left unedited. Select whichever product in the Daraja
+  portal actually corresponds to IoT SIM Management when creating your own test
+  app, since the documented instructions here cannot be followed as written.
+</Callout>
+
+**Postman.** Generate an access token, then call the endpoints documented above with their request bodies.
+
+<Callout type="info" title="Not yet independently tested">
+  This has not yet been separately verified against the live sandbox for this
+  documentation.
+</Callout>
+
+## Going live
+
+<Callout type="error" title="Go Live is explicitly stated as not yet available for this product">
+Safaricom's own documentation states plainly that VPN Group Go Live setup has not yet been provisioned on Daraja. The documented next step instead is to create a sandbox app named in the format `Prod-companyname-IOT-<unix-timestamp-in-milliseconds>`, then email `apisupport@safaricom.co.ke` requesting that specific sandbox app be whitelisted for production access, rather than going through the standard Go Live tab used by every other endpoint in this section.
+</Callout>

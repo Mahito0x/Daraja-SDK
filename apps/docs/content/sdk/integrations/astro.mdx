@@ -22,6 +22,9 @@ import { Daraja } from "@lumierelabs/daraja";
 export const daraja = Daraja({
   consumerKey: import.meta.env.DARAJA_CONSUMER_KEY,
   consumerSecret: import.meta.env.DARAJA_CONSUMER_SECRET,
+  shortcode: import.meta.env.DARAJA_SHORTCODE,
+  passkey: import.meta.env.DARAJA_PASSKEY,
+  callbackUrl: import.meta.env.DARAJA_CALLBACK_URL,
   environment: import.meta.env.PROD ? "production" : "sandbox",
 });
 ```
@@ -32,7 +35,9 @@ Add the corresponding entries to `src/env.d.ts` so `import.meta.env` is typed:
 interface ImportMetaEnv {
   readonly DARAJA_CONSUMER_KEY: string;
   readonly DARAJA_CONSUMER_SECRET: string;
-  readonly MPESA_PASSKEY: string;
+  readonly DARAJA_SHORTCODE: string;
+  readonly DARAJA_PASSKEY: string;
+  readonly DARAJA_CALLBACK_URL: string;
   readonly APP_URL: string;
 }
 ```
@@ -49,14 +54,10 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const push = await daraja.stkPush({
-      businessShortCode: "174379",
-      passkey: import.meta.env.MPESA_PASSKEY,
       transactionType: "CustomerPayBillOnline",
       amount,
       partyA: phoneNumber,
-      partyB: "174379",
       phoneNumber,
-      callBackURL: `${import.meta.env.APP_URL}/api/callbacks/stk`,
       accountReference: orderRef,
     });
 
@@ -125,8 +126,6 @@ let status = null;
 
 if (checkoutRequestId) {
   status = await daraja.stkPushQuery({
-    businessShortCode: '174379',
-    passkey: import.meta.env.MPESA_PASSKEY,
     checkoutRequestId,
   });
 }

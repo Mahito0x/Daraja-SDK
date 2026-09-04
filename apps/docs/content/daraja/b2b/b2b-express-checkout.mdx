@@ -1,0 +1,139 @@
+---
+title: B2B Express CheckOut
+description: Trigger a USSD prompt asking a fellow merchant's till operator to pay into your paybill.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Also referred to as **B2B UssdPush to Till**. It lets a merchant (the "vendor") prompt another merchant's till operator to authorize a payment from their till into the vendor's Pay Bill.
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/v1/ussdpush/get-msisdn
+```
+
+## How it works
+
+1. The vendor sends the USSD push request via Daraja.
+2. Daraja triggers an STK-style push to the paying merchant's till operator.
+3. The operator enters their Operator ID and M-PESA PIN to authorize.
+4. M-PESA credits the vendor and debits the merchant.
+5. Daraja sends a callback with the outcome to the vendor's `callbackUrl`.
+
+Authentication happens at the Apigee/Daraja layer, the same as any other product: attach B2B Express Checkout to your app to get a Consumer Key and Consumer Secret.
+
+## Request
+
+```json
+{
+  "primaryShortCode": "000001",
+  "receiverShortCode": "000002",
+  "amount": "100",
+  "paymentRef": "paymentRef",
+  "callbackUrl": "http://..../result",
+  "partnerName": "Vendor",
+  "RequestRefID": "{{random Unique Identifer For Each Request}}"
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `primaryShortCode` | The debit party: the paying merchant's Till/short code. | Number | `000001` |
+| `receiverShortCode` | The credit party: the vendor's Pay Bill receiving the funds. | Number | `000002` |
+| `amount` | Amount to be sent. | Number | `100` |
+| `paymentRef` | Reference shown to the paying merchant. | Alphanumeric | `paymentRef` |
+| `callbackUrl` | Where the vendor receives the outcome. | URL | `http://..../result` |
+| `partnerName` | Vendor's friendly name, as shown to the merchant. | String | `Vendor` |
+| `RequestRefID` (also documented as `RequestRefId`) | A random unique ID for tracing the request end to end. | Alphanumeric | `550e8400-e29b-41d4-a716-446655440000` |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own documentation is inconsistent about the casing of this last field, writing `RequestRefID` in the sample request and `RequestRefId` in the parameter table directly below it. Both are reproduced here rather than picking one, since it isn't clear from the documentation alone which casing the live endpoint actually expects, and this hasn't yet been confirmed against a sandbox call.
+</Callout>
+
+## Acknowledgment response
+
+```json
+{
+  "code": "0",
+  "status": "USSD Initiated Successfully"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `resultCode` | `0` for success, `4001` for customer-cancelled. | `0` |
+| `resultDescription` | Reason the push wasn't finalized, where applicable. | `User cancelled transaction` |
+| `amount` | Amount initiated. | `71` |
+| `requestId` | Your original request identifier. | `404e1aec-19e0-4ce3-973d-bd92e94c8021` |
+| `status` | `SUCCESS` or `FAILED`. | `SUCCESS` |
+| `transactionId` | M-PESA receipt number, present only on success. | `RDQ01NFT1Q` |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's own response parameter table lists `resultDescription` twice, once described as the failure reason and again, two rows later, described as if it held the same value as `requestId`. The acknowledgment sample itself only shows `code` and `status`; the table describes a different, larger set of fields (`resultCode`, `amount`, `requestId`, `status`, `transactionId`) that don't appear in that sample at all. Both are reproduced as documented rather than reconciled, since which fields the live endpoint actually returns hasn't been independently confirmed.
+</Callout>
+
+## Merchant prompt text
+
+The paying merchant sees a prompt along the lines of:
+
+> You are about to send Ksh `{{amount}}` to `{{Vendor Friendly Name}}` for payment reference: `{{AccountNumber/BillReference}}`.
+
+They're then asked for their Operator ID, then their operator PIN, and shown a confirmation before the amount is deducted.
+
+## Callback payloads
+
+<Callout type="info">
+Both a failed USSD push (before the merchant even responds) and a completed M-PESA transaction (after they do) result in a callback to the vendor's `callbackUrl`.
+</Callout>
+
+**Cancelled**
+
+```json
+{
+  "resultCode": "4001",
+  "resultDesc": "User cancelled transaction",
+  "requestId": "c2a9ba32-9e11-4b90-892c-7bc54944609a",
+  "amount": "71.0",
+  "paymentReference": "MAndbubry3hi"
+}
+```
+
+**Successful**
+
+```json
+{
+  "resultCode": "0",
+  "resultDesc": "The service request is processed successfully.",
+  "amount": "71.0",
+  "requestId": "404e1aec-19e0-4ce3-973d-bd92e94c8021",
+  "resultType": "0",
+  "conversationID": "AG_20230426_2010434680d9f5a73766",
+  "transactionId": "RDQ01NFT1Q",
+  "status": "SUCCESS"
+}
+```
+
+| Field | Description |
+|---|---|
+| `ResultCode` | `0` for success; see [Error Codes](#error-codes) for failures. |
+| `ConversationId` / `OriginatorConversationId` | Identifiers returned by M-PESA and the API proxy respectively. |
+| `TransactionID` | M-PESA transaction ID. A generic placeholder is sent for some failure scenarios. |
+| `ResultParameters` / `ReferenceData` | Extra key-value transaction detail and reference data, in the same shape used across the B2B/B2C family. |
+
+## Error codes
+
+| Code | Cause | Fix |
+|---|---|---|
+| `4104` | Missing Nominated Number, the number the push is triggered from | Provide the nominated number. |
+| `4102` | Merchant KYC failure | Provide valid KYC. |
+| `4201` | USSD network error | Retry on a stable network. |
+| `4203` | USSD exception error | Retry on a stable network. |
+
+## Organization operators
+
+Safaricom's documentation notes that an M-PESA short code can have multiple operators, each tied to a preferred MSISDN. Transactions from a given operator are deducted from the associated till, and the solution documented here is limited to the operator whose number is set as the **Nominated Number** under Organization Details on the M-PESA Web Portal. Access to that portal is granted automatically once a short code is registered.
+
+<Callout type="warn" title="Untested">
+The Daraja documentation for this API, as supplied for this reference, does not include Postman/simulator testing steps, error-table completeness, or a Go Live section in the same shape as the other B2B/B2C APIs. What's reproduced above is everything Safaricom's own page for this API documents; nothing has been added to fill the gap, and none of it has yet been exercised against the sandbox for this reference.
+</Callout>

@@ -102,6 +102,9 @@ function createDarajaClient(config: DarajaConfig): DarajaClient {
   const resolvedConfig: ResolvedDarajaConfig = {
     environment: "sandbox",
     timeout: 10000,
+    shortcode: "",
+    passkey: "",
+    callbackUrl: "",
     ...config,
   };
 

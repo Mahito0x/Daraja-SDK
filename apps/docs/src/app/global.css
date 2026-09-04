@@ -177,6 +177,17 @@ pre.shiki {
     background: rgba(0, 166, 81, 0.2);
     color: inherit;
   }
+
+  /* Keep Markdown links visibly actionable without the default underline. */
+  /* article .prose a {
+    color: #0077cc !important;
+    text-decoration: none !important;
+  }
+
+  article .prose a:hover {
+    color: #005fa3 !important;
+    text-decoration: underline !important;
+  } */
 }
 
 @media (prefers-reduced-motion: reduce) {

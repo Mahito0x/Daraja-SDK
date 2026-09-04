@@ -1,0 +1,5 @@
+{
+  "title": "Payments & Checkout",
+  "icon": "CreditCard",
+  "pages": ["mpesa-express", "c2b", "dynamic-qr", "lipa-na-bonga"]
+}

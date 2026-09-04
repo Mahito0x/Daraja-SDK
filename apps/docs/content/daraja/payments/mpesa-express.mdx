@@ -1,0 +1,224 @@
+---
+title: M-Pesa Express
+description: The Lipa na M-Pesa Online / STK Push API, plus its companion query endpoint, for merchant-initiated prompts to a customer's phone.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+Safaricom's name for this is **Lipa na M-Pesa Online**, more commonly referred to (including by Safaricom's own portal navigation) as **M-Pesa Express** or **STK Push**. It is a merchant-initiated C2B transaction: instead of the customer dialing into a Pay Bill themselves, the merchant triggers a payment prompt directly on the customer's phone.
+
+## M-Pesa Express Simulate (STK Push)
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest
+```
+
+### How it works
+
+1. The merchant sends a request with the transaction details.
+2. Daraja validates the request and acknowledges it.
+3. A prompt is pushed to the customer's M-PESA-registered phone.
+4. The customer enters their M-PESA PIN to authorize.
+5. M-PESA validates the PIN, debits the customer, and credits the merchant.
+6. The result is posted to the merchant's `CallBackURL`.
+7. The customer receives an SMS confirmation.
+
+### Prerequisites
+
+- Daraja account and sandbox app, with Consumer Key and Consumer Secret.
+- A **passkey** to encrypt the `Password` field. On sandbox this is provided on the Test Credentials page; in production it's emailed after go-live.
+- For go-live: a live Pay Bill/Till with Business Admin/Manager operators created.
+
+### Request
+
+```json
+{
+  "BusinessShortCode": 174379,
+  "Password": "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjEwNjI4MDkyNDA4",
+  "Timestamp": "20210628092408",
+  "TransactionType": "CustomerPayBillOnline",
+  "Amount": "1",
+  "PartyA": "254722000000",
+  "PartyB": "174379",
+  "PhoneNumber": "254722111111",
+  "CallBackURL": "https://mydomain.com/path",
+  "AccountReference": "accountref",
+  "TransactionDesc": "txndesc"
+}
+```
+
+| Field | Description | Type | Sample value |
+|---|---|---|---|
+| `BusinessShortCode` | The Pay Bill/Till the payment goes to. | Numeric | `174379` |
+| `Password` | `base64.encode(Shortcode + Passkey + Timestamp)`. | String | (base64 string) |
+| `Timestamp` | `YYYYMMDDHHmmss`, must match what was encoded into `Password`. | Timestamp | `20210628092408` |
+| `TransactionType` | `CustomerPayBillOnline` for Pay Bill, `CustomerBuyGoodsOnline` for Till. | String | `CustomerPayBillOnline` |
+| `Amount` | Transaction amount. | Numeric | `10` |
+| `PartyA` | The paying phone number, `2547XXXXXXXX`. | Numeric | `254722000000` |
+| `PartyB` | The receiving organization (usually equal to `BusinessShortCode`). | Numeric | `174379` |
+| `PhoneNumber` | Number the USSD prompt is sent to; usually the same as `PartyA`. | Numeric | `254722111111` |
+| `CallBackURL` | Where the result is posted. | URL | `https://mydomain.com/path` |
+| `AccountReference` | Shown to the customer in the prompt. Up to 12 characters. | Alphanumeric | `accountref` |
+| `TransactionDesc` | Optional. Up to 13 characters. | String | `txndesc` |
+
+<Callout type="info">
+Safaricom's documentation states every field except `TransactionDesc` is mandatory.
+</Callout>
+
+### Response
+
+```json
+{
+  "MerchantRequestID": "2654-4b64-97ff-b827b542881d3130",
+  "CheckoutRequestID": "ws_CO_1007202409152617172396192",
+  "ResponseCode": "0",
+  "ResponseDescription": "Success. Request accepted for processing",
+  "CustomerMessage": "Success. Request accepted for processing"
+}
+```
+
+### Callback payload
+
+<Tabs items={['Successful', 'Unsuccessful']}>
+<Tab value="Successful">
+```json
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "29115-34620561-1",
+      "CheckoutRequestID": "ws_CO_191220191020363925",
+      "ResultCode": 0,
+      "ResultDesc": "The service request is processed successfully.",
+      "CallbackMetadata": {
+        "Item": [
+          { "Name": "Amount", "Value": 1.0 },
+          { "Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV" },
+          { "Name": "TransactionDate", "Value": 20191219102115 },
+          { "Name": "PhoneNumber", "Value": 254708374149 }
+        ]
+      }
+    }
+  }
+}
+```
+</Tab>
+<Tab value="Unsuccessful">
+```json
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "f1e2-4b95-a71d-b30d3cdbb7a7942864",
+      "CheckoutRequestID": "ws_CO_21072024125243250722943992",
+      "ResultCode": 1032,
+      "ResultDesc": "Request cancelled by user"
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+
+| Field | Description | Present when |
+|---|---|---|
+| `MerchantRequestID` / `CheckoutRequestID` | Echoed from the original request/response. | Always |
+| `ResultCode` | `0` for success; any other value is an error. | Always |
+| `ResultDesc` | Human-readable status. | Always |
+| `CallbackMetadata.Item` | Array of `{Name, Value}` pairs: `Amount`, `MpesaReceiptNumber`, `Balance`, `TransactionDate`, `PhoneNumber`. | Successful transactions only |
+
+### Error codes
+
+| Code | Message | Fix |
+|---|---|---|
+| `400.002.02` | Bad Request, invalid field | Match the request payload exactly to the documentation. |
+| `404.001.03` | Invalid Access Token | Regenerate the token; confirm the correct Consumer Key/Secret pair is in use. |
+| `404.001.01` | Resource not found | Check the endpoint URL. |
+| `405.001` | Method Not Allowed | Use POST. |
+| `500.001.1001` | Merchant does not exist | Use the short code assigned at Go Live as `BusinessShortCode`. |
+| `500.001.1001` | Wrong credentials | `Password` is invalid, doesn't match `BusinessShortCode`, or the `Timestamp` used to build it doesn't match the one in the body. |
+| `500.001.1001` | Unable to lock subscriber, a transaction is already in process | An existing session for that subscriber is still open. Wait at least a minute before retrying. |
+| `500.003.02` | System is busy | Retry shortly. |
+| `500.003.1001` | Internal Server Error | Confirm the request matches the documentation. |
+| `500.003.02` | Spike Arrest Violation | Sending too many requests too fast. |
+| `500.003.03` | Quota Violation | Sending too many requests overall. |
+
+<Callout type="warn" title="Defect in the source material">
+Safaricom's error table lists code `500.003.02` twice, once for "System is busy" and again for "Spike Arrest Violation." Both entries are reproduced as documented; there is no way to tell from Safaricom's own material which one actually fires for a given failure.
+</Callout>
+
+## M-Pesa Express Query
+
+Checks the status of an already-submitted STK Push.
+
+**Endpoint**
+
+```
+https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query
+```
+
+### Request
+
+```json
+{
+  "BusinessShortCode": "174379",
+  "Password": "MTc0Mzc5YmZiMjc5TliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMTYwMjE2MTY1NjI3",
+  "Timestamp": "20160216165627",
+  "CheckoutRequestID": "ws_CO_260520211133524545"
+}
+```
+
+| Field | Description | Sample value |
+|---|---|---|
+| `BusinessShortCode` | Same short code used on the original push. | `654321` |
+| `Password` | Same encoding as the push request, `base64.encode(Shortcode+Passkey+Timestamp)`. | (base64 string) |
+| `Timestamp` | `YYYYMMDDHHmmss`. | `20160216165627` |
+| `CheckoutRequestID` | Returned by the original push request. | `ws_CO_DMZ_123212312_2342347678234` |
+
+### Response
+
+```json
+{
+  "ResponseCode": "0",
+  "ResponseDescription": "The service request has been accepted successfully",
+  "MerchantRequestID": "22205-34066-1",
+  "CheckoutRequestID": "ws_CO_13012021093521236557",
+  "ResultCode": "0",
+  "ResultDesc": "The service request is processed successfully."
+}
+```
+
+`ResultDesc` `1032` maps to "Request canceled by the user"; `0` maps to success. Beyond those two, Safaricom's query documentation doesn't enumerate the full result code list separately, since it overlaps with the push callback's codes above.
+
+## Testing
+
+**Daraja Simulator**: create a test app with the M-Pesa Express (Lipa na M-Pesa) product attached; the simulator auto-fills credentials and test data.
+
+**Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the push or query endpoint above.
+
+## Go Live
+
+See [Organization Portal & Go Live](/daraja/organization-portal) for creating the admin/manager operators. On the portal's Go Live tab, submit your live short code, organization name (Safaricom asks that special characters be stripped from it), and M-PESA admin/manager username (case-sensitive). Production endpoints and production Consumer Key/Secret follow by email.
+
+<Callout type="info" title="Till numbers with STK Push">
+Safaricom documents that a Till Number works with this API too. Set `TransactionType` to `CustomerBuyGoodsOnline`, `PartyB` to the Till Number, and `BusinessShortCode` to whichever short code was used at Go Live (often the head office/store number rather than the Till itself).
+</Callout>
+
+## FAQs
+
+<Accordions>
+<Accordion title="What are the transaction limits?">
+A registered customer can receive up to KES 250,000 per transaction, with a maximum account balance of KES 500,000, a daily transaction value limit of KES 500,000, and a minimum transaction amount of KES 1, as documented by Safaricom.
+</Accordion>
+<Accordion title="Can I reverse an M-Pesa Express transaction?">
+Yes, via the [Reversals API](/daraja/reversals), according to Safaricom's documentation.
+</Accordion>
+<Accordion title="Why am I getting 'Invalid API call as no apiproduct match found'?">
+In production, confirm the Lipa na M-Pesa product is enabled on your app. In sandbox, confirm the M-Pesa Express Sandbox product is enabled, and that you're calling the correct endpoint.
+</Accordion>
+<Accordion title="Can I use my real Pay Bill in the Daraja simulator?">
+No. The simulator only works with sandbox test short codes. Test a live short code from your own application or a REST client instead.
+</Accordion>
+</Accordions>

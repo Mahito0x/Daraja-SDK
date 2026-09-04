@@ -21,7 +21,8 @@ export function baseOptions(): BaseLayoutProps {
               width={32}
               height={32}
               priority
-              className="block dark:hidden h-8 w-auto object-contain"
+              style={{ width: "auto" }}
+              className="block dark:hidden h-8 object-contain"
             />
             <Image
               src="/logomark.svg"
@@ -29,7 +30,8 @@ export function baseOptions(): BaseLayoutProps {
               width={32}
               height={32}
               priority
-              className="hidden dark:block h-8 w-auto object-contain"
+              style={{ width: "auto" }}
+              className="hidden dark:block h-8 object-contain"
             />
           </div>
           <span className="text-xl font-black tracking-tighter leading-none">

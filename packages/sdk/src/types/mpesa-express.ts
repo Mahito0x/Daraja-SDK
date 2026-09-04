@@ -2,8 +2,8 @@ export type StkTransactionType =
   "CustomerPayBillOnline" | "CustomerBuyGoodsOnline";
 
 export interface StkPushRequest {
-  /** The M-PESA Shortcode assigned to the Business (5–7 digits). */
-  businessShortCode: string | number;
+  /** The M-PESA Shortcode assigned to the Business (5–7 digits). Falls back to DarajaConfig.shortcode. */
+  businessShortCode?: string | number;
 
   /**
    * Your app's Passkey for this shortcode (from Daraja test data on
@@ -12,7 +12,8 @@ export interface StkPushRequest {
    * produce the `Password` field automatically — you never construct it
    * by hand.
    */
-  passkey: string;
+  /** Falls back to DarajaConfig.passkey when omitted. */
+  passkey?: string;
 
   /** "CustomerPayBillOnline" for Paybill, "CustomerBuyGoodsOnline" for Till. */
   transactionType: StkTransactionType;
@@ -23,14 +24,14 @@ export interface StkPushRequest {
   /** Phone number the funds are debited from, format "2547XXXXXXXX". */
   partyA: string;
 
-  /** Organization shortcode/Till receiving the funds. */
-  partyB: string | number;
+  /** Organization shortcode/Till receiving the funds. Falls back to DarajaConfig.shortcode. */
+  partyB?: string | number;
 
   /** Mobile number to receive the USSD/STK prompt. Usually same as partyA. */
   phoneNumber: string;
 
-  /** Publicly reachable URL that receives the async payment result. */
-  callBackURL: string;
+  /** Publicly reachable URL that receives the async payment result. Falls back to DarajaConfig.callbackUrl. */
+  callBackURL?: string;
 
   /** Shown to the customer in the USSD prompt. Max 12 characters. */
   accountReference: string;
@@ -48,11 +49,11 @@ export interface StkPushResponse {
 }
 
 export interface StkQueryRequest {
-  /** Must be the same shortcode used in the original push() call. */
-  businessShortCode: string | number;
+  /** Must be the same shortcode used in the original push() call. Falls back to DarajaConfig.shortcode. */
+  businessShortCode?: string | number;
 
-  /** Must be the same passkey used in the original push() call. */
-  passkey: string;
+  /** Must be the same passkey used in the original push() call. Falls back to DarajaConfig.passkey. */
+  passkey?: string;
 
   /** The CheckoutRequestID returned by the original push() call. */
   checkoutRequestId: string;

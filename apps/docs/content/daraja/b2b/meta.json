@@ -1,0 +1,11 @@
+{
+  "title": "B2B & Tax Transfers",
+  "icon": "Building2",
+  "pages": [
+    "b2b-express-checkout",
+    "business-paybill",
+    "business-buy-goods",
+    "b2b-hakikisha",
+    "tax-remittance"
+  ]
+}
