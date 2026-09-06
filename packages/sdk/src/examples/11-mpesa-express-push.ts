@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Sending an M-Pesa Express (STK Push) payment prompt.
  *

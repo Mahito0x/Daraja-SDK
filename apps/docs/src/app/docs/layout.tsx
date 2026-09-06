@@ -30,9 +30,9 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
             <Image
               src="/logomark.svg"
               alt="Safaricom logo"
-              width={80}
-              height={32}
-              className="w-14 h-6 object-contain"
+              width={56}
+              height={26}
+              className="h-6 w-auto object-contain"
             />
           ),
           description: "TypeScript SDK guides & setup.",

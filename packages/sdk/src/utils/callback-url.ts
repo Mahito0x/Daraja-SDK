@@ -1,8 +1,6 @@
 import { DarajaError } from "../types/errors";
 import type { ResolvedDarajaConfig } from "../types/config";
 
-// See SUGGESTIONS_MAP['INVALID_CALLBACK_URL'] in types/errors.ts for the
-// user-facing summary of these rules.
 const BANNED_KEYWORDS = ["mpesa", "safaricom", "exec", "sql"];
 const BANNED_TUNNEL_HOSTS = [
   "ngrok.io",
@@ -60,7 +58,7 @@ export function validateCallbackUrl(
   const bannedKeyword = BANNED_KEYWORDS.find((word) => lowerUrl.includes(word));
   if (bannedKeyword) {
     throw new DarajaError({
-      message: `${fieldName} contains a disallowed keyword ("${bannedKeyword}"). Safaricom rejects callback URLs containing: ${BANNED_KEYWORDS.join(", ")}.`,
+      message: `${fieldName} contains a disallowed keyword ("${bannedKeyword}"). Blocked by the SDK: ${BANNED_KEYWORDS.join(", ")}.`,
       errorCode: "INVALID_CALLBACK_URL",
     });
   }
@@ -71,7 +69,7 @@ export function validateCallbackUrl(
   );
   if (bannedHost) {
     throw new DarajaError({
-      message: `${fieldName} points at a public URL tunneling service ("${hostname}"), which Safaricom does not allow. Use a real domain instead.`,
+      message: `${fieldName} points at a public URL tunneling service ("${hostname}") blocked by the SDK. Use a different public URL.`,
       errorCode: "INVALID_CALLBACK_URL",
     });
   }

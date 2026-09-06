@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Setting up the Daraja client and fetching an access token.
  *

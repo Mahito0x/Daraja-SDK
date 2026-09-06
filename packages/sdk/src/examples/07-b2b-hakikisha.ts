@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Looking up an M-PESA organization's name and tariff before
  * paying it (B2B Hakikisha).

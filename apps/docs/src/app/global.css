@@ -6,15 +6,6 @@
 /* ---break---*/
 @custom-variant dark (&:is(.dark *));
 
-/* Add to your globals.css */
-pre.shiki {
-  background-color: #ffffff !important;
-}
-
-.dark pre.shiki {
-  background-color: #000000 !important;
-}
-
 :root {
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -177,17 +168,6 @@ pre.shiki {
     background: rgba(0, 166, 81, 0.2);
     color: inherit;
   }
-
-  /* Keep Markdown links visibly actionable without the default underline. */
-  /* article .prose a {
-    color: #0077cc !important;
-    text-decoration: none !important;
-  }
-
-  article .prose a:hover {
-    color: #005fa3 !important;
-    text-decoration: underline !important;
-  } */
 }
 
 @media (prefers-reduced-motion: reduce) {

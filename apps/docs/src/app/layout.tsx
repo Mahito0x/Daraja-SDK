@@ -118,7 +118,10 @@ export default function Layout({ children }: LayoutProps<"/">) {
       className={`font-sans ${geist.variable}`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
+      <body
+        className="flex min-h-screen flex-col bg-background text-foreground antialiased"
+        suppressHydrationWarning
+      >
         <script
           type="application/ld+json"
           // skipcq: JS-0440 - Safe JSON-LD structured data injection

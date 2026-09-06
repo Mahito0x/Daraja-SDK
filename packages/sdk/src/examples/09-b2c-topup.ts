@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Loading funds into a B2C shortcode's utility account, then
  * handling the async result callback that arrives at your resultURL.

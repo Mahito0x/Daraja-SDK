@@ -1,18 +1,7 @@
-// Written and maintained by Claude
-
-// Assumes Vitest (common for pnpm TS monorepos). If this project uses Jest
-// instead, replace `import { vi } from 'vitest'` with the Jest globals and
-// swap `vi.fn()` / `vi.spyOn()` for `jest.fn()` / `jest.spyOn()` — the rest
-// of the suite is framework-agnostic.
-
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { AuthManager } from "../src/auth";
 import { DarajaError } from "../src/types/errors";
 import type { ResolvedDarajaConfig } from "../src/types/config";
-
-// ---------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------
 
 // Deterministic, exact-length, alphanumeric-only fixtures (48 / 64 chars).
 // Do NOT reuse the values from your .env in tests — keep test fixtures
@@ -57,10 +46,6 @@ async function expectDarajaError(
     }
   }
 }
-
-// ---------------------------------------------------------------------
-// Config validation (constructor)
-// ---------------------------------------------------------------------
 
 describe("AuthManager — config validation", () => {
   it("constructs successfully with a valid config", () => {
@@ -107,10 +92,6 @@ describe("AuthManager — config validation", () => {
     expect(() => new AuthManager(config)).not.toThrow();
   });
 });
-
-// ---------------------------------------------------------------------
-// Credential validation (triggered lazily via getAccessToken)
-// ---------------------------------------------------------------------
 
 describe("AuthManager — credential validation", () => {
   // Credential checks only run when a token is actually requested, so we

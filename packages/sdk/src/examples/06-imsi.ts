@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Fetching a customer's hashed IMSI, last swap date, and network
  * registration date (V1), plus the lighter IMSI-only V2 response.

@@ -1,0 +1,222 @@
+---
+title: Integrations
+description: Use the Daraja SDK from server routes, loaders, actions, and Node.js services.
+---
+
+import { Cards, Card } from "fumadocs-ui/components/card";
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+import { Icons } from "@/components/Icons";
+
+The SDK is a server-side TypeScript client for Safaricom's Daraja API. It uses
+standard `fetch`, `AbortController`, timers, Base64 encoding, and
+`Intl.DateTimeFormat` for the East Africa timestamp required by STK Push.
+There is one package and one client shape: create it once, then call it from
+your framework's server boundary.
+
+<Callout title="Keep credentials on the server" type="error">
+  Never import the SDK into a browser component or expose `consumerKey`,
+  `consumerSecret`, passkeys, or security credentials to the client. Use a route
+  handler, loader, action, server endpoint, or backend service instead.
+</Callout>
+
+## Supported guides
+
+These guides match the framework examples currently maintained in this
+repository. Each one covers client construction, an STK Push route, and
+Daraja callbacks where the framework supports them.
+
+<Cards>
+  <Card
+    icon={<Icons.Nextjs />}
+    title="Next.js"
+    href="/docs/sdk/integrations/nextjs"
+    description="App Router route handlers for STK Push, C2B callbacks, and B2C top-ups."
+  />
+  <Card
+    icon={<Icons.Astro />}
+    title="Astro"
+    href="/docs/sdk/integrations/astro"
+    description="Server endpoints via Astro API routes."
+  />
+  <Card
+    icon={<Icons.Remix />}
+    title="Remix"
+    href="/docs/sdk/integrations/remix"
+    description="Action and loader functions for requests and callbacks."
+  />
+  <Card
+    icon={<Icons.Expressjs />}
+    title="Express"
+    href="/docs/sdk/integrations/express"
+    description="A Node server with routers for STK Push and callbacks."
+  />
+</Cards>
+
+## Runtime fit
+
+The package declares Node.js `>=20.19.0` and is tested as a Node-first SDK.
+Its HTTP layer uses Web APIs, so it can also fit other server runtimes that
+provide compatible `fetch`, `AbortController`, Base64, timers, and
+`Intl.DateTimeFormat` support.
+
+<Cards>
+  <Card
+    icon={<Icons.Nodejs />}
+    title="Node.js"
+    description="Primary runtime for APIs and workers."
+  />
+  <Card
+    icon={<Icons.Deno />}
+    title="Deno"
+    description="Compatible through npm package imports."
+  />
+  <Card
+    icon={<Icons.Bun />}
+    title="Bun"
+    description="Compatible with Bun.serve() and Bun servers."
+  />
+</Cards>
+
+<Callout title="Edge runtime note" type="warn">
+  Edge deployments are not the primary tested target. The SDK uses `btoa` when
+  available and falls back to `Buffer` for Base64 encoding, so verify the target
+  platform's globals before deploying to an edge isolate. In Next.js, use the
+  default Node.js runtime unless you have verified the specific edge deployment
+  yourself.
+</Callout>
+
+## SDK surface
+
+The same client exposes the implemented Daraja products below. Callback
+handlers are application code: the SDK sends outbound requests, while your
+server receives and persists Safaricom's asynchronous payloads.
+
+<Cards>
+  <Card
+    title="M-Pesa Express"
+    href="/docs/sdk/endpoints/mpesa-express-stk-push"
+    description="Send an STK Push and query its CheckoutRequestID."
+  />
+  <Card
+    title="C2B"
+    href="/docs/sdk/endpoints/c2b"
+    description="Register callback URLs and simulate sandbox payments."
+  />
+  <Card
+    title="B2C Account Top Up"
+    href="/docs/sdk/endpoints/b2c-top-up"
+    description="Submit top-ups and handle the asynchronous result callback."
+  />
+  <Card
+    title="Dynamic QR and Offers"
+    href="/docs/sdk/endpoints/dynamic-qr"
+    description="Generate payment QR codes and work with data offers."
+  />
+  <Card
+    title="Verification services"
+    href="/docs/sdk/endpoints/mobile-number-validation"
+    description="Use SIM swap, IMSI, mobile-number, and B2B Hakikisha clients."
+  />
+</Cards>
+
+## Shared setup
+
+Construct the client at module scope so its in-memory OAuth token cache can be
+reused between requests.
+
+<Tabs items={["Node.js / Express", "Next.js"]}>
+  <Tab value="Node.js / Express">
+
+```ts title="src/daraja.ts"
+import { Daraja } from "@lumierelabs/daraja";
+
+export const daraja = new Daraja({
+  environment:
+    process.env.DARAJA_ENVIRONMENT === "production" ? "production" : "sandbox",
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
+});
+```
+
+  </Tab>
+  <Tab value="Next.js">
+
+```ts title="lib/daraja.ts"
+import { Daraja } from "@lumierelabs/daraja";
+
+export const daraja = new Daraja({
+  environment:
+    process.env.DARAJA_ENVIRONMENT === "production" ? "production" : "sandbox",
+  consumerKey: process.env.DARAJA_CONSUMER_KEY!,
+  consumerSecret: process.env.DARAJA_CONSUMER_SECRET!,
+  passkey: process.env.DARAJA_PASSKEY!,
+  shortcode: process.env.DARAJA_SHORTCODE!,
+  callbackUrl: process.env.DARAJA_CALLBACK_URL!,
+});
+```
+
+  </Tab>
+</Tabs>
+
+Call methods such as `daraja.stkPush()`, `daraja.stkPushQuery()`,
+`daraja.c2b.registerUrl()`, or `daraja.b2cTopUp.topUp()` from the server
+boundary. Catch `DarajaError` to return a stable error code and HTTP status to
+your application.
+
+## Scaffold with the CLI
+
+`create-daraja` currently generates complete Next.js and Express projects,
+including only the selected service routes.
+
+<Steps>
+  <Step>
+
+```bash title="Terminal"
+npx create-daraja@latest
+```
+
+  </Step>
+  <Step>
+
+Choose Next.js or Express, select sandbox or production, then select STK Push,
+STK query, C2B, or B2C Account Top Up.
+
+  </Step>
+  <Step>
+
+Copy `.env.example` to `.env`, add your credentials, install dependencies, and
+start the generated dev server. The CLI never creates a real `.env` file.
+
+  </Step>
+</Steps>
+
+<Callout title="Adding another framework" type="info">
+  The SDK has no Express, Next.js, Astro, or Remix dependency. A new adapter
+  only needs to construct the client once and call its methods from the
+  framework's server boundary.
+</Callout>
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Quickstart"
+    href="/docs/sdk/getting-started/quickstart"
+    description="Install the SDK and send your first STK Push."
+  />
+  <Card
+    title="Configuration"
+    href="/docs/sdk/getting-started/configuration"
+    description="Set credentials, environment, callback URL, and timeout."
+  />
+  <Card
+    title="Callback URLs"
+    href="/docs/sdk/core-concepts/callback-urls"
+    description="Understand public HTTPS callbacks and asynchronous results."
+  />
+</Cards>

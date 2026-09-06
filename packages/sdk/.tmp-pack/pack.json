@@ -1,41 +1,51 @@
 [
   {
-    "id": "@lumierelabs/daraja@1.0.0",
+    "id": "@lumierelabs/daraja@1.0.3",
     "name": "@lumierelabs/daraja",
-    "version": "1.0.0",
-    "size": 52716,
-    "unpackedSize": 225278,
-    "shasum": "7d7a686714bc2b24c066a85c1566bbbd22519691",
-    "integrity": "sha512-CiWhKI6DWeFc8HvhTq2PnfjfIMatc6eZHf+4F7fhSIvh+bpVtmlIxyjML4rIvyeBANySArOFwJGLuhVrLyADcA==",
-    "filename": "lumierelabs-daraja-1.0.0.tgz",
+    "version": "1.0.3",
+    "size": 58342,
+    "unpackedSize": 244307,
+    "shasum": "0779e83b642fa5e389c3d9dcdd4326eb9f1f1049",
+    "integrity": "sha512-JPQ4aNw9riDUOGmV01WHQF5nDYiUQB8tWmk3ERMAHw/KWMFCY6YspX9Mz/l7LcQFdNTVHjL50M2hFmJ03iEJxw==",
+    "filename": "lumierelabs-daraja-1.0.3.tgz",
     "files": [
       {
+        "path": "LICENSE",
+        "size": 1088,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 14132,
+        "mode": 420
+      },
+      {
         "path": "dist/index.cjs",
-        "size": 72835,
+        "size": 73682,
         "mode": 420
       },
       {
         "path": "dist/index.d.cts",
-        "size": 40030,
+        "size": 40836,
         "mode": 420
       },
       {
         "path": "dist/index.d.ts",
-        "size": 40030,
+        "size": 40836,
         "mode": 420
       },
       {
         "path": "dist/index.js",
-        "size": 70786,
+        "size": 71633,
         "mode": 420
       },
       {
         "path": "package.json",
-        "size": 1597,
+        "size": 2100,
         "mode": 420
       }
     ],
-    "entryCount": 5,
+    "entryCount": 7,
     "bundled": []
   }
 ]

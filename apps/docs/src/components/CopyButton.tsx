@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js";
+
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+  process.env.NEXT_PUBLIC_POSTHOG_HOST,
+);
 
 interface CopyButtonProps {
   text: string;
@@ -38,6 +44,7 @@ export function CopyButton({ text, className }: CopyButtonProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
+      if (isPostHogConfigured) posthog.capture("content_copied");
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (err) {
@@ -92,7 +99,7 @@ export function CopyButton({ text, className }: CopyButtonProps) {
             className="inline-flex items-center justify-center"
           >
             <MotionCopyIcon
-              className="size-4 text-neutral-400 hover:text-neutral-100"
+              className="size-4 text-neutral-400"
               variants={copyIconVariants}
               initial="initial"
             />

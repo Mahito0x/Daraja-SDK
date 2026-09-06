@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Simulating a customer C2B payment (sandbox only).
  *

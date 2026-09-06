@@ -5,6 +5,12 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Pnpm, NPM, Yarn, Bun } from "./Icons";
 import { CopyButton } from "./CopyButton";
+import posthog from "posthog-js";
+
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+    process.env.NEXT_PUBLIC_POSTHOG_HOST,
+);
 
 const PM_LIST = [
   { id: "pnpm", label: "pnpm", icon: Pnpm },
@@ -66,7 +72,14 @@ export function InstallCommand(props: InstallCommandProps) {
             <button
               key={item.id}
               type="button"
-              onClick={() => setPm(item.id)}
+              onClick={() => {
+                setPm(item.id);
+                if (isPostHogConfigured) {
+                  posthog.capture("package_manager_selected", {
+                    package_manager: item.id,
+                  });
+                }
+              }}
               className={cn(
                 "relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg py-1.5 text-xs font-medium transition-colors",
                 isActive

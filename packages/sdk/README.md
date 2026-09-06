@@ -4,7 +4,7 @@
 
 **A fully typed TypeScript client for Safaricom's Daraja (M-Pesa) API.**
 
-Auto-caching OAuth tokens. Timezone-correct STK passwords, generated for you. Safaricom's own field misspellings, normalized behind a clean interface not papered over.
+Auto-caching OAuth tokens. STK passwords generated for you. Safaricom's own field misspellings, normalized behind a clean interface.
 
 [![npm](https://shieldcn.dev/npm/@lumierelabs/daraja.svg?variant=branded&size=xs&split=true)](https://www.npmjs.com/package/@lumierelabs/daraja)
 [![license](https://shieldcn.dev/npm/license/@lumierelabs/daraja.svg?variant=branded&size=xs&split=true)](https://www.npmjs.com/package/@lumierelabs/daraja)
@@ -62,7 +62,7 @@ const { CheckoutRequestID } = await daraja.stkPush({
 
 ## Why this exists
 
-Daraja's own documentation is functional but thin. Field names change case between endpoints `OriginatorCoversationID` and `RecieverIdentifierType` are real, misspelled fields Safaricom ships in production, not typos in this SDK. The STK Push password has to be hand-built as `Base64(ShortCode + Passkey + Timestamp)` in the exact East Africa timezone, regardless of where your server runs. And half the integration "gotchas" IP whitelisting vs. local tunnels, callback URLs silently rejected for containing the word `mpesa`, sandbox instability with no status page are only discoverable by hitting them in production.
+Daraja's own documentation is functional but thin. Field names change case between endpoints; `OriginatorCoversationID` and `RecieverIdentifierType` are examples of fields represented as Safaricom sends them. The STK Push password has to be built as `Base64(ShortCode + Passkey + Timestamp)` using East Africa Time, regardless of where your server runs.
 
 `@lumierelabs/daraja` bakes those lessons in, so you don't have to relearn them from a failed sandbox call at 11pm.
 
@@ -70,14 +70,14 @@ Daraja's own documentation is functional but thin. Field names change case betwe
 
 ## Features
 
-|                               |                                                                                                                                                          |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Fully typed payloads**      | Every request and response shape typed end to end, including the fields Safaricom itself misspells on the wire.                                          |
-| **Automatic token lifecycle** | OAuth 2.0 tokens fetched, cached in memory, and refreshed automatically with a 60-second safety buffer. You never call `/oauth/v1/generate` yourself.    |
-| **Daraja quirks, normalized** | Timezone-correct STK passwords, callback URL validation before a request ever leaves your server, documented sandbox instability instead of a black box. |
-| **One error shape**           | Every failure client-side validation or a Daraja-side rejection throws a single `DarajaError` class. One `catch`, everywhere.                            |
-| **Multi-framework native**    | Built on native `fetch` and `AbortController`, no runtime-specific glue. First-class integration guides for Next.js, Astro, Remix, and Express.          |
-| **Zero heavy dependencies**   | No axios, no node-fetch, no isomorphic-fetch. Ships as both ESM and CJS with a single `.d.ts`.                                                           |
+|                               |                                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Fully typed payloads**      | Every request and response shape typed end to end, including the fields Safaricom itself misspells on the wire.                                  |
+| **Automatic token caching**   | OAuth 2.0 tokens are fetched, cached in memory, and fetched again after a 60-second safety buffer. You never call `/oauth/v1/generate` yourself. |
+| **Daraja quirks, normalized** | STK passwords use East Africa Time, and callback URLs are validated before a request leaves your server.                                         |
+| **One error shape**           | Every failure client-side validation or a Daraja-side rejection throws a single `DarajaError` class. One `catch`, everywhere.                    |
+| **Multi-framework native**    | Built on native `fetch` and `AbortController`, no runtime-specific glue. First-class integration guides for Next.js, Astro, Remix, and Express.  |
+| **Zero heavy dependencies**   | No axios, no node-fetch, no isomorphic-fetch. Ships as both ESM and CJS with a single `.d.ts`.                                                   |
 
 <br />
 
@@ -87,7 +87,7 @@ Daraja's own documentation is functional but thin. Field names change case betwe
 pnpm add @lumierelabs/daraja
 ```
 
-**Requirements:** Node.js 18.17+ (uses the global `fetch`, `AbortController`, and `btoa`/`Buffer` APIs), TypeScript 5+ recommended.
+**Requirements:** Node.js 20.19+ (uses the global `fetch`, `AbortController`, and `btoa`/`Buffer` APIs), TypeScript 5+ recommended.
 
 <br />
 
@@ -137,7 +137,7 @@ Full walkthrough, including callback handling per framework: **[Quickstart Guide
 | **IMSI**                      | `imsi.checkV1()`, `imsi.checkV2()`                           |    ✅ Working     |
 | **Mobile Number Validation**  | `mobileNumberValidation.validate()`                          | ⚠️ Upstream Issue |
 
-**⚠️ Upstream Issue** means the endpoint is implemented correctly against Safaricom's published spec, but Daraja's own sandbox for that endpoint is inconsistent (thin/rotating test data) that's a Safaricom-side limitation, not a bug in this SDK. See the [endpoint's own docs](http://darajasdk.vercel.app/docs/endpoints/dynamic-offers) for specifics.
+**⚠️ Upstream Issue** is a repository status based on observed sandbox responses, not a guarantee about current Safaricom availability. The SDK method and payload types are implemented, but the endpoint may require additional verification against the live sandbox.
 
 > Looking for **Account Balance**, **Transaction Status**, **Reversal**, or a generic **B2C/B2B Payment Request**? They aren't implemented yet see [Roadmap](#roadmap) for the honest list instead of documentation for endpoints that would 404.
 

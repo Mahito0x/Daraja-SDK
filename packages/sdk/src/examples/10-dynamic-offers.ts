@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Browsing and buying a mobile data bundle in-app (Mobile Data
  * Bundles / Dynamic Offers), then checking the purchase's status.

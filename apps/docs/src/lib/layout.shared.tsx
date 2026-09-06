@@ -18,20 +18,18 @@ export function baseOptions(): BaseLayoutProps {
             <Image
               src="/logomark.svg"
               alt="Daraja SDK Logomark"
-              width={32}
+              width={68}
               height={32}
               priority
-              style={{ width: "auto" }}
-              className="block dark:hidden h-8 object-contain"
+              className="block h-8 w-auto object-contain dark:hidden"
             />
             <Image
               src="/logomark.svg"
               alt="Daraja SDK Logomark"
-              width={32}
+              width={68}
               height={32}
               priority
-              style={{ width: "auto" }}
-              className="hidden dark:block h-8 object-contain"
+              className="hidden h-8 w-auto object-contain dark:block"
             />
           </div>
           <span className="text-xl font-black tracking-tighter leading-none">

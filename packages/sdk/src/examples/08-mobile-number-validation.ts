@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Checking whether a phone number is registered under a given
  * National ID / Military ID / Passport (KYC check).

@@ -53,6 +53,12 @@ import {
   type UIToolInvocation,
 } from "ai";
 import { Markdown } from "../markdown";
+import posthog from "posthog-js";
+
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+    process.env.NEXT_PUBLIC_POSTHOG_HOST,
+);
 
 export type ChatUIMessage = UIMessage<
   never,
@@ -216,6 +222,8 @@ export function AISearchInput(props: ComponentProps<"form">) {
     e?.preventDefault();
     const message = input.trim();
     if (message.length === 0) return;
+
+    if (isPostHogConfigured) posthog.capture("ai_search_submitted");
 
     void sendMessage({
       role: "user",
@@ -490,7 +498,10 @@ export function AISearchTrigger({
         ],
         className,
       )}
-      onClick={() => setOpen(!open)}
+      onClick={() => {
+        if (!open && isPostHogConfigured) posthog.capture("ai_search_opened");
+        setOpen(!open);
+      }}
       {...props}
     >
       {props.children}
