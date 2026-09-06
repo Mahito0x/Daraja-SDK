@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Generating a Dynamic QR code for a Buy Goods payment.
  *

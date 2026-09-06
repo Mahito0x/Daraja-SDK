@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Checking a customer's last SIM swap date (fraud check).
  *

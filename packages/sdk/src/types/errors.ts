@@ -1,7 +1,4 @@
-/**
- * Zero-dependency ANSI color utility for terminal output.
- * Respects NO_COLOR environment variable standard.
- */
+/** ANSI color utility for terminal output. */
 
 import symbols from "log-symbols";
 
@@ -22,9 +19,6 @@ const c = {
     isColorSupported ? `\x1b[4m${str}\x1b[24m` : str,
 };
 
-/**
- * Standard HTTP Status Text map for clean terminal formatting.
- */
 const HTTP_STATUS_MAP: Record<number, string> = {
   400: "Bad Request",
   401: "Unauthorized",
@@ -36,18 +30,15 @@ const HTTP_STATUS_MAP: Record<number, string> = {
   503: "Service Unavailable",
 };
 
-/**
- * Known Daraja auto-suggestions for common errors.
- */
 const SUGGESTIONS_MAP: Record<string, string> = {
   INVALID_CREDENTIALS:
     "Double-check your Consumer Key (48 chars) and Consumer Secret (64 chars) from the Daraja Developer Portal. Ensure they are not swapped.",
   INVALID_QR_REQUEST:
     "Check the field named in the message against the Dynamic QR request schema (merchantName, refNo, amount, trxCode, cpi, size).",
   INVALID_C2B_REQUEST:
-    "Check the field named in the message against the C2B request schema, and see Safaricom's callback URL rules (HTTPS in production, no banned keywords, no public URL tunnels).",
+    "Check the field named in the message against the C2B request schema and the SDK callback URL rules.",
   INVALID_CALLBACK_URL:
-    "Callback URLs must be HTTPS in production (HTTP is fine in sandbox), must not contain banned words (mpesa, safaricom, exec, sql...), and must not point at ngrok/mockbin/requestbin.",
+    "Callback URLs must be HTTPS in production (HTTP is fine in sandbox), must not contain the SDK's blocked keywords, and must not use blocked tunnel hosts.",
   INVALID_STK_REQUEST:
     "Check the field named in the message against the M-Pesa Express (STK Push) request schema.",
   SIMULATE_NOT_AVAILABLE_IN_PRODUCTION:

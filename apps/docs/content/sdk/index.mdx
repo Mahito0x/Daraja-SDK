@@ -20,7 +20,7 @@ import {
   UserCheck,
 } from "lucide-react";
 
-`@lumierelabs/daraja` wraps the [Safaricom Daraja API](https://developer.safaricom.co.ke/) in a TypeScript client that handles the parts everyone reimplements badly on their own project: OAuth token caching, STK Push password generation, callback URL validation, and Daraja's inconsistent PascalCase/camelCase payload shapes.
+`@lumierelabs/daraja` wraps the [Safaricom Daraja API](https://developer.safaricom.co.ke/) in a TypeScript client that handles OAuth token caching, STK Push password generation, callback URL validation, and Daraja's inconsistent PascalCase/camelCase payload shapes.
 
 You give it a Consumer Key and Consumer Secret. It gives you back a client with typed methods, readable error messages, and no `Buffer.from(...).toString('base64')` scattered across your codebase.
 
@@ -140,11 +140,11 @@ console.log(result.CheckoutRequestID);
 </Cards>
 
 <Callout type="info" title="Understanding Endpoint Badges">
-  - **Working**: The SDK code is implemented and verified against an active,
-  functional Safaricom Daraja Sandbox endpoint. - **Upstream Issue**: The SDK
-  method and payload types are fully implemented, but Safaricom's Sandbox
-  environment is currently returning upstream errors (such as `500 Server
-  Error`, `503 Service Unavailable`, or unparsed HTML responses).
+  - **Working**: The SDK implementation is available and the repository has
+  passing tests for its local behavior. - **Upstream Issue**: The SDK method and
+  payload types are implemented, but the repository has observed errors or
+  inconsistent responses from the corresponding sandbox endpoint. These badges
+  are not a live availability check.
 </Callout>
 
 ## Why this exists

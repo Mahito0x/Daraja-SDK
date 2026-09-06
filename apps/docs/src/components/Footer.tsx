@@ -119,14 +119,14 @@ function NavColumn({
                 href={item.href}
                 target={item.external ? "_blank" : undefined}
                 rel={item.external ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center gap-2 text-xs text-muted-foreground transition-colors duration-200 hover:text-foreground"
+                className="group inline-flex items-center gap-2 text-xs text-muted-foreground transition-colors duration-200 hover:text-foreground"
               >
                 {Icon && (
                   <Icon className="h-3.5 w-3.5 shrink-0 opacity-70 transition-opacity duration-200 group-hover:opacity-100" />
                 )}
                 <span>{item.label}</span>
                 {item.external && (
-                  <span className="text-muted-foreground/70">
+                  <span className="text-muted-foreground/70 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                     <ArrowUpRight className="h-3 w-3" />
                   </span>
                 )}
@@ -141,26 +141,28 @@ function NavColumn({
 
 export default function Footer() {
   return (
-    <footer className="relative w-full bg-background text-foreground dark:bg-black selection:bg-emerald-500/20 selection:text-emerald-400">
+    <footer className="relative w-full bg-background text-foreground dark:bg-black selection:bg-emerald-500/20 selection:text-emerald-400 overflow-hidden">
+      {/* Top subtle border glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
 
-      <div className="rounded-t-3xl border-t border-border/40 bg-background px-6 pt-14 dark:bg-black sm:px-10">
+      <div className="rounded-t-3xl border-t border-border/40 bg-background px-6 pt-16 dark:bg-black sm:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4 lg:grid-cols-12 lg:gap-8 lg:items-start">
-            <div className="col-span-2 flex flex-col gap-5 lg:col-span-4">
+          {/* Main Footer Grid */}
+          <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-12 lg:gap-8 lg:items-start">
+            {/* Brand Column */}
+            <div className="flex flex-col gap-5 lg:col-span-4">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2.5 select-none"
+                className="inline-flex items-center gap-2.5 select-none w-fit"
               >
                 <div className="shrink-0 transition-transform duration-200 hover:-rotate-4 hover:scale-105">
                   <Image
                     src="/logomark.svg"
                     alt="Daraja SDK Logomark"
-                    width={32}
+                    width={68}
                     height={32}
                     priority
-                    style={{ width: "auto" }}
-                    className="h-8 object-contain"
+                    className="h-8 w-auto object-contain"
                   />
                 </div>
                 <span className="text-xl font-black leading-none tracking-tighter">
@@ -174,7 +176,7 @@ export default function Footer() {
                 High-level abstractions with zero external dependencies.
               </p>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 pt-1">
                 <Link
                   href="/docs/getting-started/installation"
                   aria-label="Get started with the Daraja SDK"
@@ -196,7 +198,8 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="col-span-2 grid grid-cols-2 gap-8 sm:col-span-4 lg:col-span-8">
+            {/* Navigation Links Columns Grid */}
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:col-span-8">
               <NavColumn title="Documentation" links={docsLinks} />
               <NavColumn title="Endpoints" links={endpointLinks} />
               <NavColumn title="Integrations" links={integrationLinks} />
@@ -204,7 +207,8 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2.5 py-6 sm:justify-start">
+          {/* Social Icons Row */}
+          <div className="flex items-center gap-2.5 pt-12 pb-8 sm:justify-start">
             {socialLinks.map(({ label, href, icon: Icon }) => (
               <Link
                 key={label}
@@ -212,13 +216,14 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-transparent text-muted-foreground transition-colors hover:border-emerald-500/40 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-transparent text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </Link>
             ))}
           </div>
 
+          {/* Copyright & Disclaimer Bar */}
           <div className="flex flex-col-reverse items-center justify-between gap-4 border-t border-border/40 py-6 text-[11px] text-muted-foreground sm:flex-row">
             <p>
               © {new Date().getFullYear()} Daraja SDK. Released under the MIT
@@ -233,9 +238,10 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Large Watermark Effect at the Bottom */}
         <div
           aria-hidden="true"
-          className="relative h-[0.62em] w-full overflow-hidden select-none pointer-events-none"
+          className="relative h-[0.62em] w-full overflow-hidden select-none pointer-events-none mt-4"
           style={{ fontSize: "clamp(3.5rem, 16vw, 12rem)" }}
         >
           <p

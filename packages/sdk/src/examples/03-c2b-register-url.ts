@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Registering C2B Validation/Confirmation callback URLs.
  *

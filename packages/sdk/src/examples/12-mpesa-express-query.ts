@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Example: Checking the status of a previously initiated STK Push.
  *

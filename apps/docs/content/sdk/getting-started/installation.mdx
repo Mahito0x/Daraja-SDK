@@ -15,7 +15,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 ## Requirements
 
-- Node.js 18.17 or later (the SDK uses the global `fetch`, `AbortController`, and `btoa`/`Buffer` APIs no `node-fetch` or `isomorphic-fetch` dependency needed)
+- Node.js 20.19 or later (the SDK uses the global `fetch`, `AbortController`, and `btoa`/`Buffer` APIs; no `node-fetch` or `isomorphic-fetch` dependency is needed)
 - A Daraja Developer Portal account with a sandbox app [developer.safaricom.co.ke](https://developer.safaricom.co.ke)
 - TypeScript 5+ if you want the shipped `.d.ts` types (the package works fine from plain JS too)
 
@@ -63,7 +63,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
   </TabsContent>
 </Tabs>
 
-The package ships both ESM (`dist/index.mjs`) and CJS (`dist/index.js`) builds plus a `.d.ts` file, so `import { Daraja } from '@lumierelabs/daraja'` and `const { Daraja } = require('@lumierelabs/daraja')` both work without extra config.
+The package ships ESM (`dist/index.js`) and CJS (`dist/index.cjs`) builds plus a `.d.ts` file, so `import { Daraja } from '@lumierelabs/daraja'` and `const { Daraja } = require('@lumierelabs/daraja')` both work without extra config.
 
 ## Get sandbox credentials
 
