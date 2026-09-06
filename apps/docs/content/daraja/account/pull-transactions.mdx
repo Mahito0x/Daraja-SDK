@@ -3,15 +3,16 @@ title: Pull Transactions
 description: Retrieve a list of C2B transactions on your account for a recent period, to recover missed callback notifications.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 A reconciliation tool: lets a partner pull every C2B transaction made under their Pay Bill/Till within the last 48 hours, including ones whose callback never reached the registered URL because of downtime on the merchant's side.
 
 ## How it works
 
 <Callout type="info">
-This is a two-step API: register your short code once (Register Pull), then query transactions repeatedly afterward (Query Pull Transaction).
+  This is a two-step API: register your short code once (Register Pull), then
+  query transactions repeatedly afterward (Query Pull Transaction).
 </Callout>
 
 1. The merchant registers their short code for pulling via API. This is required only once, and the short code must belong to a user already live in production.
@@ -24,7 +25,12 @@ This is a two-step API: register your short code once (Register Pull), then quer
 - A live Pay Bill/Till with Business Admin/Manager operators and an existing C2B integration already registered, for Go Live.
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom documents this API as asynchronous in its "Good to Know" section, but also states the method is POST for registration and GET for the transaction query itself, with the query returning data directly in the HTTP response rather than via a callback. That makes the query call read as synchronous in practice; both statements are Safaricom's own and are reproduced as published.
+  Safaricom documents this API as asynchronous in its "Good to Know" section,
+  but also states the method is POST for registration and GET for the
+  transaction query itself, with the query returning data directly in the HTTP
+  response rather than via a callback. That makes the query call read as
+  synchronous in practice; both statements are Safaricom's own and are
+  reproduced as published.
 </Callout>
 
 ## Register Pull
@@ -37,9 +43,9 @@ POST https://sandbox.safaricom.co.ke/pulltransactions/v1/register
 
 **Headers**
 
-| Key | Value |
-|---|---|
-| `Content-Type` | `application/json` |
+| Key             | Value                   |
+| --------------- | ----------------------- |
+| `Content-Type`  | `application/json`      |
 | `Authorization` | `Bearer <access_token>` |
 
 ### Request
@@ -53,12 +59,12 @@ POST https://sandbox.safaricom.co.ke/pulltransactions/v1/register
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `ShortCode` | Organization short code used at Go Live. | `17831` |
-| `RequestType` | Defaults to, and is documented as, `Pull`. | `Pull` |
-| `NominatedNumber` | The Safaricom MSISDN associated with the account using Pull. | `254722000000` |
-| `CallBackURL` | A valid, secure URL. | `https://mydomain.com/confirmation` |
+| Field             | Description                                                  | Sample value                        |
+| ----------------- | ------------------------------------------------------------ | ----------------------------------- |
+| `ShortCode`       | Organization short code used at Go Live.                     | `17831`                             |
+| `RequestType`     | Defaults to, and is documented as, `Pull`.                   | `Pull`                              |
+| `NominatedNumber` | The Safaricom MSISDN associated with the account using Pull. | `254722000000`                      |
+| `CallBackURL`     | A valid, secure URL.                                         | `https://mydomain.com/confirmation` |
 
 ### Response
 
@@ -71,18 +77,18 @@ POST https://sandbox.safaricom.co.ke/pulltransactions/v1/register
 }
 ```
 
-| Code | Meaning |
-|---|---|
+| Code   | Meaning                            |
+| ------ | ---------------------------------- |
 | `1000` | Short code registered successfully |
-| `1001` | Short code already registered |
+| `1001` | Short code already registered      |
 
 ## Query Pull Transaction
 
 **Headers**
 
-| Key | Value |
-|---|---|
-| `Content-Type` | `application/json` |
+| Key             | Value                   |
+| --------------- | ----------------------- |
+| `Content-Type`  | `application/json`      |
 | `Authorization` | `Bearer <access_token>` |
 
 ### Request
@@ -96,14 +102,16 @@ POST https://sandbox.safaricom.co.ke/pulltransactions/v1/register
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `ShortCode` | Your Pay Bill/Till number. | `17843` |
-| `StartDate` / `EndDate` | Period to query, formatted `YYYY-MM-DD HH:MM:SS`. | `2019-07-31 20:35:21` |
-| `OffSetValue` | Pagination offset, starting at `0`. To get results 101 to 200, pass `100`. | `100` |
+| Field                   | Description                                                                | Sample value          |
+| ----------------------- | -------------------------------------------------------------------------- | --------------------- |
+| `ShortCode`             | Your Pay Bill/Till number.                                                 | `17843`               |
+| `StartDate` / `EndDate` | Period to query, formatted `YYYY-MM-DD HH:MM:SS`.                          | `2019-07-31 20:35:21` |
+| `OffSetValue`           | Pagination offset, starting at `0`. To get results 101 to 200, pass `100`. | `100`                 |
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own sample request writes `EndDate` as `"2020-08-16 10:10:000"`, with three trailing zeros on the seconds component rather than two. Reproduced exactly as documented.
+  Safaricom's own sample request writes `EndDate` as `"2020-08-16 10:10:000"`,
+  with three trailing zeros on the seconds component rather than two. Reproduced
+  exactly as documented.
 </Callout>
 
 ### Response
@@ -130,34 +138,38 @@ Safaricom's own sample request writes `EndDate` as `"2020-08-16 10:10:000"`, wit
 }
 ```
 
-| Field | Description |
-|---|---|
-| `transactionId` | The M-PESA transaction ID. |
-| `trxDate` | Completion timestamp. |
-| `msisdn` | The paying customer's number. |
-| `transactiontype` | e.g. `c2b-pay-bill-debit`. |
-| `billreference` | Account reference, for Pay Bill transactions. |
-| `amount` | Amount transacted. |
-| `organizationname` | Organization name as registered at Go Live. |
+| Field              | Description                                   |
+| ------------------ | --------------------------------------------- |
+| `transactionId`    | The M-PESA transaction ID.                    |
+| `trxDate`          | Completion timestamp.                         |
+| `msisdn`           | The paying customer's number.                 |
+| `transactiontype`  | e.g. `c2b-pay-bill-debit`.                    |
+| `billreference`    | Account reference, for Pay Bill transactions. |
+| `amount`           | Amount transacted.                            |
+| `organizationname` | Organization name as registered at Go Live.   |
 
 <Callout type="info">
-`Response` is documented as an array of arrays (note the double `[[ ]]` in the sample above), not a flat array. When no transactions exist for the period, Safaricom documents the body as `"Transaction": "[[]]"`, a field name that doesn't match `Response` used in the successful sample; both are reproduced as documented.
+  `Response` is documented as an array of arrays (note the double `[[ ]]` in the
+  sample above), not a flat array. When no transactions exist for the period,
+  Safaricom documents the body as `"Transaction": "[[]]"`, a field name that
+  doesn't match `Response` used in the successful sample; both are reproduced as
+  documented.
 </Callout>
 
 ### Response codes
 
-| Code | Meaning |
-|---|---|
-| `1000` | Success, transactions fetched |
+| Code   | Meaning                                  |
+| ------ | ---------------------------------------- |
+| `1000` | Success, transactions fetched            |
 | `1001` | No transactions available for the period |
 
 ### Error codes
 
-| Code | Meaning |
-|---|---|
-| `400.001` | Invalid short code |
-| `401.001` | Invalid access token |
-| `500` | Failed to retrieve transactions; no transactions available for the short code |
+| Code      | Meaning                                                                       |
+| --------- | ----------------------------------------------------------------------------- |
+| `400.001` | Invalid short code                                                            |
+| `401.001` | Invalid access token                                                          |
+| `500`     | Failed to retrieve transactions; no transactions available for the short code |
 
 ## Testing and Go Live
 
@@ -170,16 +182,17 @@ Going live follows [Organization Portal & Go Live](/daraja/organization-portal);
 ## FAQs
 
 <Accordions>
-<Accordion title="Can I pull transactions other than C2B?">
-No. Safaricom documents this API as C2B-only.
-</Accordion>
-<Accordion title="Can I query without registering first?">
-No, registration is required before any query will succeed.
-</Accordion>
-<Accordion title="How far back can I pull transactions?">
-Up to 48 hours.
-</Accordion>
-<Accordion title="Where do I find my nominated number?">
-It's the number used when registering the short code, and it's also visible in the short code's KYC details on the M-PESA Organization Portal.
-</Accordion>
+  <Accordion title="Can I pull transactions other than C2B?">
+    No. Safaricom documents this API as C2B-only.
+  </Accordion>
+  <Accordion title="Can I query without registering first?">
+    No, registration is required before any query will succeed.
+  </Accordion>
+  <Accordion title="How far back can I pull transactions?">
+    Up to 48 hours.
+  </Accordion>
+  <Accordion title="Where do I find my nominated number?">
+    It's the number used when registering the short code, and it's also visible
+    in the short code's KYC details on the M-PESA Organization Portal.
+  </Accordion>
 </Accordions>

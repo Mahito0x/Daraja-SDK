@@ -3,8 +3,8 @@ title: Reversals
 description: Reverse a recent C2B transaction on the business account.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 **Endpoint**
 
@@ -44,20 +44,22 @@ Reverses a Customer to Business (C2B) transaction: M-PESA refunds the customer, 
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `Initiator` | API operator username. | `johndoe` |
-| `SecurityCredential` | Encrypted initiator password. | (encrypted string) |
-| `CommandID` | Only `TransactionReversal` is accepted. | `TransactionReversal` |
-| `TransactionID` | The M-PESA receipt number of the transaction to reverse. | `PDU91HIVIT` |
-| `Amount` | Amount to reverse. | `100` |
-| `ReceiverParty` | Your organization short code. | `600997` |
-| `RecieverIdentifierType` (sic) | Documented as always `11`. | `11` |
-| `Remarks` | 2 to 100 characters. | Free text |
-| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs. | `https://domain:port/path` |
+| Field                           | Description                                              | Sample value               |
+| ------------------------------- | -------------------------------------------------------- | -------------------------- |
+| `Initiator`                     | API operator username.                                   | `johndoe`                  |
+| `SecurityCredential`            | Encrypted initiator password.                            | (encrypted string)         |
+| `CommandID`                     | Only `TransactionReversal` is accepted.                  | `TransactionReversal`      |
+| `TransactionID`                 | The M-PESA receipt number of the transaction to reverse. | `PDU91HIVIT`               |
+| `Amount`                        | Amount to reverse.                                       | `100`                      |
+| `ReceiverParty`                 | Your organization short code.                            | `600997`                   |
+| `RecieverIdentifierType` (sic)  | Documented as always `11`.                               | `11`                       |
+| `Remarks`                       | 2 to 100 characters.                                     | Free text                  |
+| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs.                        | `https://domain:port/path` |
 
 <Callout type="info">
-`RecieverIdentifierType` is spelled that way, "Reciever," in Safaricom's own documentation, kept as-is since it's the literal field name expected in the request.
+  `RecieverIdentifierType` is spelled that way, "Reciever," in Safaricom's own
+  documentation, kept as-is since it's the literal field name expected in the
+  request.
 </Callout>
 
 ## Response
@@ -76,7 +78,9 @@ This is only an acknowledgment; the actual outcome arrives at `ResultURL`.
 ## Callback
 
 <Callout type="info">
-Reversals use standard M-PESA result codes for `2001`, `2006`, `2028`, `8006`, `11`, and `1`, the same as the [B2C](/daraja/b2c) result codes, plus two reversal-specific codes.
+  Reversals use standard M-PESA result codes for `2001`, `2006`, `2028`, `8006`,
+  `11`, and `1`, the same as the [B2C](/daraja/b2c) result codes, plus two
+  reversal-specific codes.
 </Callout>
 
 ```json
@@ -90,13 +94,22 @@ Reversals use standard M-PESA result codes for `2001`, `2006`, `2028`, `8006`, `
     "TransactionID": "SKE52PAWR9",
     "ResultParameters": {
       "ResultParameter": [
-        { "Key": "DebitAccountBalance", "Value": "Utility Account|KES|7722179.62|7722179.62|0.00|0.00" },
+        {
+          "Key": "DebitAccountBalance",
+          "Value": "Utility Account|KES|7722179.62|7722179.62|0.00|0.00"
+        },
         { "Key": "Amount", "Value": 1.0 },
         { "Key": "TransCompletedTime", "Value": 20211114132711 },
         { "Key": "OriginalTransactionID", "Value": "SKC82PACB8" },
         { "Key": "Charge", "Value": 0.0 },
-        { "Key": "CreditPartyPublicName", "Value": "254705912645 - NICHOLAS JOHN SONGOK" },
-        { "Key": "DebitPartyPublicName", "Value": "600992 - Safaricom Daraja 992" }
+        {
+          "Key": "CreditPartyPublicName",
+          "Value": "254705912645 - NICHOLAS JOHN SONGOK"
+        },
+        {
+          "Key": "DebitPartyPublicName",
+          "Value": "600992 - Safaricom Daraja 992"
+        }
       ]
     },
     "ReferenceData": {
@@ -109,36 +122,36 @@ Reversals use standard M-PESA result codes for `2001`, `2006`, `2028`, `8006`, `
 }
 ```
 
-| Field | Description |
-|---|---|
-| `DebitAccountBalance` | Post-reversal balance on the debited account. |
-| `Amount` / `Charge` | Amount reversed and fee, if any. |
-| `TransCompletedTime` | `YYYYMMDDhhmmss`. |
-| `OriginalTransactionID` | The receipt number of the transaction that was reversed. |
-| `CreditPartyPublicName` / `DebitPartyPublicName` | Names of the parties involved. |
+| Field                                            | Description                                              |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| `DebitAccountBalance`                            | Post-reversal balance on the debited account.            |
+| `Amount` / `Charge`                              | Amount reversed and fee, if any.                         |
+| `TransCompletedTime`                             | `YYYYMMDDhhmmss`.                                        |
+| `OriginalTransactionID`                          | The receipt number of the transaction that was reversed. |
+| `CreditPartyPublicName` / `DebitPartyPublicName` | Names of the parties involved.                           |
 
 ## Result codes
 
-| Code | Meaning | Explanation |
-|---|---|---|
-| 0 | Success | Reversal processed. |
-| `R000002` | Original transaction ID invalid | `TransactionID` doesn't exist on M-PESA. |
-| `R000001` | Already reversed | This transaction was already reversed once. |
-| 11 | DebitParty invalid state | Account isn't active. |
-| 21 | Initiator not allowed | Missing Org Reversals Initiator role. |
-| 2001 | Initiator information invalid | Wrong credentials or encryption. |
-| 2006 | Account rule declined | Account isn't active. |
-| 2028 | Not permitted by product assignment | Short code lacks permission. |
-| 8006 | Security credential locked | Business Administrator must unlock. |
-| 1 | Insufficient balance | Short code lacks funds to complete the reversal. |
+| Code      | Meaning                             | Explanation                                      |
+| --------- | ----------------------------------- | ------------------------------------------------ |
+| 0         | Success                             | Reversal processed.                              |
+| `R000002` | Original transaction ID invalid     | `TransactionID` doesn't exist on M-PESA.         |
+| `R000001` | Already reversed                    | This transaction was already reversed once.      |
+| 11        | DebitParty invalid state            | Account isn't active.                            |
+| 21        | Initiator not allowed               | Missing Org Reversals Initiator role.            |
+| 2001      | Initiator information invalid       | Wrong credentials or encryption.                 |
+| 2006      | Account rule declined               | Account isn't active.                            |
+| 2028      | Not permitted by product assignment | Short code lacks permission.                     |
+| 8006      | Security credential locked          | Business Administrator must unlock.              |
+| 1         | Insufficient balance                | Short code lacks funds to complete the reversal. |
 
 ## Error codes
 
-| Code | Cause | Fix |
-|---|---|---|
-| `404.001.03` | Invalid access token | Regenerate before expiry. |
+| Code         | Cause                      | Fix                           |
+| ------------ | -------------------------- | ----------------------------- |
+| `404.001.03` | Invalid access token       | Regenerate before expiry.     |
 | `400.002.02` | Bad request, invalid field | Match the documented payload. |
-| `404.001.01` | Resource not found | Check the endpoint. |
+| `404.001.01` | Resource not found         | Check the endpoint.           |
 
 ## Testing and Go Live
 
@@ -149,13 +162,19 @@ Going live requires the **Org Reversals Initiator** role on your API user; see [
 ## FAQs
 
 <Accordions>
-<Accordion title="Can I reverse a B2C transaction with this API?">
-No. Safaricom documents B2C reversals as a manual process on the M-PESA portal.
-</Accordion>
-<Accordion title="Why 'Bad Request - Invalid RecieverIdentifierType'?">
-Wrong Content-Type header, an incorrect parameter name, or a missing/invalid value. The parameter name itself, misspelling included, is what the API expects.
-</Accordion>
-<Accordion title="What is the process for creating an Initiator for Reversals?">
-Create a Business Manager, then create an API operator with the Org Reversals Initiator role, then set that operator's password via a Business Manager holding the Set Restricted ORG API Password role. See [Organization Portal & Go Live](/daraja/organization-portal) for the full walkthrough.
-</Accordion>
+  <Accordion title="Can I reverse a B2C transaction with this API?">
+    No. Safaricom documents B2C reversals as a manual process on the M-PESA
+    portal.
+  </Accordion>
+  <Accordion title="Why 'Bad Request - Invalid RecieverIdentifierType'?">
+    Wrong Content-Type header, an incorrect parameter name, or a missing/invalid
+    value. The parameter name itself, misspelling included, is what the API
+    expects.
+  </Accordion>
+  <Accordion title="What is the process for creating an Initiator for Reversals?">
+    Create a Business Manager, then create an API operator with the Org
+    Reversals Initiator role, then set that operator's password via a Business
+    Manager holding the Set Restricted ORG API Password role. See [Organization
+    Portal & Go Live](/daraja/organization-portal) for the full walkthrough.
+  </Accordion>
 </Accordions>

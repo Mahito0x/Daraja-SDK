@@ -3,7 +3,7 @@ title: B2B Hakikisha
 description: Look up the registered name and applicable tariff for an M-PESA organization account before paying it.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from "fumadocs-ui/components/callout";
 
 Lets a partner confirm the name and tariff of an M-PESA organization account before sending money to it, the kind of check the name "Hakikisha" ("confirm" in Swahili) is describing.
 
@@ -18,7 +18,9 @@ https://sandbox.safaricom.co.ke/sfcverify/v1/query/info
 Returns the organization name and applicable charge profile for a given short code, so a merchant can confirm the destination is correct and understand the fees before paying via a B2B transaction.
 
 <Callout type="info">
-This is documented as **synchronous**, unlike most of the B2B/B2C family: the answer comes back directly in the HTTP response, with no callback URL involved.
+  This is documented as **synchronous**, unlike most of the B2B/B2C family: the
+  answer comes back directly in the HTTP response, with no callback URL
+  involved.
 </Callout>
 
 ## How it works
@@ -38,9 +40,9 @@ This is documented as **synchronous**, unlike most of the B2B/B2C family: the an
 
 **Headers**
 
-| Key | Value |
-|---|---|
-| `Content-Type` | `application/json` |
+| Key             | Value                   |
+| --------------- | ----------------------- |
+| `Content-Type`  | `application/json`      |
 | `Authorization` | `Bearer <access_token>` |
 
 **Body**
@@ -52,10 +54,10 @@ This is documented as **synchronous**, unlike most of the B2B/B2C family: the an
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `IdentifierType` | `2` for a Lipa na M-PESA Till Number or agent till; `4` for a Pay Bill, B2C account, or any other short code type. | `4` |
-| `Identifier` | The short code being queried. | `666677` |
+| Field            | Description                                                                                                        | Sample value |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ | ------------ |
+| `IdentifierType` | `2` for a Lipa na M-PESA Till Number or agent till; `4` for a Pay Bill, B2C account, or any other short code type. | `4`          |
+| `Identifier`     | The short code being queried.                                                                                      | `666677`     |
 
 ## Response
 
@@ -71,40 +73,46 @@ This is documented as **synchronous**, unlike most of the B2B/B2C family: the an
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `ConversationID` | Global unique identifier for the request. | `92713e02-970c-47ac-93f8-409058f2c58d` |
-| `ResponseCode` | Status of the query. | `4000` |
-| `ResponseMessage` | Success or error description. | `Success` |
-| `DetailedMessage` | A more detailed status message. | `Request received successfully` |
-| `OrganizationShortCode` | The queried short code (or Till Number, if `IdentifierType` was `2`). | `666677` |
-| `OrganizationName` | Registered store/organization name for that short code. | `Daraja` |
-| `ChargeProfileID` | The applicable tariff's ID. | `20013` |
+| Field                   | Description                                                           | Sample value                           |
+| ----------------------- | --------------------------------------------------------------------- | -------------------------------------- |
+| `ConversationID`        | Global unique identifier for the request.                             | `92713e02-970c-47ac-93f8-409058f2c58d` |
+| `ResponseCode`          | Status of the query.                                                  | `4000`                                 |
+| `ResponseMessage`       | Success or error description.                                         | `Success`                              |
+| `DetailedMessage`       | A more detailed status message.                                       | `Request received successfully`        |
+| `OrganizationShortCode` | The queried short code (or Till Number, if `IdentifierType` was `2`). | `666677`                               |
+| `OrganizationName`      | Registered store/organization name for that short code.               | `Daraja`                               |
+| `ChargeProfileID`       | The applicable tariff's ID.                                           | `20013`                                |
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own field description for `ResponseCode` says "0 means successful processing," but the sample response directly above it, and the sample value in the same table row, both show `4000` as the success code, not `0`. Both are reproduced as documented; which is actually correct hasn't been independently confirmed.
+  Safaricom's own field description for `ResponseCode` says "0 means successful
+  processing," but the sample response directly above it, and the sample value
+  in the same table row, both show `4000` as the success code, not `0`. Both are
+  reproduced as documented; which is actually correct hasn't been independently
+  confirmed.
 </Callout>
 
 ## Error codes
 
-| Code | Meaning |
-|---|---|
-| 0 | Success, details fetched |
-| 1 (or any other) | Request rejected |
-| 500 | Invalid parameter input |
-| 401.001 | Invalid access token |
+| Code             | Meaning                  |
+| ---------------- | ------------------------ |
+| 0                | Success, details fetched |
+| 1 (or any other) | Request rejected         |
+| 500              | Invalid parameter input  |
+| 401.001          | Invalid access token     |
 
 <Callout type="warn" title="Defect in the source material">
-This error table lists `0` as success, directly contradicting the `4000` shown as the success code in the Response Body sample above it, on the same page. Both come from Safaricom's own documentation and are reproduced as published.
+  This error table lists `0` as success, directly contradicting the `4000` shown
+  as the success code in the Response Body sample above it, on the same page.
+  Both come from Safaricom's own documentation and are reproduced as published.
 </Callout>
 
 ## Charge profile mapping
 
-| Charge profile | ID |
-|---|---|
-| B2B Tariff 2 | 20129 |
+| Charge profile                 | ID    |
+| ------------------------------ | ----- |
+| B2B Tariff 2                   | 20129 |
 | Gaming Customer Bouquet Tariff | 20144 |
-| Gaming Mgao Tariff | 20143 |
+| Gaming Mgao Tariff             | 20143 |
 | Gaming Business Bouquet Tariff | 20142 |
 
 Safaricom's own page notes to "find the applicable tariffs for the various services below" and then does not actually list them beyond the mapping above; the fuller tariff sheets referenced (B2B Tariff, Paybill tariffs, Lipa na M-Pesa buy goods tariffs) sit elsewhere on Safaricom's business site rather than in the Daraja API documentation itself.

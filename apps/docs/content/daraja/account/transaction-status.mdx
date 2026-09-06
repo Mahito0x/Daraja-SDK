@@ -3,8 +3,8 @@ title: Transaction Status
 description: Check the status of a past transaction, used as a secondary reconciliation path when a callback never arrives.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 **Endpoint**
 
@@ -42,21 +42,23 @@ The organization sends the query to Daraja, which authenticates it and forwards 
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `CommandID` | Always `TransactionStatusQuery`. | `TransactionStatusQuery` |
-| `PartyA` | Organization short code or MSISDN that received the transaction. | 6 to 9 digit short code or 12-digit MSISDN |
-| `IdentifierType` | `4` for an organization short code. | `4` |
-| `Initiator` | Username authenticating the request. | Username |
-| `SecurityCredential` | Encrypted initiator credential. | (encrypted string) |
-| `TransactionID` | The M-PESA receipt number of the transaction being checked. | `LXXXXXX1234` |
-| `OriginalConversationID` | The Originator Conversation ID of the transaction being checked. | `7071-4170-a0e5-8345632bad442144258` |
-| `ResultURL` / `QueueTimeOutURL` | Result and timeout callback URLs. | `https://domain:port/path` |
-| `Remarks` | Up to 100 characters. | Free text |
-| `Occasion` | Optional, up to 100 characters. | Free text |
+| Field                           | Description                                                      | Sample value                               |
+| ------------------------------- | ---------------------------------------------------------------- | ------------------------------------------ |
+| `CommandID`                     | Always `TransactionStatusQuery`.                                 | `TransactionStatusQuery`                   |
+| `PartyA`                        | Organization short code or MSISDN that received the transaction. | 6 to 9 digit short code or 12-digit MSISDN |
+| `IdentifierType`                | `4` for an organization short code.                              | `4`                                        |
+| `Initiator`                     | Username authenticating the request.                             | Username                                   |
+| `SecurityCredential`            | Encrypted initiator credential.                                  | (encrypted string)                         |
+| `TransactionID`                 | The M-PESA receipt number of the transaction being checked.      | `LXXXXXX1234`                              |
+| `OriginalConversationID`        | The Originator Conversation ID of the transaction being checked. | `7071-4170-a0e5-8345632bad442144258`       |
+| `ResultURL` / `QueueTimeOutURL` | Result and timeout callback URLs.                                | `https://domain:port/path`                 |
+| `Remarks`                       | Up to 100 characters.                                            | Free text                                  |
+| `Occasion`                      | Optional, up to 100 characters.                                  | Free text                                  |
 
 <Callout type="info">
-Note the spelling here: this API's optional field is `Occasion` (single "s"), unlike the `Occassion` (double "s") documented on the B2C/B2B family. Both are reproduced as Safaricom spells them on their respective pages.
+  Note the spelling here: this API's optional field is `Occasion` (single "s"),
+  unlike the `Occassion` (double "s") documented on the B2C/B2B family. Both are
+  reproduced as Safaricom spells them on their respective pages.
 </Callout>
 
 ## Response
@@ -89,13 +91,22 @@ Note the spelling here: this API's optional field is `Occasion` (single "s"), un
         { "Key": "OriginatorConversationID", "Value": "3211-416020-3" },
         { "Key": "InitiatedTime", "Value": "20180223054112" },
         { "Key": "DebitAccountType", "Value": "Utility Account" },
-        { "Key": "DebitPartyCharges", "Value": "Fee For B2C Payment|KES|22.40" },
+        {
+          "Key": "DebitPartyCharges",
+          "Value": "Fee For B2C Payment|KES|22.40"
+        },
         { "Key": "TransactionReason" },
-        { "Key": "ReasonType", "Value": "Business Payment to Customer via API" },
+        {
+          "Key": "ReasonType",
+          "Value": "Business Payment to Customer via API"
+        },
         { "Key": "TransactionStatus", "Value": "Completed" },
         { "Key": "FinalisedTime", "Value": "20180223054112" },
         { "Key": "Amount", "Value": "300" },
-        { "Key": "ConversationID", "Value": "AG_20180223_000041b09c22e613d6c9" },
+        {
+          "Key": "ConversationID",
+          "Value": "AG_20180223_000041b09c22e613d6c9"
+        },
         { "Key": "ReceiptNo", "Value": "MBN31H462N" }
       ]
     },
@@ -106,27 +117,30 @@ Note the spelling here: this API's optional field is `Occasion` (single "s"), un
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own sample lists the `DebitPartyName` key twice, with two different values, in the same `ResultParameter` array, and includes a `TransactionReason` entry with no `Value` at all. Both are reproduced exactly as documented.
+  Safaricom's own sample lists the `DebitPartyName` key twice, with two
+  different values, in the same `ResultParameter` array, and includes a
+  `TransactionReason` entry with no `Value` at all. Both are reproduced exactly
+  as documented.
 </Callout>
 
-| Field | Description |
-|---|---|
-| `ConversationID` | Unique identifier generated by M-PESA for the request. |
-| `OriginatorConversationID` | Identifier of the original request message. |
-| `ResultCode` | `0` for success. |
-| `ResultDesc` | Description of the result code, up to 1024 characters per Safaricom's documentation. |
-| `ResultType` | `0` completed, `1` waiting for further messages. |
-| `TransactionID` | M-PESA's own transaction identifier, present only for transaction requests. |
+| Field                              | Description                                                                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `ConversationID`                   | Unique identifier generated by M-PESA for the request.                                                                         |
+| `OriginatorConversationID`         | Identifier of the original request message.                                                                                    |
+| `ResultCode`                       | `0` for success.                                                                                                               |
+| `ResultDesc`                       | Description of the result code, up to 1024 characters per Safaricom's documentation.                                           |
+| `ResultType`                       | `0` completed, `1` waiting for further messages.                                                                               |
+| `TransactionID`                    | M-PESA's own transaction identifier, present only for transaction requests.                                                    |
 | `ResultParameters.ResultParameter` | Key-value detail: debit/credit party names, account type, timestamps, amount, charges, receipt number, and transaction status. |
 
 ## Error codes
 
-| Code | Cause | Fix |
-|---|---|---|
-| `500.003.1001` | Server failure | Confirm setup and endpoint match the documentation. |
-| `400.003.01` | Invalid access token | Regenerate the token; confirm no copy-paste errors. |
-| `400.003.02` | Bad request | Confirm the request matches the documentation. |
-| `500.003.03` | Quota violation | Reduce request rate. |
+| Code           | Cause                | Fix                                                 |
+| -------------- | -------------------- | --------------------------------------------------- |
+| `500.003.1001` | Server failure       | Confirm setup and endpoint match the documentation. |
+| `400.003.01`   | Invalid access token | Regenerate the token; confirm no copy-paste errors. |
+| `400.003.02`   | Bad request          | Confirm the request matches the documentation.      |
+| `500.003.03`   | Quota violation      | Reduce request rate.                                |
 
 ## Transaction status values
 
@@ -149,10 +163,12 @@ Requires the **Transaction Status Query ORG API** role on the initiator; see [Or
 ## FAQs
 
 <Accordions>
-<Accordion title="Can I query B2C or B2B transactions with this API?">
-Yes. Safaricom documents this API as usable for C2B, B2B, B2C, IMT, and Reversal transactions.
-</Accordion>
-<Accordion title="Why does my reversal fail with 'initiator information is invalid'?">
-Use the API user with access channel API (not Web), confirm the username on the M-PESA portal, and confirm the user is Active rather than dormant.
-</Accordion>
+  <Accordion title="Can I query B2C or B2B transactions with this API?">
+    Yes. Safaricom documents this API as usable for C2B, B2B, B2C, IMT, and
+    Reversal transactions.
+  </Accordion>
+  <Accordion title="Why does my reversal fail with 'initiator information is invalid'?">
+    Use the API user with access channel API (not Web), confirm the username on
+    the M-PESA portal, and confirm the user is Active rather than dormant.
+  </Accordion>
 </Accordions>

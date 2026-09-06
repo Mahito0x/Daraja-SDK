@@ -3,7 +3,7 @@ title: Account Balance
 description: Query the current balance of an organization's M-PESA business account.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from "fumadocs-ui/components/callout";
 
 Lets an organization query the current balance of its M-PESA business account. The API is asynchronous: your application submits a request and gets an immediate acknowledgment, then M-PESA sends the actual balance to your `ResultURL` afterward.
 
@@ -47,16 +47,16 @@ Authorization: Bearer <access_token>
 }
 ```
 
-| Field | Description |
-|---|---|
-| `Initiator` | API user's username, authenticating the request. |
+| Field                | Description                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| `Initiator`          | API user's username, authenticating the request.                                        |
 | `SecurityCredential` | Encrypted initiator credential (see [Introduction](/daraja) for how this is generated). |
-| `CommandID` | Always `AccountBalance` for this API. |
-| `PartyA` | The short code whose balance is being queried. |
-| `IdentifierType` | `4` for an organization short code. |
-| `Remarks` | Free-text comment sent with the request. |
-| `QueueTimeOutURL` | Notified if the request times out. |
-| `ResultURL` | Receives the actual balance once processed. |
+| `CommandID`          | Always `AccountBalance` for this API.                                                   |
+| `PartyA`             | The short code whose balance is being queried.                                          |
+| `IdentifierType`     | `4` for an organization short code.                                                     |
+| `Remarks`            | Free-text comment sent with the request.                                                |
+| `QueueTimeOutURL`    | Notified if the request times out.                                                      |
+| `ResultURL`          | Receives the actual balance once processed.                                             |
 
 ## Initial response
 
@@ -70,7 +70,8 @@ Authorization: Bearer <access_token>
 ```
 
 <Callout type="warn">
-This response is only an acknowledgment that the request was accepted; it does not contain the balance itself.
+  This response is only an acknowledgment that the request was accepted; it does
+  not contain the balance itself.
 </Callout>
 
 ## Callback
@@ -115,52 +116,52 @@ For example, `Working Account|KES|700000.00|700000.00|0.00|0.00` decodes to the 
 
 ### M-PESA account types referenced here
 
-| Account | Purpose |
-|---|---|
-| Utility Account | Receives customer payments, Pay Bill accounts. |
-| Merchant Account | Receives customer payments, Buy Goods/Till accounts. |
-| Working (MMF) Account | Holds funds awaiting settlement. |
-| Charges Paid Account | Holds accrued charges per the organization's tariff. |
+| Account                         | Purpose                                                                |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| Utility Account                 | Receives customer payments, Pay Bill accounts.                         |
+| Merchant Account                | Receives customer payments, Buy Goods/Till accounts.                   |
+| Working (MMF) Account           | Holds funds awaiting settlement.                                       |
+| Charges Paid Account            | Holds accrued charges per the organization's tariff.                   |
 | Organization Settlement Account | Runs settlement calculations before funds move to the Working account. |
 
 ## Errors
 
-| Code | Description | HTTP |
-|---|---|---|
-| `401.002.01` | Invalid access token | 401 |
-| `400.002.02` | Bad request / invalid parameter | 400 |
-| `404.002.01` | Resource not found | 404 |
-| `405.001` | Method not allowed | 405 |
-| `500.002.1001` | Duplicate OriginatorConversationID | 500 |
-| `500.003.1001` | Internal server error | 500 |
-| `500.003.02` | Spike arrest violation | 500 |
-| `500.003.03` | Quota violation | 500 |
+| Code           | Description                        | HTTP |
+| -------------- | ---------------------------------- | ---- |
+| `401.002.01`   | Invalid access token               | 401  |
+| `400.002.02`   | Bad request / invalid parameter    | 400  |
+| `404.002.01`   | Resource not found                 | 404  |
+| `405.001`      | Method not allowed                 | 405  |
+| `500.002.1001` | Duplicate OriginatorConversationID | 500  |
+| `500.003.1001` | Internal server error              | 500  |
+| `500.003.02`   | Spike arrest violation             | 500  |
+| `500.003.03`   | Quota violation                    | 500  |
 
 ### Lower-level M-PESA result codes
 
-| Code | Description |
-|---|---|
-| 15 | Duplicate detected |
-| 17 | Internal failure |
-| 18 | Initiator credential check failure |
-| 19 | Message sequencing failure |
-| 20 | Unresolved initiator |
-| 21 | Initiator-to-primary-party permission failure |
-| 22 | Initiator is not currently active |
-| 24 | Missing mandatory fields |
-| 25 | Invalid request parameters |
-| 26 | Traffic blocking condition |
-| 29 | Invalid command |
-| 100000000 | Request cached, awaiting resend |
-| 100000001 | System overloaded |
-| 100000002 | Throttling error |
-| 100000004 | Internal server error |
-| 100000005 | Invalid input value |
-| 100000007 | Service status abnormal |
-| 100000009 | API status abnormal |
-| 100000010 | Insufficient permissions |
-| 100000011 | Request rate limitation exceeded |
-| `00.002.1001` | Service under maintenance |
+| Code          | Description                                   |
+| ------------- | --------------------------------------------- |
+| 15            | Duplicate detected                            |
+| 17            | Internal failure                              |
+| 18            | Initiator credential check failure            |
+| 19            | Message sequencing failure                    |
+| 20            | Unresolved initiator                          |
+| 21            | Initiator-to-primary-party permission failure |
+| 22            | Initiator is not currently active             |
+| 24            | Missing mandatory fields                      |
+| 25            | Invalid request parameters                    |
+| 26            | Traffic blocking condition                    |
+| 29            | Invalid command                               |
+| 100000000     | Request cached, awaiting resend               |
+| 100000001     | System overloaded                             |
+| 100000002     | Throttling error                              |
+| 100000004     | Internal server error                         |
+| 100000005     | Invalid input value                           |
+| 100000007     | Service status abnormal                       |
+| 100000009     | API status abnormal                           |
+| 100000010     | Insufficient permissions                      |
+| 100000011     | Request rate limitation exceeded              |
+| `00.002.1001` | Service under maintenance                     |
 
 ## Permissions
 

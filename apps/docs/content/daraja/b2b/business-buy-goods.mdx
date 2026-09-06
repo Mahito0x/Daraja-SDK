@@ -3,7 +3,7 @@ title: Business Buy Goods
 description: Pay from a business account directly into another merchant's Till number, store number, or head office, on your own behalf or a customer's.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from "fumadocs-ui/components/callout";
 
 **Endpoint**
 
@@ -16,7 +16,10 @@ https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest
 Pays a Till number, merchant store number, or merchant head office, moving money from your MMF/Working account into the recipient's Merchant account. Can be used to pay a merchant on behalf of a consumer/requester.
 
 <Callout type="info">
-Shares its endpoint with [Business Pay Bill](/daraja/business-paybill), [B2C Account Top Up](/daraja/b2c-account-top-up), and [Tax Remittance](/daraja/tax-remittance). `CommandID` is what distinguishes them; this one uses `BusinessBuyGoods`.
+  Shares its endpoint with [Business Pay Bill](/daraja/business-paybill), [B2C
+  Account Top Up](/daraja/b2c-account-top-up), and [Tax
+  Remittance](/daraja/tax-remittance). `CommandID` is what distinguishes them;
+  this one uses `BusinessBuyGoods`.
 </Callout>
 
 ## Request
@@ -40,24 +43,31 @@ Shares its endpoint with [Business Pay Bill](/daraja/business-paybill), [B2C Acc
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Two issues carried over directly from Safaricom's own page for this API. First, the sample body writes `"Command ID"` with a space, inconsistent with the `CommandID` field name used in the parameter table on the same page (the same defect documented on [Business Pay Bill](/daraja/business-paybill)). Second, that same parameter table's `CommandID` row describes it as "For this API use BusinessPayBill only," a description copy-pasted from the Business Pay Bill documentation rather than updated for Buy Goods. The field this API actually accepts, based on the sample value shown, is `BusinessBuyGoods`.
+  Two issues carried over directly from Safaricom's own page for this API.
+  First, the sample body writes `"Command ID"` with a space, inconsistent with
+  the `CommandID` field name used in the parameter table on the same page (the
+  same defect documented on [Business Pay Bill](/daraja/business-paybill)).
+  Second, that same parameter table's `CommandID` row describes it as "For this
+  API use BusinessPayBill only," a description copy-pasted from the Business Pay
+  Bill documentation rather than updated for Buy Goods. The field this API
+  actually accepts, based on the sample value shown, is `BusinessBuyGoods`.
 </Callout>
 
-| Field | Description | Sample value |
-|---|---|---|
-| `CommandID` | `BusinessBuyGoods` for this API (see defect note above regarding the source's own description of this field). | `BusinessBuyGoods` |
-| `Initiator` | API operator username, needs the appropriate Org Business Buy Goods API initiator role. | Username |
-| `SecurityCredential` | Encrypted initiator password. | (encrypted string) |
-| `PartyA` | Your short code, debited. | `123454` (5 to 6 digits) |
-| `SenderIdentifierType` | Only `4` is allowed. | `4` |
-| `PartyB` | Recipient Till/store short code, credited. | `000000` |
-| `RecieverIdentifierType` (sic) | Only `4` is allowed. | `4` |
-| `Requester` | Optional, consumer's mobile number if paying on their behalf. | `254700000000` |
-| `Amount` | Transaction amount. | `300` |
-| `AccountReference` | Up to 13 characters. | `ACC#03929/4yu` |
-| `Remarks` | Up to 100 characters. | Free text |
-| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs. | `https://domain:port/path` |
-| `Occassion` (sic) | Optional. | Free text |
+| Field                           | Description                                                                                                   | Sample value               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `CommandID`                     | `BusinessBuyGoods` for this API (see defect note above regarding the source's own description of this field). | `BusinessBuyGoods`         |
+| `Initiator`                     | API operator username, needs the appropriate Org Business Buy Goods API initiator role.                       | Username                   |
+| `SecurityCredential`            | Encrypted initiator password.                                                                                 | (encrypted string)         |
+| `PartyA`                        | Your short code, debited.                                                                                     | `123454` (5 to 6 digits)   |
+| `SenderIdentifierType`          | Only `4` is allowed.                                                                                          | `4`                        |
+| `PartyB`                        | Recipient Till/store short code, credited.                                                                    | `000000`                   |
+| `RecieverIdentifierType` (sic)  | Only `4` is allowed.                                                                                          | `4`                        |
+| `Requester`                     | Optional, consumer's mobile number if paying on their behalf.                                                 | `254700000000`             |
+| `Amount`                        | Transaction amount.                                                                                           | `300`                      |
+| `AccountReference`              | Up to 13 characters.                                                                                          | `ACC#03929/4yu`            |
+| `Remarks`                       | Up to 100 characters.                                                                                         | Free text                  |
+| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs.                                                                             | `https://domain:port/path` |
+| `Occassion` (sic)               | Optional.                                                                                                     | Free text                  |
 
 ## Response
 
@@ -71,7 +81,9 @@ Two issues carried over directly from Safaricom's own page for this API. First, 
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's response parameter table spells the first field `OriginatorConverstionID`, the same typo documented on Business Pay Bill's response.
+  Safaricom's response parameter table spells the first field
+  `OriginatorConverstionID`, the same typo documented on Business Pay Bill's
+  response.
 </Callout>
 
 ## Successful and unsuccessful result callbacks
@@ -79,7 +91,10 @@ Safaricom's response parameter table spells the first field `OriginatorConversti
 Identical in shape to the callbacks documented on [Business Pay Bill](/daraja/business-paybill): a `Result` object with `ResultType`, `ResultCode`, `ResultDesc`, `TransactionID`, a `ResultParameters.ResultParameter` array (`DebitAccountBalance`, `Amount`, `DebitPartyAffectedAccountBalance`, `TransCompletedTime`, `DebitPartyCharges`, `ReceiverPartyPublicName`, `Currency`, `InitiatorAccountCurrentBalance`), and `ReferenceData.ReferenceItem`.
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's sample `ReceiverPartyPublicName` value here is the same malformed one documented on Business Pay Bill: `"000000– Biller Companty"` (em dash, misspelled "Company"), reproduced there and not repeated verbatim on this page.
+  Safaricom's sample `ReceiverPartyPublicName` value here is the same malformed
+  one documented on Business Pay Bill: `"000000– Biller Companty"` (em dash,
+  misspelled "Company"), reproduced there and not repeated verbatim on this
+  page.
 </Callout>
 
 ## Testing and Go Live
