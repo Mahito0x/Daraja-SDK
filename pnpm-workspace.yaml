@@ -2,9 +2,16 @@ packages:
   - "apps/*"
   - "packages/*"
 
+allowBuilds:
+  core-js: true
+  esbuild: true
+  unrs-resolver: true
+
 overrides:
   fast-uri: 3.1.6
+  qs: 6.16.0
 
-minimumReleaseAge: 10080 # Delays installs of brand new versions by 7 days
-trustPolicy:
-  no-downgrade: true # Rejects dependency updates if trust signals weaken
+onlyBuiltDependencies:
+  - core-js
+  - esbuild
+  - unrs-resolver

@@ -3,7 +3,7 @@ title: Business Pay Bill
 description: Pay from a business account directly into another organization's Pay Bill number, on your own behalf or a customer's.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from "fumadocs-ui/components/callout";
 
 **Endpoint**
 
@@ -16,7 +16,9 @@ https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest
 Pays a Pay Bill number or Pay Bill store, moving money from your MMF/Working account into the recipient's Utility account. Can be used to pay on behalf of a consumer/requester.
 
 <Callout type="info">
-Shares its endpoint with [Business Buy Goods](/daraja/business-buy-goods), [B2C Account Top Up](/daraja/b2c-account-top-up), and [Tax Remittance](/daraja/tax-remittance). `CommandID` is what distinguishes them.
+  Shares its endpoint with [Business Buy Goods](/daraja/business-buy-goods),
+  [B2C Account Top Up](/daraja/b2c-account-top-up), and [Tax
+  Remittance](/daraja/tax-remittance). `CommandID` is what distinguishes them.
 </Callout>
 
 ## Request
@@ -40,24 +42,29 @@ Shares its endpoint with [Business Buy Goods](/daraja/business-buy-goods), [B2C 
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own sample request body writes the field as `"Command ID"`, with a space, which is not valid as a JSON key matching the documented field name `CommandID` used everywhere else, including in this same API's parameter table. The parameter table version, `CommandID`, is what's used in the field reference below and is almost certainly what the live endpoint expects; the sample body is reproduced above exactly as Safaricom wrote it.
+  Safaricom's own sample request body writes the field as `"Command ID"`, with a
+  space, which is not valid as a JSON key matching the documented field name
+  `CommandID` used everywhere else, including in this same API's parameter
+  table. The parameter table version, `CommandID`, is what's used in the field
+  reference below and is almost certainly what the live endpoint expects; the
+  sample body is reproduced above exactly as Safaricom wrote it.
 </Callout>
 
-| Field | Description | Sample value |
-|---|---|---|
-| `CommandID` | Only `BusinessPayBill` for this API. | `BusinessPayBill` |
-| `Initiator` | API operator username, needs the Org Business Pay Bill API initiator role. | Username |
-| `SecurityCredential` | Encrypted initiator password. | (encrypted string) |
-| `PartyA` | Your short code, debited. | `123454` (5 to 6 digits) |
-| `SenderIdentifierType` | Only `4` is allowed. | `4` |
-| `PartyB` | Recipient short code, credited. | `000000` |
-| `RecieverIdentifierType` (sic) | Only `4` is allowed. | `4` |
-| `Requester` | Optional, consumer's mobile number if paying on their behalf. | `254000000000` |
-| `Amount` | Transaction amount. | `300` |
-| `AccountReference` | Up to 13 characters. | `ACC#03929/4yu` |
-| `Remarks` | Up to 100 characters. | Free text |
-| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs. | `https://domain:port/path` |
-| `Occassion` (sic) | Optional. | Free text |
+| Field                           | Description                                                                | Sample value               |
+| ------------------------------- | -------------------------------------------------------------------------- | -------------------------- |
+| `CommandID`                     | Only `BusinessPayBill` for this API.                                       | `BusinessPayBill`          |
+| `Initiator`                     | API operator username, needs the Org Business Pay Bill API initiator role. | Username                   |
+| `SecurityCredential`            | Encrypted initiator password.                                              | (encrypted string)         |
+| `PartyA`                        | Your short code, debited.                                                  | `123454` (5 to 6 digits)   |
+| `SenderIdentifierType`          | Only `4` is allowed.                                                       | `4`                        |
+| `PartyB`                        | Recipient short code, credited.                                            | `000000`                   |
+| `RecieverIdentifierType` (sic)  | Only `4` is allowed.                                                       | `4`                        |
+| `Requester`                     | Optional, consumer's mobile number if paying on their behalf.              | `254000000000`             |
+| `Amount`                        | Transaction amount.                                                        | `300`                      |
+| `AccountReference`              | Up to 13 characters.                                                       | `ACC#03929/4yu`            |
+| `Remarks`                       | Up to 100 characters.                                                      | Free text                  |
+| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs.                                          | `https://domain:port/path` |
+| `Occassion` (sic)               | Optional.                                                                  | Free text                  |
 
 ## Response
 
@@ -71,7 +78,9 @@ Safaricom's own sample request body writes the field as `"Command ID"`, with a s
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own response parameter table spells the first field `OriginatorConverstionID`; the sample response body above spells it correctly. Both come directly from Safaricom's documentation.
+  Safaricom's own response parameter table spells the first field
+  `OriginatorConverstionID`; the sample response body above spells it correctly.
+  Both come directly from Safaricom's documentation.
 </Callout>
 
 ## Successful result callback
@@ -87,20 +96,35 @@ Safaricom's own response parameter table spells the first field `OriginatorConve
     "TransactionID": "QKA81LK5CY",
     "ResultParameters": {
       "ResultParameter": [
-        { "Key": "DebitAccountBalance", "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}" },
+        {
+          "Key": "DebitAccountBalance",
+          "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}"
+        },
         { "Key": "Amount", "Value": "190.00" },
-        { "Key": "DebitPartyAffectedAccountBalance", "Value": "Working Account|KES|346568.83|6186.83|340382.00|0.00" },
+        {
+          "Key": "DebitPartyAffectedAccountBalance",
+          "Value": "Working Account|KES|346568.83|6186.83|340382.00|0.00"
+        },
         { "Key": "TransCompletedTime", "Value": "20221110110717" },
         { "Key": "DebitPartyCharges", "Value": "" },
-        { "Key": "ReceiverPartyPublicName", "Value": "000000 - Biller Company" },
+        {
+          "Key": "ReceiverPartyPublicName",
+          "Value": "000000 - Biller Company"
+        },
         { "Key": "Currency", "Value": "KES" },
-        { "Key": "InitiatorAccountCurrentBalance", "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}" }
+        {
+          "Key": "InitiatorAccountCurrentBalance",
+          "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}"
+        }
       ]
     },
     "ReferenceData": {
       "ReferenceItem": [
         { "Key": "BillReferenceNumber", "Value": "19008" },
-        { "Key": "QueueTimeoutURL", "Value": "http://172.31.234.68:8888/Listener.php" }
+        {
+          "Key": "QueueTimeoutURL",
+          "Value": "http://172.31.234.68:8888/Listener.php"
+        }
       ]
     }
   }
@@ -108,7 +132,10 @@ Safaricom's own response parameter table spells the first field `OriginatorConve
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's sample writes the `ReceiverPartyPublicName` value as `"000000– Biller Companty"`, an em dash instead of a hyphen and a misspelling of "Company." Corrected above to `"000000 - Biller Company"`; the actual returned value hasn't been independently confirmed.
+  Safaricom's sample writes the `ReceiverPartyPublicName` value as `"000000–
+  Biller Companty"`, an em dash instead of a hyphen and a misspelling of
+  "Company." Corrected above to `"000000 - Biller Company"`; the actual returned
+  value hasn't been independently confirmed.
 </Callout>
 
 ## Unsuccessful result callback

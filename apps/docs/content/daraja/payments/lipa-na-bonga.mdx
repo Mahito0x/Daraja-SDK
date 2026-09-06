@@ -3,8 +3,8 @@ title: Lipa na Bonga
 description: Let a customer pay a merchant using accumulated Bonga loyalty points instead of M-PESA balance.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tabs, Tab } from "fumadocs-ui/components/tabs";
 
 Bonga is Safaricom's loyalty rewards scheme. This API lets merchants who accept Lipa na M-PESA (Pay Bill or Buy Goods) also accept payment in Bonga points, redeemed on the customer's behalf.
 
@@ -19,7 +19,8 @@ Bonga is Safaricom's loyalty rewards scheme. This API lets merchants who accept 
 7. A callback is posted to the URLs registered for [C2B](/daraja/c2b) transactions, since Safaricom treats the resulting payment as a C2B transaction for notification purposes.
 
 <Callout type="warn">
-If M-PESA fails to transfer funds to the merchant despite the Bonga deduction going through, the points are reversed and the customer is told to try again.
+  If M-PESA fails to transfer funds to the merchant despite the Bonga deduction
+  going through, the points are reversed and the customer is told to try again.
 </Callout>
 
 On success, the customer receives two SMS notifications: one confirming the points redemption and new Bonga balance, and one confirming the payment amount, merchant, and account reference.
@@ -33,10 +34,10 @@ On success, the customer receives two SMS notifications: one confirming the poin
 
 Converts a points value into its Kenyan Shilling equivalent.
 
-| Environment | Endpoint |
-|---|---|
-| Sandbox | `https://sandbox.safaricom.co.ke/v1/lipa/na/bonga/calculate-points` |
-| Production | `https://api.safaricom.co.ke/v1/lipa/na/bonga/calculate-points` |
+| Environment | Endpoint                                                            |
+| ----------- | ------------------------------------------------------------------- |
+| Sandbox     | `https://sandbox.safaricom.co.ke/v1/lipa/na/bonga/calculate-points` |
+| Production  | `https://api.safaricom.co.ke/v1/lipa/na/bonga/calculate-points`     |
 
 ### Request
 
@@ -63,22 +64,28 @@ Converts a points value into its Kenyan Shilling equivalent.
 }
 ```
 
-| Field | Description |
-|---|---|
-| `amount` | KES equivalent of the points supplied. |
-| `points` | Points echoed back. |
-| `rate` | Conversion rate; documented at KES 0.2 per point. |
+| Field    | Description                                       |
+| -------- | ------------------------------------------------- |
+| `amount` | KES equivalent of the points supplied.            |
+| `points` | Points echoed back.                               |
+| `rate`   | Conversion rate; documented at KES 0.2 per point. |
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own Response Parameter Definition table for this endpoint gives sample values of `responseCode: 404` and `responseMessage: Fail`, and describes `customerMessage` with the example "Sorry, you are not registered on Bonga," despite the Response Body sample directly above it showing a successful `200`/`Success` response. Both come from the same page and are reproduced as published; the field table appears to describe a failure case while labeled as documenting the general response shape.
+  Safaricom's own Response Parameter Definition table for this endpoint gives
+  sample values of `responseCode: 404` and `responseMessage: Fail`, and
+  describes `customerMessage` with the example "Sorry, you are not registered on
+  Bonga," despite the Response Body sample directly above it showing a
+  successful `200`/`Success` response. Both come from the same page and are
+  reproduced as published; the field table appears to describe a failure case
+  while labeled as documenting the general response shape.
 </Callout>
 
 ## Redeem Points
 
-| Environment | Endpoint |
-|---|---|
-| Sandbox | `https://sandbox.safaricom.co.ke/v1/lipa/na/bonga/redeem-paybill` |
-| Production | `https://api.safaricom.co.ke/v1/lipa/na/bonga/redeem-paybill` |
+| Environment | Endpoint                                                          |
+| ----------- | ----------------------------------------------------------------- |
+| Sandbox     | `https://sandbox.safaricom.co.ke/v1/lipa/na/bonga/redeem-paybill` |
+| Production  | `https://api.safaricom.co.ke/v1/lipa/na/bonga/redeem-paybill`     |
 
 ### Request
 
@@ -95,16 +102,16 @@ Safaricom's own Response Parameter Definition table for this endpoint gives samp
 }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
-| `msisdn` | The customer's number. | `254722000000` |
-| `amount` | KES equivalent being redeemed. | `50` |
-| `bongaPoints` | Points to deduct. | `20` |
-| `conversionRate` | Rate applied (KES 0.2 per point). | `0.2` |
-| `shortCode` | The receiving Pay Bill/Till. | `54321` |
-| `shortCodeType` | `till` or `paybill`. | `till` |
-| `receiverPartyName` | Display name for the receiving party. | `John` |
-| `callBackURL` | Result callback URL. | `https://mydomain.com/path` |
+| Field               | Description                           | Sample value                |
+| ------------------- | ------------------------------------- | --------------------------- |
+| `msisdn`            | The customer's number.                | `254722000000`              |
+| `amount`            | KES equivalent being redeemed.        | `50`                        |
+| `bongaPoints`       | Points to deduct.                     | `20`                        |
+| `conversionRate`    | Rate applied (KES 0.2 per point).     | `0.2`                       |
+| `shortCode`         | The receiving Pay Bill/Till.          | `54321`                     |
+| `shortCodeType`     | `till` or `paybill`.                  | `till`                      |
+| `receiverPartyName` | Display name for the receiving party. | `John`                      |
+| `callBackURL`       | Result callback URL.                  | `https://mydomain.com/path` |
 
 ### Response
 
@@ -153,21 +160,21 @@ Safaricom's own Response Parameter Definition table for this endpoint gives samp
 
 ## Result codes
 
-| Code | Meaning |
-|---|---|
-| 6000 | Success |
-| 6001 | Fail |
-| 6004 | Server error |
-| 6005 | Invalid credentials |
-| 6006 | Missing parts in the request body |
-| 6007 | CBS unavailable / system busy |
-| 6008 | STK unavailable / system busy |
-| 6009 | Broker unavailable / system busy |
-| 1037 | DS timeout, customer's SIM has no STK applet |
-| 6011 | Database unavailable |
-| 2001 | Wrong PIN entered |
-| 1031 | STK push timeout, customer didn't enter PIN in time |
-| 17 | Reversal failed, account balance limit (KES 100,000) reached |
+| Code | Meaning                                                      |
+| ---- | ------------------------------------------------------------ |
+| 6000 | Success                                                      |
+| 6001 | Fail                                                         |
+| 6004 | Server error                                                 |
+| 6005 | Invalid credentials                                          |
+| 6006 | Missing parts in the request body                            |
+| 6007 | CBS unavailable / system busy                                |
+| 6008 | STK unavailable / system busy                                |
+| 6009 | Broker unavailable / system busy                             |
+| 1037 | DS timeout, customer's SIM has no STK applet                 |
+| 6011 | Database unavailable                                         |
+| 2001 | Wrong PIN entered                                            |
+| 1031 | STK push timeout, customer didn't enter PIN in time          |
+| 17   | Reversal failed, account balance limit (KES 100,000) reached |
 
 ## Testing and Go Live
 

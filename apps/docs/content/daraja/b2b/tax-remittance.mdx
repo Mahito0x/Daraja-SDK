@@ -3,7 +3,7 @@ title: Tax Remittance
 description: Submit a tax payment to the Kenya Revenue Authority (KRA) directly from a business account.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from "fumadocs-ui/components/callout";
 
 **Endpoint**
 
@@ -16,7 +16,10 @@ https://sandbox.safaricom.co.ke/mpesa/b2b/v1/remittax
 Remits tax to KRA in real time. Using this API requires prior integration with KRA itself for tax declaration and generation of a **Payment Registration Number (PRN)**, since the PRN is what identifies which tax obligation the payment settles.
 
 <Callout type="info">
-Unlike the rest of the B2B family, this uses its own `/remittax` path rather than the shared `/mpesa/b2b/v1/paymentrequest` endpoint used by [Business Pay Bill](/daraja/business-paybill) and [Business Buy Goods](/daraja/business-buy-goods).
+  Unlike the rest of the B2B family, this uses its own `/remittax` path rather
+  than the shared `/mpesa/b2b/v1/paymentrequest` endpoint used by [Business Pay
+  Bill](/daraja/business-paybill) and [Business Buy
+  Goods](/daraja/business-buy-goods).
 </Callout>
 
 ## Request
@@ -39,22 +42,27 @@ Unlike the rest of the B2B family, this uses its own `/remittax` path rather tha
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Two things carried directly from Safaricom's own sample. First, the field is written `"Command ID"` with a space, rather than `CommandID` as used in the parameter table below it, the same inconsistency documented on [Business Pay Bill](/daraja/business-paybill). Second, the sample has a trailing comma after the `ResultURL` value, which makes it invalid JSON as published; it's removed above.
+  Two things carried directly from Safaricom's own sample. First, the field is
+  written `"Command ID"` with a space, rather than `CommandID` as used in the
+  parameter table below it, the same inconsistency documented on [Business Pay
+  Bill](/daraja/business-paybill). Second, the sample has a trailing comma after
+  the `ResultURL` value, which makes it invalid JSON as published; it's removed
+  above.
 </Callout>
 
-| Field | Description | Sample value |
-|---|---|---|
-| `CommandID` | Only `PayTaxToKRA` for this API. | `PayTaxToKRA` |
-| `Initiator` | API operator username. | Username |
-| `SecurityCredential` | Encrypted initiator password. | (encrypted string) |
-| `PartyA` | Your own short code, debited. | `123454` |
-| `SenderIdentifierType` | Only `4` is allowed. | `4` |
-| `PartyB` | Only `572572` is documented as valid for this use case, KRA's collection account. | `572572` |
-| `RecieverIdentifierType` (sic) | Only `4` is allowed. | `4` |
-| `Amount` | Transaction amount. | `3000` |
-| `AccountReference` | The PRN issued by KRA. | `PRN1234XN` |
-| `Remarks` | Up to 100 characters. | Free text |
-| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs. | `https://domain:port/path` |
+| Field                           | Description                                                                       | Sample value               |
+| ------------------------------- | --------------------------------------------------------------------------------- | -------------------------- |
+| `CommandID`                     | Only `PayTaxToKRA` for this API.                                                  | `PayTaxToKRA`              |
+| `Initiator`                     | API operator username.                                                            | Username                   |
+| `SecurityCredential`            | Encrypted initiator password.                                                     | (encrypted string)         |
+| `PartyA`                        | Your own short code, debited.                                                     | `123454`                   |
+| `SenderIdentifierType`          | Only `4` is allowed.                                                              | `4`                        |
+| `PartyB`                        | Only `572572` is documented as valid for this use case, KRA's collection account. | `572572`                   |
+| `RecieverIdentifierType` (sic)  | Only `4` is allowed.                                                              | `4`                        |
+| `Amount`                        | Transaction amount.                                                               | `3000`                     |
+| `AccountReference`              | The PRN issued by KRA.                                                            | `PRN1234XN`                |
+| `Remarks`                       | Up to 100 characters.                                                             | Free text                  |
+| `QueueTimeOutURL` / `ResultURL` | Timeout and result callback URLs.                                                 | `https://domain:port/path` |
 
 ## Response
 
@@ -68,7 +76,9 @@ Two things carried directly from Safaricom's own sample. First, the field is wri
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's response parameter table again spells this field `OriginatorConverstionID`, the same typo repeated across the B2B family's documentation.
+  Safaricom's response parameter table again spells this field
+  `OriginatorConverstionID`, the same typo repeated across the B2B family's
+  documentation.
 </Callout>
 
 ## Successful result callback
@@ -84,20 +94,35 @@ Safaricom's response parameter table again spells this field `OriginatorConverst
     "TransactionID": "QKA81LK5CY",
     "ResultParameters": {
       "ResultParameter": [
-        { "Key": "DebitAccountBalance", "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}" },
+        {
+          "Key": "DebitAccountBalance",
+          "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}"
+        },
         { "Key": "Amount", "Value": "190.00" },
-        { "Key": "DebitPartyAffectedAccountBalance", "Value": "Working Account|KES|346568.83|6186.83|340382.00|0.00" },
+        {
+          "Key": "DebitPartyAffectedAccountBalance",
+          "Value": "Working Account|KES|346568.83|6186.83|340382.00|0.00"
+        },
         { "Key": "TransCompletedTime", "Value": "20221110110717" },
         { "Key": "DebitPartyCharges", "Value": "" },
-        { "Key": "ReceiverPartyPublicName", "Value": "00000 - Tax Collecting Company" },
+        {
+          "Key": "ReceiverPartyPublicName",
+          "Value": "00000 - Tax Collecting Company"
+        },
         { "Key": "Currency", "Value": "KES" },
-        { "Key": "InitiatorAccountCurrentBalance", "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}" }
+        {
+          "Key": "InitiatorAccountCurrentBalance",
+          "Value": "{Amount={CurrencyCode=KES, MinimumAmount=618683, BasicAmount=6186.83}}"
+        }
       ]
     },
     "ReferenceData": {
       "ReferenceItem": [
         { "Key": "BillReferenceNumber", "Value": "19008" },
-        { "Key": "QueueTimeoutURL", "Value": "https://mydomain.com/b2b/remittax/queue/" }
+        {
+          "Key": "QueueTimeoutURL",
+          "Value": "https://mydomain.com/b2b/remittax/queue/"
+        }
       ]
     }
   }
@@ -105,7 +130,11 @@ Safaricom's response parameter table again spells this field `OriginatorConverst
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own sample for this callback is not valid JSON: the `ResultParameter` array's entries are written as loose `"Key": ..., "Value": ...,` pairs missing their enclosing `{ }` braces, and `ReferenceItem` mixes an array with an unmatched brace. Reformatted above into valid JSON with the same field names and values.
+  Safaricom's own sample for this callback is not valid JSON: the
+  `ResultParameter` array's entries are written as loose `"Key": ..., "Value":
+  ...,` pairs missing their enclosing `{}` braces, and `ReferenceItem` mixes an
+  array with an unmatched brace. Reformatted above into valid JSON with the same
+  field names and values.
 </Callout>
 
 ## Unsuccessful result callback

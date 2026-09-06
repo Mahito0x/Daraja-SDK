@@ -3,8 +3,8 @@ title: SWAP
 description: Look up the last date a Safaricom SIM card was swapped, as a fraud-prevention signal.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 **Endpoint**
 
@@ -23,20 +23,23 @@ Returns the last date a given SIM card was swapped. Safaricom frames this and th
 3. M-PESA returns the last swap date, which Daraja relays back.
 
 <Callout type="warn" title="Defect in the source material">
-As with [Age on Network](/daraja/age-on-network), Safaricom's own "Good to Know" section calls this API asynchronous, while the documented request and response return the answer directly with no callback URL field and no callback payload shown anywhere on the page.
+  As with [Age on Network](/daraja/age-on-network), Safaricom's own "Good to
+  Know" section calls this API asynchronous, while the documented request and
+  response return the answer directly with no callback URL field and no callback
+  payload shown anywhere on the page.
 </Callout>
 
 ## Onboarding
 
 Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; onboarding includes both sandbox and production access once a commercial agreement is signed.
 
-| API calls per month | Charge (KES, excl. VAT) |
-|---|---|
-| 0 to 200,000 | 1.20 |
-| 200,001 to 500,000 | 0.90 |
-| 500,001 to 1,000,000 | 0.70 |
-| 1,000,001 to 5,000,000 | 0.60 |
-| Over 5,000,000 | 0.50 |
+| API calls per month    | Charge (KES, excl. VAT) |
+| ---------------------- | ----------------------- |
+| 0 to 200,000           | 1.20                    |
+| 200,001 to 500,000     | 0.90                    |
+| 500,001 to 1,000,000   | 0.70                    |
+| 1,000,001 to 5,000,000 | 0.60                    |
+| Over 5,000,000         | 0.50                    |
 
 ## Use cases
 
@@ -52,8 +55,8 @@ Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; o
 { "customerNumber": "254722000000" }
 ```
 
-| Field | Description | Sample value |
-|---|---|---|
+| Field            | Description      | Sample value   |
+| ---------------- | ---------------- | -------------- |
 | `customerNumber` | MSISDN to check. | `2547XXXXXXXX` |
 
 ## Response
@@ -67,11 +70,11 @@ Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; o
 }
 ```
 
-| Field | Description |
-|---|---|
-| `requestRefID` | Unique ID for the request. |
-| `responseCode` | `200` success; any other value an error. |
-| `responseDesc` | Status message. |
+| Field          | Description                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `requestRefID` | Unique ID for the request.                                                                   |
+| `responseCode` | `200` success; any other value an error.                                                     |
+| `responseDesc` | Status message.                                                                              |
 | `lastSwapDate` | Date of last swap, or the `01-01-1900 00:00` default if the swap was more than 3 months ago. |
 
 ## Error codes
@@ -81,7 +84,8 @@ Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `50
 ## Testing
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own "Get Auth Token" section for this API reads "generate access token API API here," with the word "API" duplicated. Reproduced as published.
+  Safaricom's own "Get Auth Token" section for this API reads "generate access
+  token API API here," with the word "API" duplicated. Reproduced as published.
 </Callout>
 
 **Daraja Simulator**: create a test app with the SWAP product attached.
@@ -95,13 +99,16 @@ Email `apisupport@safaricom.co.ke`. You'll need to submit company registration d
 ## FAQs
 
 <Accordions>
-<Accordion title="What does the SWAP API do?">
-Lets partners query the last SIM swap date of a phone number, as a fraud-prevention signal, per Safaricom's documentation.
-</Accordion>
-<Accordion title="What should I do if I get an error?">
-Check `responseCode` and `responseDesc`, confirm parameters are correctly formatted, then retry or contact support.
-</Accordion>
-<Accordion title="Who is eligible?">
-Any registered company; an M-PESA Pay Bill or Till number is recommended but not mandatory.
-</Accordion>
+  <Accordion title="What does the SWAP API do?">
+    Lets partners query the last SIM swap date of a phone number, as a
+    fraud-prevention signal, per Safaricom's documentation.
+  </Accordion>
+  <Accordion title="What should I do if I get an error?">
+    Check `responseCode` and `responseDesc`, confirm parameters are correctly
+    formatted, then retry or contact support.
+  </Accordion>
+  <Accordion title="Who is eligible?">
+    Any registered company; an M-PESA Pay Bill or Till number is recommended but
+    not mandatory.
+  </Accordion>
 </Accordions>

@@ -1,0 +1,5 @@
+{
+  "installCommand": "corepack pnpm@11.22.0 install --frozen-lockfile",
+  "buildCommand": "corepack pnpm@11.22.0 --filter @lumierelabs/daraja-docs build",
+  "framework": "nextjs"
+}

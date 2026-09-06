@@ -3,35 +3,40 @@ title: IMSI
 description: Retrieve the hashed IMSI, last SIM swap date, and network age for a Safaricom number, combining several fraud signals into one call.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+import { Callout } from "fumadocs-ui/components/callout";
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 Returns the International Mobile Subscriber Identity (hashed) for a Safaricom number, along with the SIM's last swap date and network age, in one call. IMSI numbers change if a line's physical SIM is replaced, which is what makes this useful as a fraud signal alongside [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network).
 
 **Endpoint**
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own documentation gives the endpoint as `https://sandbox.safaricom.co.ke/{imsi_path_suffix}`, a URL with an unresolved template placeholder still in it rather than an actual path. No working sandbox path is given anywhere else on the page. This is reproduced exactly as published, since substituting a guessed path here would misrepresent what Safaricom actually documents.
+  Safaricom's own documentation gives the endpoint as
+  `https://sandbox.safaricom.co.ke/{imsi_path_suffix}`, a URL with an unresolved
+  template placeholder still in it rather than an actual path. No working
+  sandbox path is given anywhere else on the page. This is reproduced exactly as
+  published, since substituting a guessed path here would misrepresent what
+  Safaricom actually documents.
 </Callout>
 
 ## Two versions
 
-| Version | Returns |
-|---|---|
+| Version | Returns                                                                  |
+| ------- | ------------------------------------------------------------------------ |
 | IMSI V1 | Hashed IMSI, Age on Network (under 6 months), Swap Date (under 3 months) |
-| IMSI V2 | Hashed IMSI only |
+| IMSI V2 | Hashed IMSI only                                                         |
 
 ## Onboarding
 
 Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; onboarding to production follows a signed commercial agreement.
 
-| API calls per month | V1 charge (KES) | V2 charge (KES) |
-|---|---|---|
-| 0 to 200,000 | 7.50 | 4.00 |
-| 200,001 to 500,000 | 6.00 | 3.50 |
-| 500,001 to 1,000,000 | 4.50 | 2.50 |
-| 1,000,001 to 5,000,000 | 3.00 | 1.75 |
-| Over 5,000,000 | 2.00 | 1.25 |
+| API calls per month    | V1 charge (KES) | V2 charge (KES) |
+| ---------------------- | --------------- | --------------- |
+| 0 to 200,000           | 7.50            | 4.00            |
+| 200,001 to 500,000     | 6.00            | 3.50            |
+| 500,001 to 1,000,000   | 4.50            | 2.50            |
+| 1,000,001 to 5,000,000 | 3.00            | 1.75            |
+| Over 5,000,000         | 2.00            | 1.25            |
 
 Both exclusive of VAT; charges don't apply to unsuccessful calls.
 
@@ -42,7 +47,9 @@ Both exclusive of VAT; charges don't apply to unsuccessful calls.
 3. M-PESA returns the hashed IMSI, age on network, and last swap date, which Daraja relays back.
 
 <Callout type="warn" title="Defect in the source material">
-As with [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network), the "Good to Know" section calls this API asynchronous, while the request/response pair documented returns everything directly with no callback involved.
+  As with [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network), the
+  "Good to Know" section calls this API asynchronous, while the request/response
+  pair documented returns everything directly with no callback involved.
 </Callout>
 
 ## Use cases
@@ -88,17 +95,19 @@ As with [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network), the "
 ```
 
 <Callout type="info">
-`responseDesc` carries a trailing exclamation mark, `"Success!"`, in Safaricom's own V2 sample, but plain `"Success"` in the V1 sample directly above it. Both are reproduced as documented.
+  `responseDesc` carries a trailing exclamation mark, `"Success!"`, in
+  Safaricom's own V2 sample, but plain `"Success"` in the V1 sample directly
+  above it. Both are reproduced as documented.
 </Callout>
 
-| Field | Description |
-|---|---|
-| `requestRefID` | Unique ID per request. |
-| `responseCode` | `200` success; other values indicate an error. |
-| `imsi` | Hashed IMSI value. |
-| `lastSwapDate` | (V1 only) `01-01-1900` default if swapped over 3 months ago. |
-| `msisdnRegistrationDate` | (V1 only) SIM's registration date. |
-| `customerNumber` | Echoed back. |
+| Field                    | Description                                                  |
+| ------------------------ | ------------------------------------------------------------ |
+| `requestRefID`           | Unique ID per request.                                       |
+| `responseCode`           | `200` success; other values indicate an error.               |
+| `imsi`                   | Hashed IMSI value.                                           |
+| `lastSwapDate`           | (V1 only) `01-01-1900` default if swapped over 3 months ago. |
+| `msisdnRegistrationDate` | (V1 only) SIM's registration date.                           |
+| `customerNumber`         | Echoed back.                                                 |
 
 ## Error codes
 
@@ -117,17 +126,25 @@ Email `apisupport@safaricom.co.ke`. Submit company registration details for bill
 ## FAQs
 
 <Accordions>
-<Accordion title="What does the IMSI API do?">
-Lets partners query an MSISDN's network age, registration date, and last swap date as a fraud-prevention signal.
-</Accordion>
-<Accordion title="What should I do if I get an error?">
-Check `responseCode` and `responseDesc`, confirm parameters are correctly formatted, then retry or contact support.
-</Accordion>
-<Accordion title="Who is eligible?">
-Any registered company; an M-PESA Pay Bill or Till number is recommended but not mandatory.
-</Accordion>
+  <Accordion title="What does the IMSI API do?">
+    Lets partners query an MSISDN's network age, registration date, and last
+    swap date as a fraud-prevention signal.
+  </Accordion>
+  <Accordion title="What should I do if I get an error?">
+    Check `responseCode` and `responseDesc`, confirm parameters are correctly
+    formatted, then retry or contact support.
+  </Accordion>
+  <Accordion title="Who is eligible?">
+    Any registered company; an M-PESA Pay Bill or Till number is recommended but
+    not mandatory.
+  </Accordion>
 </Accordions>
 
 <Callout type="warn" title="Ironic detail in the source material">
-Safaricom's own IMSI page closes with "These FAQs should help you understand and utilize the IMSI API effectively," which is accurate here, but the same sentence also appears verbatim at the bottom of the unrelated [M-Pesa Ratiba](/daraja/mpesa-ratiba) FAQ section, where it refers to the wrong API entirely. Noted on that page rather than here, since this is the page the sentence actually belongs to.
+  Safaricom's own IMSI page closes with "These FAQs should help you understand
+  and utilize the IMSI API effectively," which is accurate here, but the same
+  sentence also appears verbatim at the bottom of the unrelated [M-Pesa
+  Ratiba](/daraja/mpesa-ratiba) FAQ section, where it refers to the wrong API
+  entirely. Noted on that page rather than here, since this is the page the
+  sentence actually belongs to.
 </Callout>

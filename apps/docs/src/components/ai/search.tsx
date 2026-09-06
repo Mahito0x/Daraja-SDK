@@ -57,7 +57,7 @@ import posthog from "posthog-js";
 
 const isPostHogConfigured = Boolean(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
-    process.env.NEXT_PUBLIC_POSTHOG_HOST,
+  process.env.NEXT_PUBLIC_POSTHOG_HOST,
 );
 
 export type ChatUIMessage = UIMessage<

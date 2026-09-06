@@ -3,12 +3,19 @@ title: Bill Manager
 description: Send e-invoices, receive payment reconciliation data, and manage a business's opt-in details on M-PESA Bill Manager.
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
+import { Callout } from "fumadocs-ui/components/callout";
 
 M-PESA Bill Manager gives a business and its customers a single platform to send, receive, pay, and reconcile bills.
 
 <Callout type="warn" title="Defect in the source material">
-Every endpoint on Safaricom's own Bill Manager documentation page, with a single exception noted below, is written against the **production** host, `api.safaricom.co.ke`, with no separate sandbox host given anywhere on the page. This is unlike every other API in this reference, which documents a `sandbox.safaricom.co.ke` host for testing. Whether a sandbox environment exists for Bill Manager and simply isn't documented, or whether it's genuinely production-only from first integration, is not something Safaricom's own material clarifies.
+  Every endpoint on Safaricom's own Bill Manager documentation page, with a
+  single exception noted below, is written against the **production** host,
+  `api.safaricom.co.ke`, with no separate sandbox host given anywhere on the
+  page. This is unlike every other API in this reference, which documents a
+  `sandbox.safaricom.co.ke` host for testing. Whether a sandbox environment
+  exists for Bill Manager and simply isn't documented, or whether it's genuinely
+  production-only from first integration, is not something Safaricom's own
+  material clarifies.
 </Callout>
 
 ## Onboarding (Opt-In)
@@ -37,14 +44,14 @@ The first call to make: opts your short code in as a Bill Manager biller. Once i
 }
 ```
 
-| Field | Description | Type |
-|---|---|---|
-| `shortcode` | Your Pay Bill or Buy Goods number (5 to 6 digits). | Numeric, required |
-| `email` | Official contact email, shown on invoices and receipts. | String, required |
-| `officialContact` | Official contact phone number, shown on invoices and receipts. | Numeric, required |
-| `sendReminders` | `0` disables, `1` enables SMS reminders sent 7 and 3 days before, and on, the due date. | Boolean, required |
-| `logo` | Embedded in invoices and receipts. | JPEG/JPG, optional |
-| `callbackurl` | Where payment pushes land; see Payments and Reconciliation below. | URL, required |
+| Field             | Description                                                                             | Type               |
+| ----------------- | --------------------------------------------------------------------------------------- | ------------------ |
+| `shortcode`       | Your Pay Bill or Buy Goods number (5 to 6 digits).                                      | Numeric, required  |
+| `email`           | Official contact email, shown on invoices and receipts.                                 | String, required   |
+| `officialContact` | Official contact phone number, shown on invoices and receipts.                          | Numeric, required  |
+| `sendReminders`   | `0` disables, `1` enables SMS reminders sent 7 and 3 days before, and on, the due date. | Boolean, required  |
+| `logo`            | Embedded in invoices and receipts.                                                      | JPEG/JPG, optional |
+| `callbackurl`     | Where payment pushes land; see Payments and Reconciliation below.                       | URL, required      |
 
 ### Response
 
@@ -87,17 +94,17 @@ Sends one customized e-invoice by SMS to a specified Safaricom number. Customers
 }
 ```
 
-| Field | Description | Type |
-|---|---|---|
-| `externalReference` | Your own unique invoice identifier; must be unique or the invoice won't send. | Varchar, required |
-| `billedFullName` | Recipient's name, shown in the SMS. | String, required |
-| `billedPhoneNumber` | Must be a Safaricom number. | Numeric, required |
-| `billedPeriod` | Month and year. | Date (M/Y), required |
-| `invoiceName` | Descriptive name for what's being billed. | Varchar, required |
-| `dueDate` | Date the invoice is due; 3 reminders sent (7 days, 3 days, and day of). | Varchar, required |
-| `accountReference` | Uniquely identifies the customer: a name, business name, property unit, and so on. | Varchar, required |
-| `amount` | Total invoice amount, no commas. | Numeric, required |
-| `invoiceItems` | Line items, each with `itemName` and `amount`. | Optional |
+| Field               | Description                                                                        | Type                 |
+| ------------------- | ---------------------------------------------------------------------------------- | -------------------- |
+| `externalReference` | Your own unique invoice identifier; must be unique or the invoice won't send.      | Varchar, required    |
+| `billedFullName`    | Recipient's name, shown in the SMS.                                                | String, required     |
+| `billedPhoneNumber` | Must be a Safaricom number.                                                        | Numeric, required    |
+| `billedPeriod`      | Month and year.                                                                    | Date (M/Y), required |
+| `invoiceName`       | Descriptive name for what's being billed.                                          | Varchar, required    |
+| `dueDate`           | Date the invoice is due; 3 reminders sent (7 days, 3 days, and day of).            | Varchar, required    |
+| `accountReference`  | Uniquely identifies the customer: a name, business name, property unit, and so on. | Varchar, required    |
+| `amount`            | Total invoice amount, no commas.                                                   | Numeric, required    |
+| `invoiceItems`      | Line items, each with `itemName` and `amount`.                                     | Optional             |
 
 ### Response
 
@@ -183,7 +190,9 @@ Payment details are retried up to 5 times to your callback URL before Bill Manag
 ```
 
 <Callout type="warn" title="Defect in the source material">
-Safaricom's own sample wraps two field values in stray curly braces, `"{trandID}"` and `"{50}"`, as if they were unresolved template placeholders rather than actual sample data. Reproduced exactly as documented.
+  Safaricom's own sample wraps two field values in stray curly braces, `"
+  {trandID}"` and `"{50}"`, as if they were unresolved template placeholders
+  rather than actual sample data. Reproduced exactly as documented.
 </Callout>
 
 ### Your acknowledgment
@@ -230,14 +239,14 @@ https://sandbox.safaricom.co.ke/v1/billmanager-invoice/cancel-bulk-invoices
 ```
 
 ```json
-[
-  { "externalReference": "113" },
-  { "externalReference": "113" }
-]
+[{ "externalReference": "113" }, { "externalReference": "113" }]
 ```
 
 <Callout type="warn" title="Defect in the source material">
-This is the one Bill Manager endpoint documented against `sandbox.safaricom.co.ke` rather than `api.safaricom.co.ke`, inconsistent with every other endpoint on this page, including the single-invoice cancellation right above it. Reproduced exactly as published.
+  This is the one Bill Manager endpoint documented against
+  `sandbox.safaricom.co.ke` rather than `api.safaricom.co.ke`, inconsistent with
+  every other endpoint on this page, including the single-invoice cancellation
+  right above it. Reproduced exactly as published.
 </Callout>
 
 **Successful response**
@@ -252,7 +261,8 @@ This is the one Bill Manager endpoint documented against `sandbox.safaricom.co.k
 ```
 
 <Callout type="info">
-"successfuly" is spelled with one "l" in Safaricom's own sample response, kept as written.
+  "successfuly" is spelled with one "l" in Safaricom's own sample response, kept
+  as written.
 </Callout>
 
 **Error response**
@@ -315,24 +325,28 @@ https://sandbox.safaricom.co.ke/v1/billmanager-invoice/change-optin-details
 
 **Onboarding**
 
-| Error | Cause | Fix |
-|---|---|---|
-| `409 Action Forbidden: Biller already Registered` | Invalid short code | Use a short code not already onboarded. |
-| `409 Action Forbidden: Invalid consumer key/short code` | Wrong credentials | Use the correct consumer key/short code pair. |
+| Error                                                   | Cause              | Fix                                           |
+| ------------------------------------------------------- | ------------------ | --------------------------------------------- |
+| `409 Action Forbidden: Biller already Registered`       | Invalid short code | Use a short code not already onboarded.       |
+| `409 Action Forbidden: Invalid consumer key/short code` | Wrong credentials  | Use the correct consumer key/short code pair. |
 
 **Single Invoicing**
 
-| Error | Cause | Fix |
-|---|---|---|
-| `409 Action Forbidden: Invalid consumer key/short code` | Wrong credentials | Use the correct pair. |
+| Error                                                                              | Cause               | Fix                                  |
+| ---------------------------------------------------------------------------------- | ------------------- | ------------------------------------ |
+| `409 Action Forbidden: Invalid consumer key/short code`                            | Wrong credentials   | Use the correct pair.                |
 | `409 Action forbidden: Another entry exist with the same externalReference number` | Duplicate reference | Use a different `externalReference`. |
-| `409 Action forbidden: Incorrect phone number format` | Bad format | Use `254722XXXXXX` or `0722XXXXXX`. |
-| `409 Action forbidden: Incorrect due date format` | Bad format | Use `yymmdd`. |
+| `409 Action forbidden: Incorrect phone number format`                              | Bad format          | Use `254722XXXXXX` or `0722XXXXXX`.  |
+| `409 Action forbidden: Incorrect due date format`                                  | Bad format          | Use `yymmdd`.                        |
 
 **Bulk Invoicing**
 
 Same four errors as Single Invoicing above.
 
 <Callout type="warn" title="Defect in the source material">
-Two of Safaricom's own error tables document the correct due date format as `yymmdd`, while every request sample on the same page uses full dates like `2021-09-15` or `2021-09-15 00:00:00.00`. Both come directly from Safaricom's documentation and are reproduced as published; which format the live endpoint actually enforces hasn't been independently confirmed.
+  Two of Safaricom's own error tables document the correct due date format as
+  `yymmdd`, while every request sample on the same page uses full dates like
+  `2021-09-15` or `2021-09-15 00:00:00.00`. Both come directly from Safaricom's
+  documentation and are reproduced as published; which format the live endpoint
+  actually enforces hasn't been independently confirmed.
 </Callout>
