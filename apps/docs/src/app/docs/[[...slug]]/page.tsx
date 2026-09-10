@@ -29,9 +29,10 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const markdownUrl = getPageMarkdownUrl(page).url;
 
   // Resolves across the entire content/ directory (sdk, daraja, etc.)
-  const editUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/edit/${gitConfig.branch}/content/${page.path}`;
+  const editUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/edit/${gitConfig.branch}/content/${page.file.path}`;
+  const githubBlobUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/${page.file.path}`;
   const issueUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/issues/new?title=${encodeURIComponent(`[Docs] ${page.data.title}`)}&labels=documentation`;
-
+  
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
@@ -42,7 +43,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover
           markdownUrl={markdownUrl}
-          githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/${page.path}`}
+          githubUrl={githubBlobUrl}
         />
       </div>
       <DocsBody>
