@@ -28,11 +28,15 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
 
-  // Resolves across the entire content/ directory (sdk, daraja, etc.)
-  const editUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/edit/${gitConfig.branch}/content/${page.file.path}`;
-  const githubBlobUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/${page.file.path}`;
-  const issueUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/issues/new?title=${encodeURIComponent(`[Docs] ${page.data.title}`)}&labels=documentation`;
-  
+  // Correct monorepo path mapping for apps/docs/content
+  const relativePath =
+    page.path.endsWith(".mdx") || page.path.endsWith(".md")
+      ? page.path
+      : `${page.path}.mdx`;
+
+  const githubFileUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/edit/${gitConfig.branch}/apps/docs/content/${relativePath}`;
+  const issueUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/issues/new?title=Issue+with+${encodeURIComponent(page.data.title)}&body=${encodeURIComponent(`**Page:** [${page.data.title}](https://daraja.lumierelabs.xyz/docs${page.url})\n\n**Issue:**\n\n<!-- Describe the problem with this page -->`)}&labels=documentation`;
+
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
@@ -43,7 +47,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover
           markdownUrl={markdownUrl}
-          githubUrl={githubBlobUrl}
+          githubUrl={githubFileUrl}
         />
       </div>
       <DocsBody>
@@ -58,9 +62,9 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
           <div className="h-px flex-1 bg-fd-border" />
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Link
-              href={editUrl}
-              target="_blank"
+              href={githubFileUrl}
               rel="noreferrer noopener"
+              target="_blank"
               className="inline-flex items-center gap-1.5 font-medium text-fd-muted-foreground no-underline transition-colors hover:text-fd-foreground hover:no-underline"
             >
               <Pencil className="size-3.5" />
