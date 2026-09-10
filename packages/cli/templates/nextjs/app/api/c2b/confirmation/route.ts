@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
  * response isn't used to accept/reject anything.
  */
 export async function POST(request: Request) {
+  // skipcq: JS-0356
   const payload = await request.json();
 
   // TODO: persist the payment, e.g.:

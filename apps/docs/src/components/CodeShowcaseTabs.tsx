@@ -148,6 +148,7 @@ export function CodeShowcaseTabs({ tabs }: { tabs: Tab[] }) {
       </div>
 
       {/* Code Viewer Body */}
+      {/* skipcq: JS-0440 - HTML content is pre-sanitized syntax-highlighted code */}
       <div className="relative overflow-x-auto">
         <div
           key={activeTab?.id}

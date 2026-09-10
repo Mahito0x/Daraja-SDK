@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
  * Register this URL as your ValidationURL when you set up C2B.
  */
 export async function POST(request: Request) {
+  // skipcq: JS-0356
   const payload = await request.json();
 
   // TODO: validate payload.BillRefNumber against your own records.
