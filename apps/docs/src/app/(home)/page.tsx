@@ -1104,7 +1104,7 @@ async function Sponsors() {
             </AuraContainer>
           </div>
 
-          <div className="relative -mt-6 z-10 w-full flex items-center justify-between rounded-xl border border-zinc-200/80 bg-white/90 px-6 py-6 shadow-xl backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/90"></div>
+          <div className="relative -mt-6 z-10 w-full flex items-center justify-between rounded-xl border border-zinc-200/80 bg-white/90 px-6 py-6 shadow-xl backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/90" />
         </div>
       </div>
     </section>
