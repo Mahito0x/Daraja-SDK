@@ -1,10 +1,10 @@
 {
-  "name": "@lumierelabs/create-daraja",
-  "version": "0.1.0",
-  "description": "Scaffold M-Pesa Daraja SDK boilerplate templates in seconds",
+  "name": "@lumierelabs/cli",
+  "version": "0.2.0",
+  "description": "CLI for scaffolding @lumierelabs/daraja integrations",
   "main": "dist/index.js",
   "bin": {
-    "create-daraja": "./dist/index.js"
+    "daraja": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -16,9 +16,16 @@
     "start": "node dist/index.js",
     "test:cli": "pnpm build && node dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "daraja",
+    "mpesa",
+    "m-pesa",
+    "safaricom",
+    "cli",
+    "typescript"
+  ],
+  "author": "Mahito",
+  "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^1.7.0",
     "chalk": "^6.0.0",

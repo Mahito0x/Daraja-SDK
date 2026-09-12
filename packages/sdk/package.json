@@ -1,6 +1,7 @@
 {
   "name": "@lumierelabs/daraja",
-  "version": "1.0.3",
+  "version": "1.0.4",
+  "description": "A modern TypeScript SDK for the Safaricom Daraja 3.0 API featuring full type safety, beautiful documentation, and a developer-first experience.",
   "type": "module",
   "license": "MIT",
   "keywords": [
