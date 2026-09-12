@@ -1,13 +1,13 @@
 [
   {
-    "id": "@lumierelabs/daraja@1.0.3",
+    "id": "@lumierelabs/daraja@1.0.4",
     "name": "@lumierelabs/daraja",
-    "version": "1.0.3",
-    "size": 58156,
-    "unpackedSize": 243977,
-    "shasum": "650aa3457245f6f37932543f3ac87a94ac949ad9",
-    "integrity": "sha512-nS5RHoXJ+gP0Hm9eRM7vaAcmLR0e+EKUuuoqnSoi7bFVv2QiQfqqB7vzkMDmca1RAQty+UV4TJSsVOjSnpF76A==",
-    "filename": "lumierelabs-daraja-1.0.3.tgz",
+    "version": "1.0.4",
+    "size": 58237,
+    "unpackedSize": 244141,
+    "shasum": "b5fec4480cd7aa716a53437d1157c133b77b4bf1",
+    "integrity": "sha512-EUnIXNlXOoyDgfNgr8qw1m4RGx41Tb4U9X5f0z/H+2TxUWDgyBSqc9qmar0v/rNAQ5SzYElTQc5V5jC4SdzplQ==",
+    "filename": "lumierelabs-daraja-1.0.4.tgz",
     "files": [
       {
         "path": "LICENSE",
@@ -41,7 +41,7 @@
       },
       {
         "path": "package.json",
-        "size": 2028,
+        "size": 2192,
         "mode": 420
       }
     ],

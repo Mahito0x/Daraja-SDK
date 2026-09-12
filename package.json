@@ -15,7 +15,8 @@
     "coverage": "turbo run coverage --filter=@lumierelabs/daraja",
     "typecheck": "turbo run typecheck",
     "types:check": "turbo run types:check",
-    "package:check": "turbo run package:check"
+    "package:check": "turbo run package:check",
+    "ci:local": "pnpm install --frozen-lockfile && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && test -d packages/sdk/dist && pnpm --filter @lumierelabs/daraja package:check && pnpm audit --prod --audit-level moderate"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
