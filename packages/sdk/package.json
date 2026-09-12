@@ -57,16 +57,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@types/node": "^26.2.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
+    "@types/node": "^26.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^9.39.4",
     "globals": "^16.0.0",
     "log-symbols": "^7.0.1",
     "prettier": "^3.5.3",
     "tsup": "^8.5.1",
-    "tsx": "^4.23.4",
+    "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   }
