@@ -27,7 +27,7 @@
   "author": "Mahito",
   "license": "MIT",
   "dependencies": {
-    "@clack/prompts": "^1.7.0",
+    "@clack/prompts": "^1.8.0",
     "chalk": "^6.0.0",
     "figlet": "^1.11.4",
     "fs-extra": "^11.4.0",
