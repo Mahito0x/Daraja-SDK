@@ -16,7 +16,7 @@ export default function NotFound() {
       />
 
       <div className="relative flex flex-col items-center">
-        <span className="font-mono text-sm font-medium tracking-widest text-emerald-600 dark:text-emerald-400">
+        <span className="font-mono text-2xl font-semibold tracking-widest text-emerald-600 dark:text-emerald-400">
           404
         </span>
 
@@ -28,20 +28,6 @@ export default function NotFound() {
           Haipo. It&apos;s not here, never was, or it left without telling
           anyone kind of like an M-Pesa callback that never fires.
         </p>
-
-        <div className="mt-8 w-full max-w-sm overflow-hidden rounded-xl border border-border bg-card text-left shadow-lg">
-          <div className="flex items-center gap-1.5 border-b border-border px-4 py-2.5">
-            <span className="size-2.5 rounded-full bg-muted-foreground/30" />
-            <span className="size-2.5 rounded-full bg-muted-foreground/30" />
-            <span className="size-2.5 rounded-full bg-muted-foreground/30" />
-          </div>
-          <pre className="p-4 font-mono text-xs leading-6 text-muted-foreground sm:text-sm">
-            <span className="text-emerald-600 dark:text-emerald-400">$</span>{" "}
-            curl darajasdk.vercel.app/this-page
-            {"\n"}
-            404 Not Found hakuna kitu hapa
-          </pre>
-        </div>
 
         <div className="mt-10 flex w-full max-w-sm flex-col gap-3 sm:flex-row">
           <Button className="flex-1">
