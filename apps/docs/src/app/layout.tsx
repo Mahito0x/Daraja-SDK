@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description:
     "Daraja SDK gives TypeScript developers a type-safe, edge-ready interface for Safaricom M-Pesa APIs, token lifecycle management, and webhook parsing.",
   applicationName: "Daraja SDK",
+  appleWebApp: {
+    title: "Daraja SDK",
+  },
   authors: [{ name: "Mahito", url: "https://github.com/Mahito0x" }],
   keywords: [
     "Daraja SDK",
