@@ -61,7 +61,7 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "@vitest/coverage-v8": "^5.0.1",
-    "eslint": "^9.39.4",
+    "eslint": "^10.10.0",
     "globals": "^16.0.0",
     "log-symbols": "^7.0.1",
     "prettier": "^3.5.3",
