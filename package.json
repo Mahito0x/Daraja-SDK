@@ -19,7 +19,7 @@
     "ci:local": "pnpm install --frozen-lockfile && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && test -d packages/sdk/dist && pnpm --filter @lumierelabs/daraja package:check && pnpm audit --prod --audit-level moderate"
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
-    "turbo": "^2.10.8"
+    "prettier": "^3.9.8",
+    "turbo": "^2.11.1"
   }
 }
