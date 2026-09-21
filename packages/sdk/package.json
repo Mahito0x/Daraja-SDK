@@ -60,7 +60,7 @@
     "@types/node": "^26.2.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^9.39.4",
     "globals": "^16.0.0",
     "log-symbols": "^7.0.1",
