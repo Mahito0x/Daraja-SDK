@@ -1,7 +1,9 @@
-import type { Metadata, Viewport } from "next";
+import { Toaster } from "@/components/ui/toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { RootProvider } from "fumadocs-ui/provider/next";
-import "./global.css";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import "./global.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -127,12 +129,28 @@ export default function Layout({ children }: LayoutProps<"/">) {
       >
         <script
           type="application/ld+json"
-          // skipcq: JS-0440 - Safe JSON-LD structured data injection
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
           }}
         />
-        <RootProvider>{children}</RootProvider>
+
+        {/* <Script
+          src="https://analytics.lumierelabs.xyz/bootstrap"
+          data-website-id="YOUR_DARAJA_WEBSITE_ID" // Not this isn't secret ignore it @skip
+          data-host-url="https://analytics.lumierelabs.xyz"
+          data-domains="daraja.lumierelabs.xyz"
+          data-auto-track="true"
+          data-performance="true"
+          data-exclude-search="false"
+          data-exclude-hash="true"
+          data-do-not-track="true" // We value your privacy darling!!!!!!!!!
+          strategy="afterInteractive"
+        /> */}
+
+        <RootProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
+        </RootProvider>
       </body>
     </html>
   );

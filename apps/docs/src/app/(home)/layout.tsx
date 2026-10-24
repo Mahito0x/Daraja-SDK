@@ -2,9 +2,9 @@ import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { baseOptions } from "@/lib/layout.shared";
 
 export const metadata = {
-  title: "Daraja SDK — Guides & API Reference",
+  title: "SDK & API Reference",
   description:
-    "Build robust integrations with the Daraja SDK using our modern developer tools, guides, and comprehensive API documentation.",
+    "A typed, zero-nonsense TypeScript SDK and comprehensive documentation for integrating Safaricom's Daraja (M-Pesa) API.",
 };
 
 export default function Layout({ children }: LayoutProps<"/">) {

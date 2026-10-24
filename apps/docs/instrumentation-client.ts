@@ -2,13 +2,7 @@ import posthog from "posthog-js";
 
 const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
-if (!projectToken) {
-  if (process.env.NODE_ENV === "development") {
-    throw new Error(
-      "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is missing. PostHog initialization aborted.",
-    );
-  }
-} else {
+if (process.env.NODE_ENV !== "development" && projectToken) {
   posthog.init(projectToken, {
     api_host: "/ingest",
     ui_host: "https://us.posthog.com",
@@ -52,7 +46,7 @@ if (!projectToken) {
     request_batching: true,
 
     // Debugging
-    debug: process.env.NODE_ENV === "development",
+    debug: false,
   });
 
   // Register global super property post-init

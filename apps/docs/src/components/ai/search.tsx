@@ -56,6 +56,7 @@ import { Markdown } from "../markdown";
 import posthog from "posthog-js";
 
 const isPostHogConfigured = Boolean(
+  process.env.NODE_ENV !== "development" &&
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
   process.env.NEXT_PUBLIC_POSTHOG_HOST,
 );
