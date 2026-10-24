@@ -19,6 +19,10 @@ const config = {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
   async headers() {
@@ -47,6 +51,15 @@ const config = {
             value: "camera=(), microphone=(), geolocation=()",
           },
         ],
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/docs",
+        destination: "/docs/sdk",
+        permanent: true,
       },
     ];
   },

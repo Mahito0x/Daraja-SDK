@@ -4,10 +4,11 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Pnpm, NPM, Yarn, Bun } from "./Icons";
-import { CopyButton } from "./CopyButton";
+import { CopyButton } from "./Copy";
 import posthog from "posthog-js";
 
 const isPostHogConfigured = Boolean(
+  process.env.NODE_ENV !== "development" &&
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
   process.env.NEXT_PUBLIC_POSTHOG_HOST,
 );
@@ -107,7 +108,7 @@ export function InstallCommand(props: InstallCommandProps) {
           </span>
           <span className="truncate">{command}</span>
         </div>
-        <CopyButton text={command} className="shrink-0" />
+        <CopyButton content={command} className="shrink-0" variant="ghost" />
       </div>
     </div>
   );
