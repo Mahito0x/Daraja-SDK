@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "Safi Analytics",
     images: [
       {
-        url: "/og.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Safi Analytics - Private M-PESA Statement Analyzer Dashboard",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: "Safi Analytics — Private M-PESA Statement Analyzer",
     description:
       "Secure client-side M-PESA statement parsing, interactive financial trend charts, and privacy-masked summaries.",
-    images: ["/og.jpg"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

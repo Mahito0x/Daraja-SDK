@@ -161,9 +161,25 @@ export default function FileUpload({
         return;
       }
 
-      const candidate = files[0];
       setError(null);
       setStatus("checking");
+
+      // Copy into memory first. On mobile the picked File is a handle to
+      // phone storage and can read differently once the input is cleared.
+      let candidate: File;
+      try {
+        candidate = new File([await files[0].arrayBuffer()], files[0].name, {
+          type: files[0].type,
+        });
+      } catch {
+        setStatus("idle");
+        setError({
+          title: "Couldn't read file",
+          message: "Please try selecting it again.",
+        });
+        return;
+      }
+      if (inputRef.current) inputRef.current.value = ""; // allow re-selecting
 
       const result = await validatePdf(candidate);
       if (!result.ok) {
@@ -201,7 +217,6 @@ export default function FileUpload({
         disabled={locked || status === "accepted"}
         onChange={(e) => {
           void handleFiles(e.currentTarget.files ?? []);
-          e.currentTarget.value = ""; // allow re-selecting the same file
         }}
       />
 
