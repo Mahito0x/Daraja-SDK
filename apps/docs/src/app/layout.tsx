@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import Script from "next/script";
 import "./global.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -134,9 +135,9 @@ export default function Layout({ children }: LayoutProps<"/">) {
           }}
         />
 
-        {/* <Script
+        <Script
           src="https://analytics.lumierelabs.xyz/bootstrap"
-          data-website-id="YOUR_DARAJA_WEBSITE_ID" // Not this isn't secret ignore it @skip
+          data-website-id="8332e0a5-a611-4d7a-96d5-207fec7836ee" // No this isn't secret ignore it @skip
           data-host-url="https://analytics.lumierelabs.xyz"
           data-domains="daraja.lumierelabs.xyz"
           data-auto-track="true"
@@ -145,7 +146,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
           data-exclude-hash="true"
           data-do-not-track="true" // We value your privacy darling!!!!!!!!!
           strategy="afterInteractive"
-        /> */}
+        />
 
         <RootProvider>
           <TooltipProvider>{children}</TooltipProvider>

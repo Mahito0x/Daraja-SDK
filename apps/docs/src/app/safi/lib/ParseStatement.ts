@@ -256,7 +256,8 @@ function passwordCode(err: unknown): 1 | 2 | null {
     typeof err === "object" &&
     (err as { name?: string }).name === "PasswordException"
   ) {
-    return (err as { code?: number }).code === 2 ? 2 : 1;
+    const code = (err as { code?: number }).code;
+    return code === 1 || code === 2 ? code : null;
   }
   return null;
 }
@@ -315,7 +316,7 @@ export async function parseStatement(
   } catch (err) {
     const code = passwordCode(err);
     if (code === 2) throw new WrongPinError();
-    if (code === 1) throw pin ? new WrongPinError() : new PinRequiredError();
+    if (code === 1) throw new PinRequiredError();
     if (err instanceof StatementError || isAbort(err)) throw err;
     throw new StatementReadError();
   } finally {

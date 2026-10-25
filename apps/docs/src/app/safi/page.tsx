@@ -5,7 +5,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Banknote,
-  Download,
   Filter,
   Info,
   LayoutDashboard,
@@ -41,6 +40,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Charts, isInternalTransfer } from "./Components/Charts";
+import { buildConnections, ConnectionsTab } from "./Components/ConnectionsTab";
 import { DateRangePicker, type DateRange } from "./Components/DateRangePicker";
 import PrivacyDialog from "./Components/Dialog";
 import PinInput from "./Components/PinInput";
@@ -303,9 +303,6 @@ export default function SafiPage() {
     "overview" | "transactions" | "contacts" | "insights"
   >("overview");
 
-  // Contacts Tab View State
-  const [contactTab, setContactTab] = useState<"sent" | "received">("sent");
-
   // Handle file acceptance from modal/upload
   const handleFileAccepted = async (file: File) => {
     setStatementFile(file);
@@ -337,7 +334,7 @@ export default function SafiPage() {
         return false;
       }
       console.error("PIN unlock error:", err);
-      return false;
+      throw err;
     }
   };
 
@@ -507,6 +504,7 @@ export default function SafiPage() {
 
   const shareData = useMemo<ShareData>(
     () => ({
+      name: statementData.customerName,
       mobileNumber: statementData.mobileNumber,
       period:
         dateRange?.start && dateRange?.end
@@ -567,56 +565,6 @@ export default function SafiPage() {
     statementData,
   ]);
 
-  // Export handlers
-  const exportAsJSON = () => {
-    const dataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(filteredLedgerTransactions, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute(
-      "download",
-      `safi_statement_export_${format(new Date(), "yyyy-MM-dd")}.json`,
-    );
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  const exportAsCSV = () => {
-    const headers = [
-      "Receipt No",
-      "Completion Time",
-      "Details",
-      "Status",
-      "Paid In",
-      "Withdrawn",
-      "Balance",
-    ];
-    const rows = filteredLedgerTransactions.map((t) => [
-      t.receiptNo,
-      t.completionTime,
-      `"${t.details}"`,
-      t.status,
-      t.paidIn,
-      t.withdrawn,
-      t.balance,
-    ]);
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `safi_statement_export_${format(new Date(), "yyyy-MM-dd")}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
   /* ---------------- derived view values ---------------- */
 
   const flowTotal = metrics.totalPaidIn + metrics.totalPaidOut;
@@ -626,52 +574,10 @@ export default function SafiPage() {
       ? (metrics.totalFees / metrics.totalPaidOut) * 100
       : 0;
 
-  const contactsAnalysis = useMemo(() => {
-    const sentMap: Record<
-      string,
-      { name: string; amount: number; count: number }
-    > = {};
-    const receivedMap: Record<
-      string,
-      { name: string; amount: number; count: number }
-    > = {};
-
-    dateFilteredTransactions.forEach((tx) => {
-      const details = tx.details;
-      if (
-        tx.withdrawn > 0 &&
-        (details.includes("Transfer to") || details.includes("to -"))
-      ) {
-        const parts = details.split(/to\s+/i);
-        const target = parts[parts.length - 1] || "Unknown Recipient";
-        if (!sentMap[target])
-          sentMap[target] = { name: target, amount: 0, count: 0 };
-        sentMap[target].amount += tx.withdrawn;
-        sentMap[target].count++;
-      }
-      if (tx.paidIn > 0 && details.includes("from -")) {
-        const parts = details.split(/from\s+/i);
-        const source = parts[parts.length - 1] || "Unknown Sender";
-        if (!receivedMap[source])
-          receivedMap[source] = { name: source, amount: 0, count: 0 };
-        receivedMap[source].amount += tx.paidIn;
-        receivedMap[source].count++;
-      }
-    });
-
-    return {
-      topSent: Object.values(sentMap).sort((a, b) => b.amount - a.amount),
-      topReceived: Object.values(receivedMap).sort(
-        (a, b) => b.amount - a.amount,
-      ),
-    };
-  }, [dateFilteredTransactions]);
-
-  const activeContacts =
-    contactTab === "sent"
-      ? contactsAnalysis.topSent
-      : contactsAnalysis.topReceived;
-  const maxContactAmount = Math.max(1, ...activeContacts.map((c) => c.amount));
+  const contactsAnalysis = useMemo(
+    () => buildConnections(dateFilteredTransactions),
+    [dateFilteredTransactions],
+  );
 
   const tabTrigger =
     "gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm sm:px-4";
@@ -720,35 +626,6 @@ export default function SafiPage() {
                   <span className="hidden sm:inline">Reset to demo data</span>
                 </Button>
               )}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="outline" size="sm" className="gap-2" />
-                  }
-                >
-                  <Download className="size-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={exportAsCSV}>
-                    Export filtered CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportAsJSON}>
-                    Export filtered JSON
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 className="size-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button> */}
             </div>
           </div>
         </header>
@@ -1095,8 +972,8 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {row.paidIn > 0
-                                      ? `+${row.paidIn.toFixed(2)}`
-                                      : "0.00"}
+                                      ? `+KES ${money(row.paidIn)}`
+                                      : "KES 0.00"}
                                   </td>
                                   <td
                                     className={cn(
@@ -1107,8 +984,8 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {row.paidOut > 0
-                                      ? `-${row.paidOut.toFixed(2)}`
-                                      : "0.00"}
+                                      ? `-KES ${money(row.paidOut)}`
+                                      : "KES 0.00"}
                                   </td>
                                 </tr>
                               ))
@@ -1349,89 +1226,8 @@ export default function SafiPage() {
                   value="contacts"
                   className="mt-0 w-full animate-in fade-in-50"
                 >
-                  <SectionCard
-                    title="Your connections"
-                    description="The people and businesses you transact with most"
-                    tip="Counterparties found in your transaction details, ranked by total amount. Switch between who you paid and who paid you."
-                    action={
-                      <div className="flex shrink-0 items-center gap-1 rounded-lg bg-muted p-1">
-                        <Button
-                          variant={contactTab === "sent" ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setContactTab("sent")}
-                          className="h-7 px-3 text-xs"
-                        >
-                          Sent to
-                        </Button>
-                        <Button
-                          variant={
-                            contactTab === "received" ? "default" : "ghost"
-                          }
-                          size="sm"
-                          onClick={() => setContactTab("received")}
-                          className="h-7 px-3 text-xs"
-                        >
-                          Received from
-                        </Button>
-                      </div>
-                    }
-                  >
-                    {activeContacts.length === 0 ? (
-                      <p className="py-12 text-center text-sm text-muted-foreground">
-                        {contactTab === "sent"
-                          ? "No outgoing transfers in this period."
-                          : "No incoming funds from people in this period."}
-                      </p>
-                    ) : (
-                      <ul className="grid gap-3 md:grid-cols-2">
-                        {activeContacts.map((c, i) => {
-                          const sent = contactTab === "sent";
-                          return (
-                            <li
-                              key={i}
-                              className="relative overflow-hidden rounded-xl border bg-muted/20 p-3.5 transition-colors hover:bg-muted/40"
-                            >
-                              <div
-                                aria-hidden
-                                className={cn(
-                                  "absolute inset-y-0 left-0 opacity-[0.07]",
-                                  sent ? TONES.rose.bar : TONES.emerald.bar,
-                                )}
-                                style={{
-                                  width: `${(c.amount / maxContactAmount) * 100}%`,
-                                }}
-                              />
-                              <div className="relative flex items-center gap-3">
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                  {initials(c.name)}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium">
-                                    {c.name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    #{i + 1} · {c.count}{" "}
-                                    {c.count === 1
-                                      ? "transaction"
-                                      : "transactions"}
-                                  </p>
-                                </div>
-                                <p
-                                  className={cn(
-                                    "shrink-0 text-sm font-semibold tabular-nums",
-                                    sent ? TONES.rose.text : TONES.emerald.text,
-                                  )}
-                                >
-                                  {sent ? "-" : "+"}
-                                  {money(c.amount)}
-                                </p>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </SectionCard>
+                  {" "}
+                  <ConnectionsTab connections={contactsAnalysis} />
                 </TabsContent>
 
                 {/* --- TAB 4: INSIGHTS --- */}
