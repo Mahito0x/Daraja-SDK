@@ -233,11 +233,31 @@ interface PdfJs {
 
 let pdfjsPromise: Promise<PdfJs> | null = null;
 
+// iOS Safari has no `for await` over ReadableStream, which pdf.js's
+// getTextContent() uses. Add it so the same code path works there.
+function polyfillReadableStreamIteration() {
+  const proto = (globalThis as any).ReadableStream?.prototype;
+  if (!proto || Symbol.asyncIterator in proto) return;
+  proto[Symbol.asyncIterator] = async function* (this: ReadableStream) {
+    const reader = this.getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) return;
+        yield value;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  };
+}
+
 /**
  * Loaded on demand and only in the browser. The "legacy" build is used on
  * purpose: it carries the polyfills older Android/Safari WebViews need.
  */
 function loadPdfJs(): Promise<PdfJs> {
+  polyfillReadableStreamIteration();
   pdfjsPromise ??= import("pdfjs-dist/legacy/build/pdf.mjs").then((mod) => {
     const lib = mod as unknown as PdfJs;
     lib.GlobalWorkerOptions.workerSrc = new URL(

@@ -89,7 +89,7 @@ function categorize(details: string) {
 }
 
 const kes = (n: number) =>
-  `KES ${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  `KSh ${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const BLOCKS = [
@@ -435,15 +435,15 @@ export function Charts({ transactions }: ChartsProps) {
       : view === "flow"
         ? [
             {
-              label: "Net for the range",
-              value: `${flow.totalIn - flow.totalOut >= 0 ? "+" : "-"}${kes(Math.abs(flow.totalIn - flow.totalOut))}`,
+              label: "Net flow",
+              value: kes(Math.abs(flow.totalIn - flow.totalOut)),
               tone: flow.totalIn - flow.totalOut >= 0 ? "in" : "out",
             },
             {
               label: `Best ${grainWord}`,
               value: flow.best?.label ?? "-",
               sub: flow.best
-                ? `+${kes(flow.best.moneyIn - flow.best.moneyOut)}`
+                ? kes(flow.best.moneyIn - flow.best.moneyOut)
                 : undefined,
               tone: "in",
             },
@@ -497,8 +497,8 @@ export function Charts({ transactions }: ChartsProps) {
   return (
     <div className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold tracking-tight">
               {meta.title}
@@ -514,13 +514,13 @@ export function Charts({ transactions }: ChartsProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 text-xs"
+                className="h-8 shrink-0 gap-1.5 px-2.5 text-xs"
                 aria-label={`Chart view: ${meta.label}`}
               />
             }
           >
             <meta.icon className="size-4" />
-            {meta.label}
+            <span className="hidden sm:inline">{meta.label}</span>
             <ChevronDown className="size-3.5 opacity-50" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">

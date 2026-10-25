@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useId, useMemo, useState, type ReactNode } from "react";
 
+import Footer from "@/components/Footer";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ import { Charts, isInternalTransfer } from "./Components/Charts";
 import { buildConnections, ConnectionsTab } from "./Components/ConnectionsTab";
 import { DateRangePicker, type DateRange } from "./Components/DateRangePicker";
 import PrivacyDialog from "./Components/Dialog";
+import LoadingState from "./Components/LoadingState";
 import PinInput from "./Components/PinInput";
 import { ShareDialog, type ShareData } from "./Components/ShareCard";
 import { StatementUploadModal } from "./Components/StatementUploadModal";
@@ -266,12 +268,20 @@ function StatusPill({ status }: { status: string }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+const PARSE_STEPS = [
+  "Reading your statement",
+  "Breaking down transactions",
+  "Analyzing cash flow",
+  "Crunching the numbers",
+];
+
 export default function SafiPage() {
   const searchInputId = useId();
 
   // Core Upload & Security States
   const [statementFile, setStatementFile] = useState<File | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [isParsing, setIsParsing] = useState<boolean>(false);
 
   // Start with mock data by default until user uploads/unlocks their own statement
   const [statementData, setStatementData] =
@@ -307,6 +317,7 @@ export default function SafiPage() {
   const handleFileAccepted = async (file: File) => {
     setStatementFile(file);
     setIsLocked(false);
+    setIsParsing(true);
 
     try {
       const parsed = await parseStatement(file);
@@ -317,6 +328,8 @@ export default function SafiPage() {
       } else {
         console.error("Statement parsing error:", err);
       }
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -595,7 +608,10 @@ export default function SafiPage() {
         {/* Ambient glow, purely atmospheric */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] overflow-hidden"
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] overflow-hidden",
+            isParsing && "hidden",
+          )}
         >
           <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl dark:bg-primary/20" />
           <div className="absolute -top-20 right-0 h-56 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -632,7 +648,11 @@ export default function SafiPage() {
 
         {/* Main Container */}
         <div className="mx-auto w-full max-w-7xl flex-1 space-y-8 px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-          {isLocked && statementFile ? (
+          {isParsing ? (
+            <div className="flex min-h-[calc(100dvh-9rem)] items-center justify-center">
+              <LoadingState labels={PARSE_STEPS} />
+            </div>
+          ) : isLocked && statementFile ? (
             <div className="mx-auto w-full max-w-md py-12">
               <PinInput
                 fileName={statementFile.name}
@@ -745,13 +765,15 @@ export default function SafiPage() {
                             )}
                           >
                             <span className="mr-2 text-lg font-medium text-muted-foreground sm:text-xl">
-                              KES
+                              KSh
                             </span>
-                            {metrics.netCashFlow < 0 ? "-" : ""}
                             {money(Math.abs(metrics.netCashFlow))}
                           </p>
                           <p className="mt-2 text-xs text-muted-foreground">
-                            Received minus sent, across{" "}
+                            {metrics.netCashFlow >= 0
+                              ? "You received more than you sent"
+                              : "You sent more than you received"}
+                            {" · "}
                             {metrics.transactionCount} transactions
                           </p>
 
@@ -789,13 +811,12 @@ export default function SafiPage() {
                             </div>
                             <p
                               className={cn(
-                                "mt-3 text-xl font-semibold tabular-nums sm:text-2xl",
+                                "mt-3 break-all text-xl font-semibold tabular-nums sm:text-2xl",
                                 TONES.emerald.text,
                               )}
                             >
-                              +
                               <span className="mx-1 text-xs font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(metrics.totalPaidIn)}
                             </p>
@@ -814,13 +835,12 @@ export default function SafiPage() {
                             </div>
                             <p
                               className={cn(
-                                "mt-3 text-xl font-semibold tabular-nums sm:text-2xl",
+                                "mt-3 break-all text-xl font-semibold tabular-nums sm:text-2xl",
                                 TONES.rose.text,
                               )}
                             >
-                              -
                               <span className="mx-1 text-xs font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(metrics.totalPaidOut)}
                             </p>
@@ -836,7 +856,7 @@ export default function SafiPage() {
                       tone="amber"
                       icon={<Banknote className="size-4" />}
                       label="Transaction fees"
-                      value={`KES ${money(metrics.totalFees)}`}
+                      value={`KSh ${money(metrics.totalFees)}`}
                       hint="Charges and tariffs paid"
                       tip="The total M-PESA charged you in transaction fees and tariffs (send, withdraw, pay bill) during this period."
                     />
@@ -852,7 +872,7 @@ export default function SafiPage() {
                       tone="primary"
                       icon={<Wallet className="size-4" />}
                       label="Average payment"
-                      value={`KES ${money(metrics.avgOutgoing)}`}
+                      value={`KSh ${money(metrics.avgOutgoing)}`}
                       hint="Typical size of money sent"
                       tip="Total money sent divided by the number of outgoing transactions. It shows how large your typical payment is."
                     />
@@ -902,7 +922,7 @@ export default function SafiPage() {
                                     </span>
                                   </span>
                                   <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                                    KES {money(cat.amount)}{" "}
+                                    KSh {money(cat.amount)}{" "}
                                     <span className="text-foreground">
                                       {cat.percentage.toFixed(1)}%
                                     </span>
@@ -972,8 +992,8 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {row.paidIn > 0
-                                      ? `+KES ${money(row.paidIn)}`
-                                      : "KES 0.00"}
+                                      ? money(row.paidIn)
+                                      : "0.00"}
                                   </td>
                                   <td
                                     className={cn(
@@ -984,8 +1004,8 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {row.paidOut > 0
-                                      ? `-KES ${money(row.paidOut)}`
-                                      : "KES 0.00"}
+                                      ? money(row.paidOut)
+                                      : "0.00"}
                                   </td>
                                 </tr>
                               ))
@@ -1121,9 +1141,7 @@ export default function SafiPage() {
                                         : TONES.rose.text,
                                     )}
                                   >
-                                    {isIn
-                                      ? `+${tx.paidIn.toFixed(2)}`
-                                      : `-${tx.withdrawn.toFixed(2)}`}
+                                    {money(isIn ? tx.paidIn : tx.withdrawn)}
                                   </p>
                                   <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
                                     Bal {money(tx.balance)}
@@ -1189,9 +1207,7 @@ export default function SafiPage() {
                                       TONES.emerald.text,
                                     )}
                                   >
-                                    {tx.paidIn > 0
-                                      ? `+${tx.paidIn.toFixed(2)}`
-                                      : "-"}
+                                    {tx.paidIn > 0 ? money(tx.paidIn) : "–"}
                                   </td>
                                   <td
                                     className={cn(
@@ -1200,11 +1216,11 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {tx.withdrawn > 0
-                                      ? `-${tx.withdrawn.toFixed(2)}`
-                                      : "-"}
+                                      ? money(tx.withdrawn)
+                                      : "–"}
                                   </td>
                                   <td className="px-4 py-3 text-right font-mono text-xs font-semibold tabular-nums">
-                                    KES {money(tx.balance)}
+                                    KSh {money(tx.balance)}
                                   </td>
                                 </tr>
                               ))}
@@ -1270,9 +1286,8 @@ export default function SafiPage() {
                                 TONES.emerald.text,
                               )}
                             >
-                              +
                               <span className="mx-1.5 text-base font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(contactsAnalysis.topReceived[0].amount)}
                             </p>
@@ -1329,9 +1344,8 @@ export default function SafiPage() {
                                 TONES.rose.text,
                               )}
                             >
-                              -
                               <span className="mx-1.5 text-base font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(contactsAnalysis.topSent[0].amount)}
                             </p>
@@ -1364,8 +1378,13 @@ export default function SafiPage() {
                             Fee efficiency
                           </span>
                         </div>
-                        <p className="mt-4 text-3xl font-semibold tracking-tight tabular-nums">
-                          KES {money(metrics.totalFees)}
+                        <p
+                          className={cn(
+                            "mt-4 text-3xl font-semibold tracking-tight tabular-nums",
+                            TONES.rose.text,
+                          )}
+                        >
+                          KSh {money(metrics.totalFees)}
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                           paid in transaction tariffs, which is{" "}
@@ -1427,7 +1446,7 @@ export default function SafiPage() {
                               : TONES.rose.text,
                           )}
                         >
-                          KES {metrics.netCashFlow.toLocaleString()}
+                          KSh {metrics.netCashFlow.toLocaleString()}
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                           net across {metrics.transactionCount} recorded
@@ -1442,11 +1461,7 @@ export default function SafiPage() {
           )}
         </div>
 
-        {/* Footer */}
-        <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-          Built for privacy. Your statement is processed in your browser and
-          never stored on a server.
-        </footer>
+        {!isParsing && <Footer />}
       </main>
     </TooltipProvider>
   );

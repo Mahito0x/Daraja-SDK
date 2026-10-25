@@ -367,19 +367,19 @@ function PersonBody({ person }: { person: Person }) {
           <div className="grid grid-cols-2 gap-2">
             <Stat
               label="You sent"
-              value={`KES ${money(stats.sent)}`}
+              value={money(stats.sent)}
               sub={`${stats.sentN} ${stats.sentN === 1 ? "time" : "times"}`}
               tone={stats.sentN ? "out" : undefined}
             />
             <Stat
               label="You received"
-              value={`KES ${money(stats.received)}`}
+              value={money(stats.received)}
               sub={`${stats.recvN} ${stats.recvN === 1 ? "time" : "times"}`}
               tone={stats.recvN ? "in" : undefined}
             />
             <Stat
               label="Net with them"
-              value={`${stats.net < 0 ? "-" : stats.net > 0 ? "+" : ""}KES ${money(Math.abs(stats.net))}`}
+              value={money(Math.abs(stats.net))}
               sub={
                 stats.net < 0
                   ? "You've sent more"
@@ -391,7 +391,7 @@ function PersonBody({ person }: { person: Person }) {
             />
             <Stat
               label="Fees paid"
-              value={`KES ${money(stats.fees)}`}
+              value={money(stats.fees)}
               sub="On what you sent"
             />
           </div>
@@ -404,7 +404,7 @@ function PersonBody({ person }: { person: Person }) {
               <>
                 {" · "}Largest:{" "}
                 <span className="font-medium text-foreground tabular-nums">
-                  KES {money(stats.largest.amount)}
+                  {money(stats.largest.amount)}
                 </span>{" "}
                 {stats.largest.dir}
               </>
@@ -422,7 +422,7 @@ function PersonBody({ person }: { person: Person }) {
                   >
                     <div
                       className="flex h-14 w-full items-end justify-center gap-0.5"
-                      title={`${monthTitle(key)}: sent KES ${money(m.sent)}, received KES ${money(m.received)}`}
+                      title={`${monthTitle(key)}: sent ${money(m.sent)}, received ${money(m.received)}`}
                     >
                       <div
                         className="w-full max-w-3 rounded-t-sm bg-emerald-500"
@@ -531,7 +531,6 @@ function PersonBody({ person }: { person: Person }) {
                           total < 0 ? OUT : total > 0 ? IN : "",
                         )}
                       >
-                        {total < 0 ? "-" : total > 0 ? "+" : ""}
                         {money(Math.abs(total))}
                       </span>
                     </span>
@@ -588,7 +587,7 @@ function PersonBody({ person }: { person: Person }) {
                               <span
                                 className={cn("text-[11px] tabular-nums", OUT)}
                               >
-                                + KES {money(r.fee)} fee
+                                KSh {money(r.fee)} fee
                               </span>
                             )}
                           </div>
@@ -600,10 +599,11 @@ function PersonBody({ person }: { person: Person }) {
                               isIn ? IN : OUT,
                             )}
                           >
-                            {isIn ? "+" : "-"}
-                            {money(r.amount)}
+                            KSh {money(r.amount)}
                           </p>
-                          <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
+                          <p
+                            className={cn("mt-1 text-[11px] tabular-nums", IN)}
+                          >
                             Bal {money(r.tx.balance)}
                           </p>
                         </div>
@@ -641,8 +641,8 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
   const sent = mode === "sent";
 
   return (
-    <section className="rounded-2xl border bg-card p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-3">
+    <section className="min-w-0 overflow-hidden rounded-2xl border bg-card p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold tracking-tight">
@@ -670,12 +670,12 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 rounded-lg bg-muted p-1">
+        <div className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-lg bg-muted p-1 sm:w-auto">
           <Button
             variant={sent ? "default" : "ghost"}
             size="sm"
             onClick={() => setMode("sent")}
-            className="h-7 px-3 text-xs"
+            className="h-8 px-3 text-xs"
           >
             Sent to
           </Button>
@@ -683,7 +683,7 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
             variant={!sent ? "default" : "ghost"}
             size="sm"
             onClick={() => setMode("received")}
-            className="h-7 px-3 text-xs"
+            className="h-8 px-3 text-xs"
           >
             Received from
           </Button>
@@ -698,9 +698,9 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
               : "No incoming funds from people in this period."}
           </p>
         ) : (
-          <ul className="grid gap-3 md:grid-cols-2">
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
             {rows.map((c, i) => (
-              <li key={c.key}>
+              <li key={c.key} className="min-w-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -727,8 +727,12 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
                       <p className="truncate text-xs text-muted-foreground">
                         #{i + 1} · {c.count}{" "}
                         {c.count === 1 ? "transaction" : "transactions"}
-                        {c.phone ? ` · ${c.phone}` : ""}
                       </p>
+                      {c.phone && (
+                        <p className="truncate font-mono text-[11px] text-muted-foreground/80">
+                          {c.phone}
+                        </p>
+                      )}
                     </div>
                     <p
                       className={cn(
@@ -736,8 +740,7 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
                         sent ? OUT : IN,
                       )}
                     >
-                      {sent ? "-" : "+"}
-                      {money(c.amount)}
+                      KSh {money(c.amount)}
                     </p>
                     <ChevronRight className="size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
                   </div>
