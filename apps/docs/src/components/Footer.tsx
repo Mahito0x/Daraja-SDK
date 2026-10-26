@@ -1,10 +1,5 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowUpRight, KeyRound, GitCommit } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Astro,
   Discord,
@@ -15,6 +10,12 @@ import {
   ReactRouter,
   X,
 } from "@/components/Icons";
+import { cn } from "@/lib/utils";
+import { ArrowUpRight, GitCommit, KeyRound } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
+import { FooterFeedback } from "./FooterFeedback";
 
 // ---------------------------------------------------------------------------
 // Shared links — single source of truth so the same URL never drifts
@@ -208,19 +209,41 @@ export default function Footer() {
           </div>
 
           {/* Social Icons Row */}
-          <div className="flex items-center gap-2.5 pt-12 pb-8 sm:justify-start">
-            {socialLinks.map(({ label, href, icon: Icon }) => (
-              <Link
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-transparent text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            ))}
+          <div className="flex flex-col gap-6 pt-12 pb-8 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-center gap-2.5 sm:h-[60px]">
+              {socialLinks.map(({ label, href, icon: Icon }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-transparent text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              ))}
+            </div>
+
+            <FooterFeedback
+              onSubmit={async ({ rating, comment }) => {
+                const response = await fetch("/api/feedback", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    rating,
+                    comment,
+                    page: window.location.pathname,
+                  }),
+                });
+
+                if (!response.ok) {
+                  throw new Error("Failed to submit feedback");
+                }
+              }}
+            />
           </div>
 
           {/* Copyright & Disclaimer Bar */}

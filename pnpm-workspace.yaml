@@ -8,6 +8,7 @@ allowBuilds:
   unrs-resolver: true
 
 overrides:
+  minimatch: ^9.0.5
   fast-uri: 3.1.8
   qs: 6.16.0
   js-yaml: ">=4.3.2"

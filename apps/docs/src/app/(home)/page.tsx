@@ -2,7 +2,6 @@ import AuraContainer from "@/components/AuraContainer";
 import { EndpointStatusBadge } from "@/components/Badge";
 import { CodeTabs } from "@/components/CodeTabs";
 import { CopyButton } from "@/components/Copy";
-import { FeedbackWidget } from "@/components/Feedback";
 import { FlipWords } from "@/components/FlipWords";
 import Footer from "@/components/Footer";
 import {
@@ -1695,6 +1694,51 @@ function FinalCTA() {
   );
 }
 
+function SafiSpotlight() {
+  return (
+    <section className="relative overflow-hidden border-t border-border py-16 sm:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
+          <div className="space-y-6 lg:col-span-6">
+            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              Ecosystem Spotlight
+            </span>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Explore Safi: Private M-Pesa Statement Analytics
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              A private, browser-based M-PESA statement analyzer and financial
+              dashboard built with Next.js. Parse statements locally with
+              complete privacy and instant insights.
+            </p>
+            <div className="flex items-center gap-4 pt-2">
+              <Link
+                href="/safi"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
+              >
+                Launch Safi Analyzer
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="lg:col-span-6">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+              <Image
+                src="/safi-demo.png" // Replace with your actual demo image path in public folder
+                alt="Safi M-Pesa Statement Analyzer Demo"
+                width={1200}
+                height={800}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/30 selection:text-foreground">
@@ -1707,6 +1751,7 @@ export default function HomePage() {
         <ComparisonSection />
         <RuntimeCompatibility />
         <DocsSpotlight />
+        <SafiSpotlight />
         <Contributors />
         <Sponsors />
         <TechnicalFAQ />
@@ -1714,7 +1759,6 @@ export default function HomePage() {
       </main>
 
       <Footer />
-      <FeedbackWidget />
     </div>
   );
 }
