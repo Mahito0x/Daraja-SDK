@@ -100,6 +100,15 @@ const money = (n: number, digits = 2) =>
     maximumFractionDigits: digits,
   });
 
+const fitNum = (s: string) =>
+  s.length > 14
+    ? "text-xs sm:text-lg"
+    : s.length > 12
+      ? "text-sm sm:text-xl"
+      : s.length > 9
+        ? "text-base sm:text-2xl"
+        : "text-xl sm:text-2xl";
+
 const initials = (name: string) =>
   name
     .replace(/[^a-zA-Z\s]/g, " ")
@@ -667,7 +676,7 @@ export default function SafiPage() {
                 <div className="space-y-1.5">
                   <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
                     {greeting},{" "}
-                    <span className="text-muted-foreground">
+                    <span className={TONES.emerald.text}>
                       {statementData.customerName}
                     </span>
                   </h1>
@@ -678,12 +687,12 @@ export default function SafiPage() {
                   </p>
                 </div>
 
-                <div className="flex w-fit max-w-full flex-wrap items-center gap-x-2.5 gap-y-1 rounded-2xl border bg-card/80 py-2 pl-3.5 pr-2 text-xs text-muted-foreground backdrop-blur">
+                <div className="flex w-fit max-w-full flex-nowrap items-center gap-2 rounded-2xl border bg-card/80 py-2 pl-3.5 pr-2 text-xs text-muted-foreground backdrop-blur sm:gap-2.5">
                   <Receipt className="size-3.5 shrink-0 text-foreground" />
-                  <span className="whitespace-nowrap font-medium text-foreground">
+                  <span className="hidden whitespace-nowrap font-medium text-foreground sm:inline">
                     M-PESA statement
                   </span>
-                  <span className="whitespace-nowrap tabular-nums">
+                  <span className="min-w-0 truncate tabular-nums">
                     {statementData.statementPeriod}
                   </span>
                   <Badge
@@ -692,7 +701,10 @@ export default function SafiPage() {
                   >
                     {isCustomUploaded ? "Live parse" : "Demo mode"}
                   </Badge>
-                  <HelpIcon content="The statement currently loaded. 'Demo mode' is sample data; 'Live parse' is your own uploaded statement, processed in your browser." />
+                  <HelpIcon
+                    className="shrink-0"
+                    content="The statement currently loaded. 'Demo mode' is sample data; 'Live parse' is your own uploaded statement, processed in your browser."
+                  />
                 </div>
               </div>
 
@@ -811,11 +823,12 @@ export default function SafiPage() {
                             </div>
                             <p
                               className={cn(
-                                "mt-3 break-all text-xl font-semibold tabular-nums sm:text-2xl",
+                                "mt-3 whitespace-nowrap font-semibold tabular-nums",
+                                fitNum(money(metrics.totalPaidIn)),
                                 TONES.emerald.text,
                               )}
                             >
-                              <span className="mx-1 text-xs font-medium opacity-70">
+                              <span className="mr-1 text-xs font-medium opacity-70">
                                 KSh
                               </span>
                               {money(metrics.totalPaidIn)}
@@ -835,11 +848,12 @@ export default function SafiPage() {
                             </div>
                             <p
                               className={cn(
-                                "mt-3 break-all text-xl font-semibold tabular-nums sm:text-2xl",
+                                "mt-3 whitespace-nowrap font-semibold tabular-nums",
+                                fitNum(money(metrics.totalPaidOut)),
                                 TONES.rose.text,
                               )}
                             >
-                              <span className="mx-1 text-xs font-medium opacity-70">
+                              <span className="mr-1 text-xs font-medium opacity-70">
                                 KSh
                               </span>
                               {money(metrics.totalPaidOut)}
@@ -1207,7 +1221,9 @@ export default function SafiPage() {
                                       TONES.emerald.text,
                                     )}
                                   >
-                                    {tx.paidIn > 0 ? money(tx.paidIn) : "–"}
+                                    {tx.paidIn > 0
+                                      ? `KSh ${money(tx.paidIn)}`
+                                      : "-"}
                                   </td>
                                   <td
                                     className={cn(
@@ -1216,7 +1232,7 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {tx.withdrawn > 0
-                                      ? money(tx.withdrawn)
+                                      ? `KSh ${money(tx.withdrawn)}`
                                       : "–"}
                                   </td>
                                   <td className="px-4 py-3 text-right font-mono text-xs font-semibold tabular-nums">

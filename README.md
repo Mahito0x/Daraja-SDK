@@ -241,7 +241,7 @@ Contributions closing any of these are very welcome see [Contributing](#contribu
 
 Full documentation every endpoint's exact TypeScript interfaces, framework integration guides, and a dedicated page on Safaricom's own API quirks lives at:
 
-[![Documentation](https://shieldcn.dev/badge/Read%20Docs-darajasdk.vercel.app/docs-00A651.svg?variant=outline&split=true&logo=lu%3ABookOpenText)](https://darajasdk.vercel.app/docs)
+[![Documentation](https://shieldcn.dev/badge/Read%20Docs-darajasdk.vercel.app/docs-00A651.svg?variant=outline&split=true&logo=lu%3ABookOpenText)](https://daraja.lumierelabs.xyz/docs)
 
 <br />
 
@@ -256,6 +256,8 @@ Contributions are welcome, especially toward the items in [Roadmap](#roadmap). B
 
 For bugs or feature requests, please [open an issue](https://github.com/Mahito0x/Daraja-SDK/issues) rather than a PR first, so the approach can be discussed.
 
+Safi (`apps/docs/src/app/safi/`) is not open to outside pull requests for now. Please open an issue instead.
+
 <p align="center">
   <a href="https://github.com/Mahito0x/Daraja-SDK/graphs/contributors"><img alt="Contributors" src="https://shieldcn.dev/contributors/Mahito0x/Daraja-SDK.svg?preset=transparent&amp;theme=blue&amp;size=40&amp;bots=true&amp;titleAlign=center&amp;mode=dark&amp;border=false" /></a>
 </p>
@@ -264,7 +266,9 @@ For bugs or feature requests, please [open an issue](https://github.com/Mahito0x
 
 ## License
 
-Distributed under the [MIT License](./LICENSE). Copyright © 2026 [Mahito](https://github.com/Mahito0x).
+Distributed under the [MIT License](./LICENSE), **except** `apps/docs/src/app/safi/` (Safi Analytics), which is source-available under the [PolyForm Strict License 1.0.0](./apps/docs/src/app/safi/LICENSE). You may read it and use it for noncommercial purposes, but you may not copy, modify, redistribute, or use it commercially without written permission (legal@lumierelabs.xyz).
+
+Copyright © 2026 [Mahito](https://github.com/Mahito0x).
 
 <br />
 

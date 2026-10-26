@@ -1,8 +1,8 @@
-import type { MetadataRoute } from "next";
 import { source } from "@/lib/source";
+import type { MetadataRoute } from "next";
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://darajasdk.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://daraja.lumierelabs.xyz";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const docPages: MetadataRoute.Sitemap = source.getPages().map((page) => ({

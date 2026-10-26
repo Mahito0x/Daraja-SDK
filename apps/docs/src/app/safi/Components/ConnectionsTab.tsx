@@ -15,7 +15,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ArrowDownLeft, ArrowUpRight, ChevronRight, Info } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  Banknote,
+  ChevronRight,
+  Globe,
+  Info,
+  Landmark,
+  Receipt,
+  Store,
+  Users,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import type { MpesaTransaction } from "../data/data";
 
@@ -31,10 +42,14 @@ export interface ConnectionTx {
   fee: number;
 }
 
+export type ConnectionKind =
+  "person" | "shop" | "paybill" | "online" | "agent" | "other";
+
 export interface Person {
   key: string;
   name: string;
-  /** Masked number as printed on the statement, e.g. 0726***185. */
+  kind: ConnectionKind;
+  /** Masked number for people, "Till 315502" / "Paybill 714888" for businesses. */
   phone: string | null;
   txs: ConnectionTx[];
 }
@@ -43,20 +58,118 @@ export interface Person {
 export interface ConnectionRow {
   key: string;
   name: string;
+  kind: ConnectionKind;
   phone: string | null;
   amount: number;
   count: number;
 }
 
 export interface Connections {
+  /** People only (used by the Insights tab). */
   topSent: ConnectionRow[];
   topReceived: ConnectionRow[];
+  /** Everyone and everything: people, shops, paybills, online, agents. */
+  allSent: ConnectionRow[];
+  allReceived: ConnectionRow[];
   people: Record<string, Person>;
 }
 
 const SENT =
   /^customer (?:transfer to|payment to small business to)\s*-?\s*(.+)$/i;
 const RECEIVED = /^funds received from\s*-?\s*(.+)$/i;
+
+/** Everything that isn't person-to-person: tills, paybills, card payments, agents... */
+function matchBusiness(details: string) {
+  const d = details.replace(/\s+/g, " ").trim();
+  let m: RegExpExecArray | null;
+  type Hit = { kind: ConnectionKind; key: string; name: string; ref: string };
+  const hit = (h: Hit): Hit => h;
+
+  if ((m = /^merchant payment to\s+(\d+)\s*-\s*(.+)$/i.exec(d)))
+    return hit({
+      kind: "shop",
+      key: `till|${m[1]}`,
+      name: titleCase(tidy(m[2])),
+      ref: `Till ${m[1]}`,
+    });
+
+  if (
+    (m = /^pay ?bill (?:online )?to\s+(\d+)\s*-\s*(.+?)(?:\s+acc\..*)?$/i.exec(
+      d,
+    ))
+  )
+    return hit({
+      kind: "paybill",
+      key: `pb|${m[1]}`,
+      name: titleCase(tidy(m[2])),
+      ref: `Paybill ${m[1]}`,
+    });
+
+  if (
+    (m =
+      /^card pay ?bill online to\s+\d+\s*-\s*m-pesa globalpay acc\.?\s*(.+)$/i.exec(
+        d,
+      ))
+  ) {
+    const first = m[1].trim().split(" ")[0].replace(/\*+$/, "");
+    const name =
+      first === first.toUpperCase()
+        ? first.charAt(0) + first.slice(1).toLowerCase()
+        : first;
+    return hit({
+      kind: "online",
+      key: `online|${name.toLowerCase()}`,
+      name,
+      ref: "Card payment",
+    });
+  }
+
+  if ((m = /^customer withdrawal at agent\s+till\s+(\d+)\s*-\s*(.+)$/i.exec(d)))
+    return hit({
+      kind: "agent",
+      key: `agent|${m[1]}`,
+      name: titleCase(tidy(m[2])),
+      ref: `Agent till ${m[1]}`,
+    });
+
+  if (
+    (m = /^business payment from\s+(\d+)\s*-\s*(.+?)(?:\s+via api.*)?$/i.exec(
+      d,
+    ))
+  )
+    return hit({
+      kind: "other",
+      key: `bp|${m[1]}`,
+      name: titleCase(tidy(m[2])),
+      ref: `Business ${m[1]}`,
+    });
+
+  if ((m = /^unit trust invest to\s+(\d+)\s*-\s*(.+?)(?:\s+by .*)?$/i.exec(d)))
+    return hit({
+      kind: "other",
+      key: `ut|${m[1]}`,
+      name: tidy(m[2]),
+      ref: "Investment",
+    });
+
+  if (/^airtime purchase/i.test(d))
+    return hit({
+      kind: "other",
+      key: "airtime",
+      name: "Airtime top-ups",
+      ref: "Safaricom",
+    });
+
+  if (/^(?:customer bundle purchase|recharge for customer)/i.test(d))
+    return hit({
+      kind: "other",
+      key: "bundles",
+      name: "Data & bundles",
+      ref: "Safaricom",
+    });
+
+  return null;
+}
 
 /** A charge line ends in "Charge"/"Fee" and names no counterparty. */
 const isFeeLine = (details: string) => {
@@ -111,22 +224,40 @@ export function buildConnections(
 
   const people = new Map<string, Person>();
   for (const tx of transactions) {
-    const sent = tx.withdrawn > 0 ? SENT.exec(tx.details.trim()) : null;
-    const received =
-      !sent && tx.paidIn > 0 ? RECEIVED.exec(tx.details.trim()) : null;
-    const match = sent ?? received;
-    if (!match) continue;
+    const out = tx.withdrawn > 0;
+    if (!out && !(tx.paidIn > 0)) continue;
+    const details = tx.details.trim();
 
-    const { phone, name } = splitPerson(match[1]);
-    const key = `${phone ?? "?"}|${name.toLowerCase()}`;
-    const person = people.get(key) ?? { key, name, phone, txs: [] };
+    let who: {
+      key: string;
+      name: string;
+      kind: ConnectionKind;
+      phone: string | null;
+    } | null = null;
+
+    const pm = out ? SENT.exec(details) : RECEIVED.exec(details);
+    if (pm) {
+      const { phone, name } = splitPerson(pm[1]);
+      who = {
+        key: `${phone ?? "?"}|${name.toLowerCase()}`,
+        name,
+        kind: "person",
+        phone,
+      };
+    } else {
+      const b = matchBusiness(details);
+      if (b) who = { key: b.key, name: b.name, kind: b.kind, phone: b.ref };
+    }
+    if (!who) continue;
+
+    const person = people.get(who.key) ?? { ...who, txs: [] };
     person.txs.push({
       tx,
-      dir: sent ? "sent" : "received",
-      amount: sent ? tx.withdrawn : tx.paidIn,
-      fee: sent ? (feeByReceipt.get(tx.receiptNo) ?? 0) / 100 : 0,
+      dir: out ? "sent" : "received",
+      amount: out ? tx.withdrawn : tx.paidIn,
+      fee: out ? (feeByReceipt.get(tx.receiptNo) ?? 0) / 100 : 0,
     });
-    people.set(key, person);
+    people.set(who.key, person);
   }
 
   const rows = (dir: "sent" | "received"): ConnectionRow[] =>
@@ -136,6 +267,7 @@ export function buildConnections(
         return {
           key: p.key,
           name: p.name,
+          kind: p.kind,
           phone: p.phone,
           amount: mine.reduce((s, t) => s + cents(t.amount), 0) / 100,
           count: mine.length,
@@ -144,9 +276,13 @@ export function buildConnections(
       .filter((r) => r.count > 0)
       .sort((a, b) => b.amount - a.amount);
 
+  const sent = rows("sent");
+  const received = rows("received");
   return {
-    topSent: rows("sent"),
-    topReceived: rows("received"),
+    topSent: sent.filter((r) => r.kind === "person"),
+    topReceived: received.filter((r) => r.kind === "person"),
+    allSent: sent,
+    allReceived: received,
     people: Object.fromEntries(people),
   };
 }
@@ -218,6 +354,37 @@ const IN = "text-emerald-700 dark:text-emerald-400";
 const OUT = "text-rose-700 dark:text-rose-400";
 const IN_CHIP = "bg-emerald-500/12 text-emerald-700 dark:text-emerald-400";
 const OUT_CHIP = "bg-rose-500/12 text-rose-700 dark:text-rose-400";
+
+const KINDS: Record<ConnectionKind, { label: string; icon: typeof Store }> = {
+  person: { label: "People", icon: Users },
+  shop: { label: "Shops", icon: Store },
+  paybill: { label: "Paybill", icon: Landmark },
+  online: { label: "Online", icon: Globe },
+  agent: { label: "Agents", icon: Banknote },
+  other: { label: "Other", icon: Receipt },
+};
+
+function Avatar({
+  kind,
+  name,
+  className,
+}: {
+  kind: ConnectionKind;
+  name: string;
+  className?: string;
+}) {
+  const Icon = KINDS[kind].icon;
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary",
+        className,
+      )}
+    >
+      {kind === "person" ? initials(name) : <Icon className="size-[45%]" />}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* The detail modal                                                    */
@@ -346,9 +513,11 @@ function PersonBody({ person }: { person: Person }) {
     <>
       <DialogHeader className="space-y-0 border-b p-5 pr-12 text-left">
         <div className="flex items-center gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-            {initials(person.name)}
-          </div>
+          <Avatar
+            kind={person.kind}
+            name={person.name}
+            className="size-12 text-sm"
+          />
           <div className="min-w-0">
             <DialogTitle className="truncate text-lg font-semibold tracking-tight">
               {person.name}
@@ -631,11 +800,17 @@ function PersonBody({ person }: { person: Person }) {
 
 export function ConnectionsTab({ connections }: { connections: Connections }) {
   const [mode, setMode] = useState<"sent" | "received">("sent");
+  const [kind, setKind] = useState<ConnectionKind | "all">("all");
   const [open, setOpen] = useState(false);
   // Kept after closing so the modal's content doesn't vanish mid-animation.
   const [activeKey, setActiveKey] = useState<string | null>(null);
 
-  const rows = mode === "sent" ? connections.topSent : connections.topReceived;
+  const all = mode === "sent" ? connections.allSent : connections.allReceived;
+  const kinds = (Object.keys(KINDS) as ConnectionKind[]).filter((k) =>
+    all.some((r) => r.kind === k),
+  );
+  const active = kind !== "all" && kinds.includes(kind) ? kind : "all";
+  const rows = active === "all" ? all : all.filter((r) => r.kind === active);
   const max = Math.max(1, ...rows.map((r) => r.amount));
   const person = activeKey ? (connections.people[activeKey] ?? null) : null;
   const sent = mode === "sent";
@@ -690,6 +865,24 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
         </div>
       </div>
 
+      {kinds.length > 1 && (
+        <div className="-mx-1 mt-4 flex items-center gap-2 overflow-x-auto px-1">
+          {(["all", ...kinds] as (ConnectionKind | "all")[]).map((k) => (
+            <Button
+              key={k}
+              type="button"
+              size="sm"
+              variant={active === k ? "default" : "outline"}
+              onClick={() => setKind(k)}
+              aria-pressed={active === k}
+              className="h-7 shrink-0 rounded-full px-3 text-xs"
+            >
+              {k === "all" ? "All" : KINDS[k].label}
+            </Button>
+          ))}
+        </div>
+      )}
+
       <div className="mt-5">
         {rows.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
@@ -719,9 +912,11 @@ export function ConnectionsTab({ connections }: { connections: Connections }) {
                     style={{ width: `${(c.amount / max) * 100}%` }}
                   />
                   <div className="relative flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {initials(c.name)}
-                    </div>
+                    <Avatar
+                      kind={c.kind}
+                      name={c.name}
+                      className="size-10 text-xs"
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{c.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
