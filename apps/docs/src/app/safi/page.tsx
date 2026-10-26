@@ -5,7 +5,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Banknote,
-  Download,
   Filter,
   Info,
   LayoutDashboard,
@@ -22,6 +21,7 @@ import {
 } from "lucide-react";
 import { useId, useMemo, useState, type ReactNode } from "react";
 
+import Footer from "@/components/Footer";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,8 +41,10 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Charts, isInternalTransfer } from "./Components/Charts";
+import { buildConnections, ConnectionsTab } from "./Components/ConnectionsTab";
 import { DateRangePicker, type DateRange } from "./Components/DateRangePicker";
 import PrivacyDialog from "./Components/Dialog";
+import LoadingState from "./Components/LoadingState";
 import PinInput from "./Components/PinInput";
 import { ShareDialog, type ShareData } from "./Components/ShareCard";
 import { StatementUploadModal } from "./Components/StatementUploadModal";
@@ -266,12 +268,20 @@ function StatusPill({ status }: { status: string }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+const PARSE_STEPS = [
+  "Reading your statement",
+  "Breaking down transactions",
+  "Analyzing cash flow",
+  "Crunching the numbers",
+];
+
 export default function SafiPage() {
   const searchInputId = useId();
 
   // Core Upload & Security States
   const [statementFile, setStatementFile] = useState<File | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [isParsing, setIsParsing] = useState<boolean>(false);
 
   // Start with mock data by default until user uploads/unlocks their own statement
   const [statementData, setStatementData] =
@@ -303,13 +313,11 @@ export default function SafiPage() {
     "overview" | "transactions" | "contacts" | "insights"
   >("overview");
 
-  // Contacts Tab View State
-  const [contactTab, setContactTab] = useState<"sent" | "received">("sent");
-
   // Handle file acceptance from modal/upload
   const handleFileAccepted = async (file: File) => {
     setStatementFile(file);
     setIsLocked(false);
+    setIsParsing(true);
 
     try {
       const parsed = await parseStatement(file);
@@ -320,6 +328,8 @@ export default function SafiPage() {
       } else {
         console.error("Statement parsing error:", err);
       }
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -337,7 +347,7 @@ export default function SafiPage() {
         return false;
       }
       console.error("PIN unlock error:", err);
-      return false;
+      throw err;
     }
   };
 
@@ -507,6 +517,7 @@ export default function SafiPage() {
 
   const shareData = useMemo<ShareData>(
     () => ({
+      name: statementData.customerName,
       mobileNumber: statementData.mobileNumber,
       period:
         dateRange?.start && dateRange?.end
@@ -567,56 +578,6 @@ export default function SafiPage() {
     statementData,
   ]);
 
-  // Export handlers
-  const exportAsJSON = () => {
-    const dataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(filteredLedgerTransactions, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute(
-      "download",
-      `safi_statement_export_${format(new Date(), "yyyy-MM-dd")}.json`,
-    );
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  const exportAsCSV = () => {
-    const headers = [
-      "Receipt No",
-      "Completion Time",
-      "Details",
-      "Status",
-      "Paid In",
-      "Withdrawn",
-      "Balance",
-    ];
-    const rows = filteredLedgerTransactions.map((t) => [
-      t.receiptNo,
-      t.completionTime,
-      `"${t.details}"`,
-      t.status,
-      t.paidIn,
-      t.withdrawn,
-      t.balance,
-    ]);
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `safi_statement_export_${format(new Date(), "yyyy-MM-dd")}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
   /* ---------------- derived view values ---------------- */
 
   const flowTotal = metrics.totalPaidIn + metrics.totalPaidOut;
@@ -626,52 +587,10 @@ export default function SafiPage() {
       ? (metrics.totalFees / metrics.totalPaidOut) * 100
       : 0;
 
-  const contactsAnalysis = useMemo(() => {
-    const sentMap: Record<
-      string,
-      { name: string; amount: number; count: number }
-    > = {};
-    const receivedMap: Record<
-      string,
-      { name: string; amount: number; count: number }
-    > = {};
-
-    dateFilteredTransactions.forEach((tx) => {
-      const details = tx.details;
-      if (
-        tx.withdrawn > 0 &&
-        (details.includes("Transfer to") || details.includes("to -"))
-      ) {
-        const parts = details.split(/to\s+/i);
-        const target = parts[parts.length - 1] || "Unknown Recipient";
-        if (!sentMap[target])
-          sentMap[target] = { name: target, amount: 0, count: 0 };
-        sentMap[target].amount += tx.withdrawn;
-        sentMap[target].count++;
-      }
-      if (tx.paidIn > 0 && details.includes("from -")) {
-        const parts = details.split(/from\s+/i);
-        const source = parts[parts.length - 1] || "Unknown Sender";
-        if (!receivedMap[source])
-          receivedMap[source] = { name: source, amount: 0, count: 0 };
-        receivedMap[source].amount += tx.paidIn;
-        receivedMap[source].count++;
-      }
-    });
-
-    return {
-      topSent: Object.values(sentMap).sort((a, b) => b.amount - a.amount),
-      topReceived: Object.values(receivedMap).sort(
-        (a, b) => b.amount - a.amount,
-      ),
-    };
-  }, [dateFilteredTransactions]);
-
-  const activeContacts =
-    contactTab === "sent"
-      ? contactsAnalysis.topSent
-      : contactsAnalysis.topReceived;
-  const maxContactAmount = Math.max(1, ...activeContacts.map((c) => c.amount));
+  const contactsAnalysis = useMemo(
+    () => buildConnections(dateFilteredTransactions),
+    [dateFilteredTransactions],
+  );
 
   const tabTrigger =
     "gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm sm:px-4";
@@ -689,7 +608,10 @@ export default function SafiPage() {
         {/* Ambient glow, purely atmospheric */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] overflow-hidden"
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] overflow-hidden",
+            isParsing && "hidden",
+          )}
         >
           <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl dark:bg-primary/20" />
           <div className="absolute -top-20 right-0 h-56 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -720,42 +642,17 @@ export default function SafiPage() {
                   <span className="hidden sm:inline">Reset to demo data</span>
                 </Button>
               )}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="outline" size="sm" className="gap-2" />
-                  }
-                >
-                  <Download className="size-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={exportAsCSV}>
-                    Export filtered CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportAsJSON}>
-                    Export filtered JSON
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 className="size-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button> */}
             </div>
           </div>
         </header>
 
         {/* Main Container */}
         <div className="mx-auto w-full max-w-7xl flex-1 space-y-8 px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-          {isLocked && statementFile ? (
+          {isParsing ? (
+            <div className="flex min-h-[calc(100dvh-9rem)] items-center justify-center">
+              <LoadingState labels={PARSE_STEPS} />
+            </div>
+          ) : isLocked && statementFile ? (
             <div className="mx-auto w-full max-w-md py-12">
               <PinInput
                 fileName={statementFile.name}
@@ -868,13 +765,15 @@ export default function SafiPage() {
                             )}
                           >
                             <span className="mr-2 text-lg font-medium text-muted-foreground sm:text-xl">
-                              KES
+                              KSh
                             </span>
-                            {metrics.netCashFlow < 0 ? "-" : ""}
                             {money(Math.abs(metrics.netCashFlow))}
                           </p>
                           <p className="mt-2 text-xs text-muted-foreground">
-                            Received minus sent, across{" "}
+                            {metrics.netCashFlow >= 0
+                              ? "You received more than you sent"
+                              : "You sent more than you received"}
+                            {" · "}
                             {metrics.transactionCount} transactions
                           </p>
 
@@ -912,13 +811,12 @@ export default function SafiPage() {
                             </div>
                             <p
                               className={cn(
-                                "mt-3 text-xl font-semibold tabular-nums sm:text-2xl",
+                                "mt-3 break-all text-xl font-semibold tabular-nums sm:text-2xl",
                                 TONES.emerald.text,
                               )}
                             >
-                              +
                               <span className="mx-1 text-xs font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(metrics.totalPaidIn)}
                             </p>
@@ -937,13 +835,12 @@ export default function SafiPage() {
                             </div>
                             <p
                               className={cn(
-                                "mt-3 text-xl font-semibold tabular-nums sm:text-2xl",
+                                "mt-3 break-all text-xl font-semibold tabular-nums sm:text-2xl",
                                 TONES.rose.text,
                               )}
                             >
-                              -
                               <span className="mx-1 text-xs font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(metrics.totalPaidOut)}
                             </p>
@@ -959,7 +856,7 @@ export default function SafiPage() {
                       tone="amber"
                       icon={<Banknote className="size-4" />}
                       label="Transaction fees"
-                      value={`KES ${money(metrics.totalFees)}`}
+                      value={`KSh ${money(metrics.totalFees)}`}
                       hint="Charges and tariffs paid"
                       tip="The total M-PESA charged you in transaction fees and tariffs (send, withdraw, pay bill) during this period."
                     />
@@ -975,7 +872,7 @@ export default function SafiPage() {
                       tone="primary"
                       icon={<Wallet className="size-4" />}
                       label="Average payment"
-                      value={`KES ${money(metrics.avgOutgoing)}`}
+                      value={`KSh ${money(metrics.avgOutgoing)}`}
                       hint="Typical size of money sent"
                       tip="Total money sent divided by the number of outgoing transactions. It shows how large your typical payment is."
                     />
@@ -1025,7 +922,7 @@ export default function SafiPage() {
                                     </span>
                                   </span>
                                   <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                                    KES {money(cat.amount)}{" "}
+                                    KSh {money(cat.amount)}{" "}
                                     <span className="text-foreground">
                                       {cat.percentage.toFixed(1)}%
                                     </span>
@@ -1095,7 +992,7 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {row.paidIn > 0
-                                      ? `+${row.paidIn.toFixed(2)}`
+                                      ? money(row.paidIn)
                                       : "0.00"}
                                   </td>
                                   <td
@@ -1107,7 +1004,7 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {row.paidOut > 0
-                                      ? `-${row.paidOut.toFixed(2)}`
+                                      ? money(row.paidOut)
                                       : "0.00"}
                                   </td>
                                 </tr>
@@ -1244,9 +1141,7 @@ export default function SafiPage() {
                                         : TONES.rose.text,
                                     )}
                                   >
-                                    {isIn
-                                      ? `+${tx.paidIn.toFixed(2)}`
-                                      : `-${tx.withdrawn.toFixed(2)}`}
+                                    {money(isIn ? tx.paidIn : tx.withdrawn)}
                                   </p>
                                   <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
                                     Bal {money(tx.balance)}
@@ -1312,9 +1207,7 @@ export default function SafiPage() {
                                       TONES.emerald.text,
                                     )}
                                   >
-                                    {tx.paidIn > 0
-                                      ? `+${tx.paidIn.toFixed(2)}`
-                                      : "-"}
+                                    {tx.paidIn > 0 ? money(tx.paidIn) : "–"}
                                   </td>
                                   <td
                                     className={cn(
@@ -1323,11 +1216,11 @@ export default function SafiPage() {
                                     )}
                                   >
                                     {tx.withdrawn > 0
-                                      ? `-${tx.withdrawn.toFixed(2)}`
-                                      : "-"}
+                                      ? money(tx.withdrawn)
+                                      : "–"}
                                   </td>
                                   <td className="px-4 py-3 text-right font-mono text-xs font-semibold tabular-nums">
-                                    KES {money(tx.balance)}
+                                    KSh {money(tx.balance)}
                                   </td>
                                 </tr>
                               ))}
@@ -1349,89 +1242,8 @@ export default function SafiPage() {
                   value="contacts"
                   className="mt-0 w-full animate-in fade-in-50"
                 >
-                  <SectionCard
-                    title="Your connections"
-                    description="The people and businesses you transact with most"
-                    tip="Counterparties found in your transaction details, ranked by total amount. Switch between who you paid and who paid you."
-                    action={
-                      <div className="flex shrink-0 items-center gap-1 rounded-lg bg-muted p-1">
-                        <Button
-                          variant={contactTab === "sent" ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setContactTab("sent")}
-                          className="h-7 px-3 text-xs"
-                        >
-                          Sent to
-                        </Button>
-                        <Button
-                          variant={
-                            contactTab === "received" ? "default" : "ghost"
-                          }
-                          size="sm"
-                          onClick={() => setContactTab("received")}
-                          className="h-7 px-3 text-xs"
-                        >
-                          Received from
-                        </Button>
-                      </div>
-                    }
-                  >
-                    {activeContacts.length === 0 ? (
-                      <p className="py-12 text-center text-sm text-muted-foreground">
-                        {contactTab === "sent"
-                          ? "No outgoing transfers in this period."
-                          : "No incoming funds from people in this period."}
-                      </p>
-                    ) : (
-                      <ul className="grid gap-3 md:grid-cols-2">
-                        {activeContacts.map((c, i) => {
-                          const sent = contactTab === "sent";
-                          return (
-                            <li
-                              key={i}
-                              className="relative overflow-hidden rounded-xl border bg-muted/20 p-3.5 transition-colors hover:bg-muted/40"
-                            >
-                              <div
-                                aria-hidden
-                                className={cn(
-                                  "absolute inset-y-0 left-0 opacity-[0.07]",
-                                  sent ? TONES.rose.bar : TONES.emerald.bar,
-                                )}
-                                style={{
-                                  width: `${(c.amount / maxContactAmount) * 100}%`,
-                                }}
-                              />
-                              <div className="relative flex items-center gap-3">
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                  {initials(c.name)}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium">
-                                    {c.name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    #{i + 1} · {c.count}{" "}
-                                    {c.count === 1
-                                      ? "transaction"
-                                      : "transactions"}
-                                  </p>
-                                </div>
-                                <p
-                                  className={cn(
-                                    "shrink-0 text-sm font-semibold tabular-nums",
-                                    sent ? TONES.rose.text : TONES.emerald.text,
-                                  )}
-                                >
-                                  {sent ? "-" : "+"}
-                                  {money(c.amount)}
-                                </p>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </SectionCard>
+                  {" "}
+                  <ConnectionsTab connections={contactsAnalysis} />
                 </TabsContent>
 
                 {/* --- TAB 4: INSIGHTS --- */}
@@ -1474,9 +1286,8 @@ export default function SafiPage() {
                                 TONES.emerald.text,
                               )}
                             >
-                              +
                               <span className="mx-1.5 text-base font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(contactsAnalysis.topReceived[0].amount)}
                             </p>
@@ -1533,9 +1344,8 @@ export default function SafiPage() {
                                 TONES.rose.text,
                               )}
                             >
-                              -
                               <span className="mx-1.5 text-base font-medium opacity-70">
-                                KES
+                                KSh
                               </span>
                               {money(contactsAnalysis.topSent[0].amount)}
                             </p>
@@ -1568,8 +1378,13 @@ export default function SafiPage() {
                             Fee efficiency
                           </span>
                         </div>
-                        <p className="mt-4 text-3xl font-semibold tracking-tight tabular-nums">
-                          KES {money(metrics.totalFees)}
+                        <p
+                          className={cn(
+                            "mt-4 text-3xl font-semibold tracking-tight tabular-nums",
+                            TONES.rose.text,
+                          )}
+                        >
+                          KSh {money(metrics.totalFees)}
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                           paid in transaction tariffs, which is{" "}
@@ -1631,7 +1446,7 @@ export default function SafiPage() {
                               : TONES.rose.text,
                           )}
                         >
-                          KES {metrics.netCashFlow.toLocaleString()}
+                          KSh {metrics.netCashFlow.toLocaleString()}
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                           net across {metrics.transactionCount} recorded
@@ -1646,11 +1461,7 @@ export default function SafiPage() {
           )}
         </div>
 
-        {/* Footer */}
-        <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-          Built for privacy. Your statement is processed in your browser and
-          never stored on a server.
-        </footer>
+        {!isParsing && <Footer />}
       </main>
     </TooltipProvider>
   );

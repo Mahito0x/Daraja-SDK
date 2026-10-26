@@ -7,6 +7,13 @@ import BarXAxis from "@/components/charts/bar-x-axis";
 import Grid from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip";
 import XAxis from "@/components/charts/x-axis";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +30,8 @@ import {
 import {
   ArrowLeftRight,
   CalendarClock,
+  Check,
+  ChevronDown,
   Info,
   Layers,
   Wallet,
@@ -80,7 +89,7 @@ function categorize(details: string) {
 }
 
 const kes = (n: number) =>
-  `KES ${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  `KSh ${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const BLOCKS = [
@@ -426,15 +435,15 @@ export function Charts({ transactions }: ChartsProps) {
       : view === "flow"
         ? [
             {
-              label: "Net for the range",
-              value: `${flow.totalIn - flow.totalOut >= 0 ? "+" : "-"}${kes(Math.abs(flow.totalIn - flow.totalOut))}`,
+              label: "Net flow",
+              value: kes(Math.abs(flow.totalIn - flow.totalOut)),
               tone: flow.totalIn - flow.totalOut >= 0 ? "in" : "out",
             },
             {
               label: `Best ${grainWord}`,
               value: flow.best?.label ?? "-",
               sub: flow.best
-                ? `+${kes(flow.best.moneyIn - flow.best.moneyOut)}`
+                ? kes(flow.best.moneyIn - flow.best.moneyOut)
                 : undefined,
               tone: "in",
             },
@@ -488,8 +497,8 @@ export function Charts({ transactions }: ChartsProps) {
   return (
     <div className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold tracking-tight">
               {meta.title}
@@ -499,30 +508,35 @@ export function Charts({ transactions }: ChartsProps) {
           <p className="mt-0.5 text-xs text-muted-foreground">{meta.desc}</p>
         </div>
 
-        <div className="-mx-1 overflow-x-auto px-1">
-          <div
-            role="tablist"
-            className="inline-flex gap-1 rounded-xl bg-muted/70 p-1"
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 shrink-0 gap-1.5 px-2.5 text-xs"
+                aria-label={`Chart view: ${meta.label}`}
+              />
+            }
           >
+            <meta.icon className="size-4" />
+            <span className="hidden sm:inline">{meta.label}</span>
+            <ChevronDown className="size-3.5 opacity-50" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
             {VIEWS.map(({ key, label, icon: Icon }) => (
-              <button
+              <DropdownMenuItem
                 key={key}
-                role="tab"
-                aria-selected={view === key}
                 onClick={() => setView(key)}
-                className={cn(
-                  "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-                  view === key
-                    ? "bg-background text-foreground shadow-sm"
-                    : "hover:text-foreground",
-                )}
+                className="gap-2 text-xs"
               >
                 <Icon className="size-3.5" />
-                {label}
-              </button>
+                <span className="flex-1">{label}</span>
+                {view === key && <Check className="size-3.5" />}
+              </DropdownMenuItem>
             ))}
-          </div>
-        </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {empty ? (

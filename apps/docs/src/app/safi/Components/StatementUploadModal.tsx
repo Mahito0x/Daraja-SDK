@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ export function StatementUploadModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button className="gap-2 text-xs" />}>
+      <DialogTrigger className={buttonVariants({ className: "gap-2 text-xs" })}>
         <UploadCloud className="size-4" />
         {triggerButtonText}
       </DialogTrigger>
