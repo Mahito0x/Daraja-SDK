@@ -230,7 +230,18 @@ export default function Footer() {
               License.
             </p>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              <p>
+                Made by{" "}
+                <Link
+                  href="https://lumierelabs.xyz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground transition-colors hover:text-emerald-500 hover:underline"
+                >
+                  Lumière Labs
+                </Link>
+              </p>
               <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-medium text-amber-500">
                 Not affiliated with Safaricom PLC
               </span>

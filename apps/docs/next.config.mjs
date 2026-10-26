@@ -5,6 +5,7 @@ const withMDX = createMDX();
 /** @type {import('next').NextConfig} */
 const config = {
   reactStrictMode: true,
+  allowedDevOrigins: ["192.168.0.105"],
   images: {
     remotePatterns: [
       {
@@ -18,6 +19,10 @@ const config = {
       {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
   },
@@ -47,6 +52,15 @@ const config = {
             value: "camera=(), microphone=(), geolocation=()",
           },
         ],
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/docs",
+        destination: "/docs/sdk",
+        permanent: true,
       },
     ];
   },
