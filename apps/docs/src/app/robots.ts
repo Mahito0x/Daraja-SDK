@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://darajasdk.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://daraja.lumierelabs.xyz";
 
 export default function robots(): MetadataRoute.Robots {
   return {

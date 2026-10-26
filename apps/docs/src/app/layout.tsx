@@ -9,7 +9,7 @@ import "./global.css";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://darajasdk.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://daraja.lumierelabs.xyz";
 const githubUrl = "https://github.com/Mahito0x/Daraja-SDK";
 const npmUrl = "https://www.npmjs.com/package/@lumierelabs/daraja";
 

@@ -241,7 +241,7 @@ Contributions closing any of these are very welcome see [Contributing](#contribu
 
 Full documentation every endpoint's exact TypeScript interfaces, framework integration guides, and a dedicated page on Safaricom's own API quirks lives at:
 
-[![Documentation](https://shieldcn.dev/badge/Read%20Docs-darajasdk.vercel.app/docs-00A651.svg?variant=outline&split=true&logo=lu%3ABookOpenText)](https://darajasdk.vercel.app/docs)
+[![Documentation](https://shieldcn.dev/badge/Read%20Docs-darajasdk.vercel.app/docs-00A651.svg?variant=outline&split=true&logo=lu%3ABookOpenText)](https://daraja.lumierelabs.xyz/docs)
 
 <br />
 

@@ -3,10 +3,10 @@
     "id": "@lumierelabs/daraja@1.0.4",
     "name": "@lumierelabs/daraja",
     "version": "1.0.4",
-    "size": 58382,
-    "unpackedSize": 244161,
-    "shasum": "dfe13571d0717bd341384160340a6ec6837b2ddd",
-    "integrity": "sha512-ZLd3FACwZg3Ef2b6lo4ZO4Y0+RUSJifocr4F+TILyMjVHsHUyCFPMfpuHJw4tKjLa6muirFIJmiLumnTJ5vf9Q==",
+    "size": 58390,
+    "unpackedSize": 244163,
+    "shasum": "12b473019a064b7832cfdb5fe013cff0dd954521",
+    "integrity": "sha512-sMheFt+dXcTTSwSbnLf/yzyvBTSlai8ox0qu85oZTmCKna2tJ6KpGt/I31ggf8r/eUKBJcyTCWQKqPiT0Iggcw==",
     "filename": "lumierelabs-daraja-1.0.4.tgz",
     "files": [
       {
@@ -16,7 +16,7 @@
       },
       {
         "path": "README.md",
-        "size": 13857,
+        "size": 13859,
         "mode": 420
       },
       {
