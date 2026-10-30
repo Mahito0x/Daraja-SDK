@@ -52,7 +52,7 @@ console.log(result.CheckoutRequestID);
   nothing more. If you came here looking for **Account Balance**, **Transaction
   Status**, or a generic **Reversal**/**B2B Payment Request** client, they
   aren't in the package yet. See [Roadmap & what's not
-  here](/docs/guides/roadmap) for the honest list of what's missing and why,
+  here](/docs/sdk/guides/roadmap) for the honest list of what's missing and why,
   instead of documentation for endpoints that would throw a 404 the moment you
   called them.
 </Callout>
@@ -60,7 +60,7 @@ console.log(result.CheckoutRequestID);
 ## What's actually in the box
 
 <Cards>
-  <Card className="relative" icon={<Key className="h-4 w-4 text-emerald-500" />} title="Authentication" description="Auto-caching OAuth 2.0 token management, handled for you." href="/docs/core-concepts/authentication">
+  <Card className="relative" icon={<Key className="h-4 w-4 text-emerald-500" />} title="Authentication" description="Auto-caching OAuth 2.0 token management, handled for you." href="/docs/sdk/core-concepts/authentication">
     <EndpointStatusBadge status="working" />
   </Card>
 
@@ -69,7 +69,7 @@ console.log(result.CheckoutRequestID);
   icon={<Smartphone className="h-4 w-4 text-emerald-500" />}
   title="M-Pesa Express (STK Push)"
   description="Push a payment prompt to a customer's phone and query its outcome."
-  href="/docs/endpoints/mpesa-express-stk-push"
+  href="/docs/sdk/endpoints/mpesa-express-stk-push"
 >
   <EndpointStatusBadge status="working" />
 </Card>
@@ -79,7 +79,7 @@ console.log(result.CheckoutRequestID);
   icon={<ArrowRightLeft className="h-4 w-4 text-emerald-500" />}
   title="C2B"
   description="Register callback URLs and simulate customer payments in sandbox."
-  href="/docs/endpoints/c2b"
+  href="/docs/sdk/endpoints/c2b"
 >
   <EndpointStatusBadge status="upstream-issue" />
 </Card>
@@ -89,7 +89,7 @@ console.log(result.CheckoutRequestID);
   icon={<Wallet className="h-4 w-4 text-emerald-500" />}
   title="B2C Account Top Up"
   description="Move funds from your MMF/Working account into a B2C shortcode's utility account."
-  href="/docs/endpoints/b2c-top-up"
+  href="/docs/sdk/endpoints/b2c-top-up"
 >
   <EndpointStatusBadge status="working" />
 </Card>
@@ -99,7 +99,7 @@ console.log(result.CheckoutRequestID);
   icon={<Building2 className="h-4 w-4 text-emerald-500" />}
   title="B2B Hakikisha"
   description="Verify an organization's name and tariff before you pay it."
-  href="/docs/endpoints/b2b-hakikisha"
+  href="/docs/sdk/endpoints/b2b-hakikisha"
 >
   <EndpointStatusBadge status="working" />
 </Card>
@@ -109,7 +109,7 @@ console.log(result.CheckoutRequestID);
   icon={<QrCode className="h-4 w-4 text-emerald-500" />}
   title="Dynamic QR"
   description="Generate a scannable M-Pesa payment QR code."
-  href="/docs/endpoints/dynamic-qr"
+  href="/docs/sdk/endpoints/dynamic-qr"
 >
   <EndpointStatusBadge status="upstream-issue" />
 </Card>
@@ -119,7 +119,7 @@ console.log(result.CheckoutRequestID);
   icon={<Wifi className="h-4 w-4 text-emerald-500" />}
   title="Mobile Data Bundles"
   description="Browse, purchase, and check the status of data bundle offers."
-  href="/docs/endpoints/dynamic-offers"
+  href="/docs/sdk/endpoints/dynamic-offers"
 >
   <EndpointStatusBadge status="upstream-issue" />
 </Card>
@@ -129,12 +129,12 @@ console.log(result.CheckoutRequestID);
   icon={<ShieldAlert className="h-4 w-4 text-emerald-500" />}
   title="SIM Swap & IMSI"
   description="Fraud checks: last SIM swap date, hashed IMSI, network registration age."
-  href="/docs/endpoints/sim-swap"
+  href="/docs/sdk/endpoints/sim-swap"
 >
   <EndpointStatusBadge status="working" />
 </Card>
 
-  <Card className="relative" icon={<UserCheck className="h-4 w-4 text-emerald-500" />} title="Mobile Number Validation" description="Confirm an msisdn is registered against a given National ID, Military ID, or Passport." href="/docs/endpoints/mobile-number-validation">
+  <Card className="relative" icon={<UserCheck className="h-4 w-4 text-emerald-500" />} title="Mobile Number Validation" description="Confirm an msisdn is registered against a given National ID, Military ID, or Passport." href="/docs/sdk/endpoints/mobile-number-validation">
     <EndpointStatusBadge status="upstream-issue" />
   </Card>
 </Cards>
@@ -151,4 +151,4 @@ console.log(result.CheckoutRequestID);
 
 Daraja's own documentation is functional but thin: field names change case between endpoints (`OriginatorCoversationID` is a real, misspelled field Safaricom ships), the STK Push password has to be hand-built as `Base64(ShortCode + Passkey + Timestamp)` in the exact East African timezone, and half the "gotchas" you'll hit are only discoverable by hitting them. This SDK bakes those lessons in so you don't have to relearn them from a failed sandbox call at 11pm.
 
-Start with [Installation](/docs/getting-started/installation), or jump straight to [Quickstart](/docs/getting-started/quickstart) if you already have sandbox credentials.
+Start with [Installation](/docs/sdk/getting-started/installation), or jump straight to [Quickstart](/docs/sdk/getting-started/quickstart) if you already have sandbox credentials.

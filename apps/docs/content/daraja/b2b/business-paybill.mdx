@@ -16,9 +16,11 @@ https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest
 Pays a Pay Bill number or Pay Bill store, moving money from your MMF/Working account into the recipient's Utility account. Can be used to pay on behalf of a consumer/requester.
 
 <Callout type="info">
-  Shares its endpoint with [Business Buy Goods](/daraja/business-buy-goods),
-  [B2C Account Top Up](/daraja/b2c-account-top-up), and [Tax
-  Remittance](/daraja/tax-remittance). `CommandID` is what distinguishes them.
+  Shares its endpoint with [Business Buy
+  Goods](/docs/daraja/b2b/business-buy-goods), [B2C Account Top
+  Up](/docs/daraja/disbursements/b2c-account-top-up), and [Tax
+  Remittance](/docs/daraja/b2b/tax-remittance). `CommandID` is what
+  distinguishes them.
 </Callout>
 
 ## Request
@@ -162,7 +164,7 @@ Pays a Pay Bill number or Pay Bill store, moving money from your MMF/Working acc
 }
 ```
 
-Common failure codes documented across the B2B family (this API, [Business Buy Goods](/daraja/business-buy-goods), [B2C Account Top Up](/daraja/b2c-account-top-up), and [Tax Remittance](/daraja/tax-remittance)) include `2001` (initiator information invalid), account and product-assignment rule declines, and security credential lock. Safaricom's documentation doesn't publish a distinct, complete result-code table specific to Business Pay Bill beyond the sample shown above.
+Common failure codes documented across the B2B family (this API, [Business Buy Goods](/docs/daraja/b2b/business-buy-goods), [B2C Account Top Up](/docs/daraja/disbursements/b2c-account-top-up), and [Tax Remittance](/docs/daraja/b2b/tax-remittance)) include `2001` (initiator information invalid), account and product-assignment rule declines, and security credential lock. Safaricom's documentation doesn't publish a distinct, complete result-code table specific to Business Pay Bill beyond the sample shown above.
 
 ## Testing and Go Live
 
@@ -170,4 +172,4 @@ Common failure codes documented across the B2B family (this API, [Business Buy G
 
 **Postman**: token from the sandbox OAuth endpoint, then call the endpoint above.
 
-Going live follows the same [Organization Portal & Go Live](/daraja/organization-portal) path as the rest of the B2B/B2C family, requiring the Business Paybill Org API Initiator role on the operator you use as `Initiator`.
+Going live follows the same [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal) path as the rest of the B2B/B2C family, requiring the Business Paybill Org API Initiator role on the operator you use as `Initiator`.

@@ -137,7 +137,7 @@ app.listen(process.env.PORT || 3000);
   Production Daraja traffic frequently skips the Validation URL entirely and
   calls Confirmation directly, regardless of what you return from
   `/callbacks/validation` see the callout on this in the [C2B endpoint
-  page](/docs/endpoints/c2b#registerurl). Build your actual accept/reject
+  page](/docs/sdk/endpoints/c2b#registerurl). Build your actual accept/reject
   business logic in the confirmation handler, and treat Validation as a
   best-effort optimization rather than a security boundary.
 </Callout>

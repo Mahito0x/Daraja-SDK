@@ -1,8 +1,42 @@
 {
-  "name": "Daraja SDK Docs",
-  "short_name": "Daraja SDK",
-  "icons": [{ "src": "/favicon.ico", "sizes": "any" }],
+  "id": "/",
+  "name": "Daraja SDK",
+  "short_name": "Daraja",
+  "description": "A type-safe, edge-ready TypeScript SDK for Safaricom's Daraja API. Build M-PESA integrations with simpler OAuth handling and reliable API utilities.",
+  "lang": "en-KE",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "any",
   "theme_color": "#000000",
   "background_color": "#000000",
-  "display": "standalone"
+  "categories": ["developer", "utilities", "finance"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }

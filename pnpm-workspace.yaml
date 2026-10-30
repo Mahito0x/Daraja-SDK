@@ -2,6 +2,9 @@ packages:
   - "apps/*"
   - "packages/*"
 
+publicHoistPattern:
+  - next
+
 allowBuilds:
   core-js: true
   esbuild: true
@@ -10,7 +13,8 @@ allowBuilds:
 overrides:
   minimatch: ^9.0.5
   fast-uri: 3.1.8
-  qs: 6.16.0
+  qs: 6.16.1
+  # deepmerge: "4.3.1" no patch for it yet
   js-yaml: ">=4.3.2"
   hono: ">=4.13.5"
   sharp: ">=0.35.5"
@@ -18,6 +22,8 @@ overrides:
   brace-expansion: ">=1.1.21"
   vitest: ">=4.1.12"
   "@vitest/mocker": ">=4.1.12"
+  "@hono/node-server": ^2.1.3
+  systeminformation: ^5.33.16
   ip-address@<=10.7.0: ^10.7.1
   next@>=16.2.0 <16.3.6: ^16.3.6
   undici@>=7.0.0 <7.29.1: ^7.29.1

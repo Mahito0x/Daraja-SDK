@@ -97,7 +97,7 @@ console.log(result.CheckoutRequestID); // e.g. "ws_CO_260820261234567890"
 - `amount` must be a whole number between 1 and 250,000 (Safaricom's documented per-transaction cap)
 - `partyA` and `phoneNumber` must match `254XXXXXXXXX` (12 digits)
 - `accountReference` ≤ 12 characters, `transactionDesc` ≤ 13 characters
-- `callBackURL` uses `DarajaConfig.callbackUrl` when omitted and goes through [callback URL validation](/docs/core-concepts/callback-urls)
+- `callBackURL` uses `DarajaConfig.callbackUrl` when omitted and goes through [callback URL validation](/docs/sdk/core-concepts/callback-urls)
 
 All failures throw `DarajaError` with `errorCode: 'INVALID_STK_REQUEST'`.
 
@@ -166,7 +166,7 @@ if (status.ResultCode === "0") {
 }
 ```
 
-`CallbackMetadata.Item` is only present when `ResultCode === 0`. A cancelled or failed prompt omits it entirely check for its existence before indexing into it. See the framework-specific handlers in [Framework Integrations](/docs/integrations/nextjs) for copy-pasteable parsing.
+`CallbackMetadata.Item` is only present when `ResultCode === 0`. A cancelled or failed prompt omits it entirely check for its existence before indexing into it. See the framework-specific handlers in [Framework Integrations](/docs/sdk/integrations/nextjs) for copy-pasteable parsing.
 
 <Callout type="error" title="Sandbox callbacks are unreliable">
   In sandbox, it's common for the `callBackURL` POST to arrive late, arrive

@@ -18,8 +18,8 @@ Remits tax to KRA in real time. Using this API requires prior integration with K
 <Callout type="info">
   Unlike the rest of the B2B family, this uses its own `/remittax` path rather
   than the shared `/mpesa/b2b/v1/paymentrequest` endpoint used by [Business Pay
-  Bill](/daraja/business-paybill) and [Business Buy
-  Goods](/daraja/business-buy-goods).
+  Bill](/docs/daraja/b2b/business-paybill) and [Business Buy
+  Goods](/docs/daraja/b2b/business-buy-goods).
 </Callout>
 
 ## Request
@@ -45,9 +45,9 @@ Remits tax to KRA in real time. Using this API requires prior integration with K
   Two things carried directly from Safaricom's own sample. First, the field is
   written `"Command ID"` with a space, rather than `CommandID` as used in the
   parameter table below it, the same inconsistency documented on [Business Pay
-  Bill](/daraja/business-paybill). Second, the sample has a trailing comma after
-  the `ResultURL` value, which makes it invalid JSON as published; it's removed
-  above.
+  Bill](/docs/daraja/b2b/business-paybill). Second, the sample has a trailing
+  comma after the `ResultURL` value, which makes it invalid JSON as published;
+  it's removed above.
 </Callout>
 
 | Field                           | Description                                                                       | Sample value               |
@@ -139,7 +139,7 @@ Remits tax to KRA in real time. Using this API requires prior integration with K
 
 ## Unsuccessful result callback
 
-Same shape as the [Business Pay Bill](/daraja/business-paybill) unsuccessful callback: `ResultCode` `2001` with `ResultDesc` "The initiator information is invalid" is the documented sample.
+Same shape as the [Business Pay Bill](/docs/daraja/b2b/business-paybill) unsuccessful callback: `ResultCode` `2001` with `ResultDesc` "The initiator information is invalid" is the documented sample.
 
 ## Testing and Go Live
 
@@ -147,4 +147,4 @@ Same shape as the [Business Pay Bill](/daraja/business-paybill) unsuccessful cal
 
 **Postman**: token from the sandbox OAuth endpoint, then call the endpoint above.
 
-Going live follows [Organization Portal & Go Live](/daraja/organization-portal), requiring the **Tax Remittance to KRA API** role on the operator used as `Initiator`.
+Going live follows [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal), requiring the **Tax Remittance to KRA API** role on the operator used as `Initiator`.

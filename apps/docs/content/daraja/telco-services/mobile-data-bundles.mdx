@@ -16,10 +16,10 @@ https://sandbox.safaricom.co.ke/v1/dynamic-offers/{path_suffix}
 <Callout type="warn" title="Defect in the source material">
   The base path is documented with a literal, unresolved `{path_suffix}`
   placeholder in Safaricom's own page, the same pattern seen on
-  [IMSI](/daraja/imsi). The three concrete endpoints below (fetch, purchase,
-  status) are given in full elsewhere on the same page, so the placeholder
-  appears to be a leftover from how the page was templated rather than a working
-  path on its own.
+  [IMSI](/docs/daraja/telco-services/imsi). The three concrete endpoints below
+  (fetch, purchase, status) are given in full elsewhere on the same page, so the
+  placeholder appears to be a leftover from how the page was templated rather
+  than a working path on its own.
 </Callout>
 
 ## Key capabilities
@@ -31,7 +31,7 @@ https://sandbox.safaricom.co.ke/v1/dynamic-offers/{path_suffix}
 
 ## How it works
 
-1. The merchant authenticates via the [Authorization API](/daraja/authorization).
+1. The merchant authenticates via the [Authorization API](/docs/daraja/authentication/authorization).
 2. The merchant calls the fetch-offers endpoint; the user is validated in the same call.
 3. Available offers are returned to the app.
 4. The user picks one and purchases it.
@@ -222,7 +222,7 @@ GET https://sandbox.safaricom.co.ke/v2/bundles/get/status?id={transactionId}&ser
 
 **Postman**: token from `https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials`, then call the endpoints above.
 
-Going live means submitting a live Pay Bill/Till short code, organization name, and M-PESA admin/manager username on the Go Live tab; see [Organization Portal & Go Live](/daraja/organization-portal).
+Going live means submitting a live Pay Bill/Till short code, organization name, and M-PESA admin/manager username on the Go Live tab; see [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal).
 
 ## Onboarding documents
 

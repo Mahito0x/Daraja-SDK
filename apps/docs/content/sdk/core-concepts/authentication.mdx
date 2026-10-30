@@ -31,7 +31,7 @@ return await fetchNewAccessToken();
 ```
 
 <Callout type="warn" title="The cache is per-instance, not global">
-Token caching lives on the `AuthManager` created inside `Daraja(config)`. If you accidentally construct a new client per request (`Daraja({...})` inside a route handler instead of at module scope), you get zero caching benefit and hit `/oauth/v1/generate` on every single request. Construct the client **once**, at module scope, and import it  see the [framework integration guides](/docs/integrations/nextjs) for the pattern.
+Token caching lives on the `AuthManager` created inside `Daraja(config)`. If you accidentally construct a new client per request (`Daraja({...})` inside a route handler instead of at module scope), you get zero caching benefit and hit `/oauth/v1/generate` on every single request. Construct the client **once**, at module scope, and import it  see the [framework integration guides](/docs/sdk/integrations/nextjs) for the pattern.
 </Callout>
 
 ## Manually clearing the cache
@@ -63,4 +63,4 @@ Forces the next call to fetch a fresh token regardless of the cached expiry. Use
   </Accordion>
 </Accordions>
 
-Every one of these arrives as a typed `DarajaError` see [Error Handling](/docs/core-concepts/error-handling) for the full shape.
+Every one of these arrives as a typed `DarajaError` see [Error Handling](/docs/sdk/core-concepts/error-handling) for the full shape.

@@ -26,7 +26,7 @@ Production: POST https://api.safaricom.co.ke/mpesa/accountbalance/v1/query
 
 ## Authentication
 
-A valid OAuth token from the [Authorization API](/daraja/authorization), supplied as:
+A valid OAuth token from the [Authorization API](/docs/daraja/authentication/authorization), supplied as:
 
 ```
 Authorization: Bearer <access_token>
@@ -47,16 +47,16 @@ Authorization: Bearer <access_token>
 }
 ```
 
-| Field                | Description                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| `Initiator`          | API user's username, authenticating the request.                                        |
-| `SecurityCredential` | Encrypted initiator credential (see [Introduction](/daraja) for how this is generated). |
-| `CommandID`          | Always `AccountBalance` for this API.                                                   |
-| `PartyA`             | The short code whose balance is being queried.                                          |
-| `IdentifierType`     | `4` for an organization short code.                                                     |
-| `Remarks`            | Free-text comment sent with the request.                                                |
-| `QueueTimeOutURL`    | Notified if the request times out.                                                      |
-| `ResultURL`          | Receives the actual balance once processed.                                             |
+| Field                | Description                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `Initiator`          | API user's username, authenticating the request.                                             |
+| `SecurityCredential` | Encrypted initiator credential (see [Introduction](/docs/daraja) for how this is generated). |
+| `CommandID`          | Always `AccountBalance` for this API.                                                        |
+| `PartyA`             | The short code whose balance is being queried.                                               |
+| `IdentifierType`     | `4` for an organization short code.                                                          |
+| `Remarks`            | Free-text comment sent with the request.                                                     |
+| `QueueTimeOutURL`    | Notified if the request times out.                                                           |
+| `ResultURL`          | Receives the actual balance once processed.                                                  |
 
 ## Initial response
 
@@ -165,7 +165,7 @@ For example, `Working Account|KES|700000.00|700000.00|0.00|0.00` decodes to the 
 
 ## Permissions
 
-The initiator needs the **Balance Query ORG API** role (see [Organization Portal & Go Live](/daraja/organization-portal)), must be active, and must belong to the organization/short code hierarchy being queried; an organization cannot query an unrelated third party's short code through this API.
+The initiator needs the **Balance Query ORG API** role (see [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal)), must be active, and must belong to the organization/short code hierarchy being queried; an organization cannot query an unrelated third party's short code through this API.
 
 ## Testing
 
@@ -175,4 +175,4 @@ The initiator needs the **Balance Query ORG API** role (see [Organization Portal
 
 ## Go Live
 
-Production access requires completing Safaricom's go-live requirements (live M-PESA setup, operators, permissions); see [Organization Portal & Go Live](/daraja/organization-portal). Production endpoints and credentials are issued once that's complete.
+Production access requires completing Safaricom's go-live requirements (live M-PESA setup, operators, permissions); see [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal). Production endpoints and credentials are issued once that's complete.

@@ -16,10 +16,11 @@ https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest
 Pays a Till number, merchant store number, or merchant head office, moving money from your MMF/Working account into the recipient's Merchant account. Can be used to pay a merchant on behalf of a consumer/requester.
 
 <Callout type="info">
-  Shares its endpoint with [Business Pay Bill](/daraja/business-paybill), [B2C
-  Account Top Up](/daraja/b2c-account-top-up), and [Tax
-  Remittance](/daraja/tax-remittance). `CommandID` is what distinguishes them;
-  this one uses `BusinessBuyGoods`.
+  Shares its endpoint with [Business Pay
+  Bill](/docs/daraja/b2b/business-paybill), [B2C Account Top
+  Up](/docs/daraja/disbursements/b2c-account-top-up), and [Tax
+  Remittance](/docs/daraja/b2b/tax-remittance). `CommandID` is what
+  distinguishes them; this one uses `BusinessBuyGoods`.
 </Callout>
 
 ## Request
@@ -46,11 +47,12 @@ Pays a Till number, merchant store number, or merchant head office, moving money
   Two issues carried over directly from Safaricom's own page for this API.
   First, the sample body writes `"Command ID"` with a space, inconsistent with
   the `CommandID` field name used in the parameter table on the same page (the
-  same defect documented on [Business Pay Bill](/daraja/business-paybill)).
-  Second, that same parameter table's `CommandID` row describes it as "For this
-  API use BusinessPayBill only," a description copy-pasted from the Business Pay
-  Bill documentation rather than updated for Buy Goods. The field this API
-  actually accepts, based on the sample value shown, is `BusinessBuyGoods`.
+  same defect documented on [Business Pay
+  Bill](/docs/daraja/b2b/business-paybill)). Second, that same parameter table's
+  `CommandID` row describes it as "For this API use BusinessPayBill only," a
+  description copy-pasted from the Business Pay Bill documentation rather than
+  updated for Buy Goods. The field this API actually accepts, based on the
+  sample value shown, is `BusinessBuyGoods`.
 </Callout>
 
 | Field                           | Description                                                                                                   | Sample value               |
@@ -88,7 +90,7 @@ Pays a Till number, merchant store number, or merchant head office, moving money
 
 ## Successful and unsuccessful result callbacks
 
-Identical in shape to the callbacks documented on [Business Pay Bill](/daraja/business-paybill): a `Result` object with `ResultType`, `ResultCode`, `ResultDesc`, `TransactionID`, a `ResultParameters.ResultParameter` array (`DebitAccountBalance`, `Amount`, `DebitPartyAffectedAccountBalance`, `TransCompletedTime`, `DebitPartyCharges`, `ReceiverPartyPublicName`, `Currency`, `InitiatorAccountCurrentBalance`), and `ReferenceData.ReferenceItem`.
+Identical in shape to the callbacks documented on [Business Pay Bill](/docs/daraja/b2b/business-paybill): a `Result` object with `ResultType`, `ResultCode`, `ResultDesc`, `TransactionID`, a `ResultParameters.ResultParameter` array (`DebitAccountBalance`, `Amount`, `DebitPartyAffectedAccountBalance`, `TransCompletedTime`, `DebitPartyCharges`, `ReceiverPartyPublicName`, `Currency`, `InitiatorAccountCurrentBalance`), and `ReferenceData.ReferenceItem`.
 
 <Callout type="warn" title="Defect in the source material">
   Safaricom's sample `ReceiverPartyPublicName` value here is the same malformed
@@ -103,4 +105,4 @@ Identical in shape to the callbacks documented on [Business Pay Bill](/daraja/bu
 
 **Postman**: token from the sandbox OAuth endpoint, then call the endpoint above.
 
-Going live follows the [Organization Portal & Go Live](/daraja/organization-portal) path, requiring the Business Buy Goods Org API Initiator role on the operator used as `Initiator`.
+Going live follows the [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal) path, requiring the Business Buy Goods Org API Initiator role on the operator used as `Initiator`.

@@ -149,7 +149,7 @@ interface Metric {
   icon: React.ReactNode;
 }
 
-export function SpecsBar() {
+function SpecsBar() {
   const metrics: Metric[] = [
     {
       value: "0",
@@ -611,7 +611,7 @@ export async function POST(req: Request) {
   },
 };
 
-export function UsageExamples() {
+function UsageExamples() {
   return (
     <section className="border-b border-border">
       <div className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-6 lg:px-8">

@@ -15,7 +15,7 @@ import { Callout } from "fumadocs-ui/components/callout";
   customers later. It is not the endpoint you want for paying an arbitrary
   customer directly; Daraja's B2C Payment Request (`CustomerPayment`-style
   disbursement) is a separate flow this SDK does not currently implement see
-  [Roadmap](/docs/guides/roadmap).
+  [Roadmap](/docs/sdk/guides/roadmap).
 </Callout>
 
 ## Request & response shapes
@@ -75,7 +75,7 @@ console.log(accepted.ResponseDescription);
 - `amount` must be a finite number > 0
 - `remarks` required, non-empty, ≤ 100 characters
 - `requester`, if provided, must match `254XXXXXXXXX`
-- `queueTimeOutURL` and `resultURL` each go through [callback URL validation](/docs/core-concepts/callback-urls)
+- `queueTimeOutURL` and `resultURL` each go through [callback URL validation](/docs/sdk/core-concepts/callback-urls)
 
 All failures throw `errorCode: 'INVALID_B2C_TOPUP_REQUEST'`.
 

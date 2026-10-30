@@ -44,7 +44,7 @@ Register on the [Safaricom Developer Portal](https://developer.safaricom.co.ke).
 <Step>
 ### Generate an access token
 
-Every API call except the token request itself needs a Bearer token. Exchange your Consumer Key and Consumer Secret for one via the [Authorization API](/daraja/authorization) before calling anything else. Tokens last 3600 seconds (60 minutes); the simulator on the portal generates and refreshes these automatically, but your own code needs to handle expiry.
+Every API call except the token request itself needs a Bearer token. Exchange your Consumer Key and Consumer Secret for one via the [Authorization API](/docs/daraja/authentication/authorization) before calling anything else. Tokens last 3600 seconds (60 minutes); the simulator on the portal generates and refreshes these automatically, but your own code needs to handle expiry.
 
 > **Using the SDK?** [@lumierelabs/daraja](https://www.npmjs.com/package/@lumierelabs/daraja) handles OAuth token generation, in-memory caching, and automatic background refreshes completely under the hood so you never have to track token lifecycles manually. See the [SDK Authentication Guide](/docs/sdk/core-concepts/authentication).
 
@@ -65,7 +65,7 @@ For any API that posts a callback (a `CallBackURL`, `ResultURL`, `ConfirmationUR
 
 Sandbox testing doesn't require a real M-PESA account. Production does. Depending on the product, that means one of:
 
-- A live **Pay Bill or Till number**, with a Business Administrator or Business Manager created on the [M-PESA Organization Portal](/daraja/organization-portal).
+- A live **Pay Bill or Till number**, with a Business Administrator or Business Manager created on the [M-PESA Organization Portal](/docs/daraja/authentication/organization-portal).
 - A **Bulk Disbursement (B2C) short code**, or an existing Pay Bill/Till converted to a "one account" that can both receive and disburse, applied for via Safaricom's business channels.
 - For the commercial, identity and connectivity APIs (Age on Network, IMSI, SWAP, Mobile Number Validation, M-PESA Ratiba, Mobile Data Bundles), a **signed commercial agreement**, arranged through `apisupport@safaricom.co.ke` or your account manager, ahead of any go-live conversation.
 
@@ -152,7 +152,7 @@ An online encryption tool for this is available on the portal's Test Credentials
 
 ### Receiving callbacks
 
-Your callback endpoint needs to be a publicly reachable HTTP listener accepting POST requests. If it's unreachable when M-PESA tries to deliver a result, the gateway logs a 503 and, per Safaricom's own documentation, does not automatically retry in most cases. Build accordingly: monitor the endpoint, and use the [Transaction Status](/daraja/transaction-status) or [Pull Transactions](/daraja/pull-transactions) APIs as a fallback reconciliation path rather than assuming every callback will land.
+Your callback endpoint needs to be a publicly reachable HTTP listener accepting POST requests. If it's unreachable when M-PESA tries to deliver a result, the gateway logs a 503 and, per Safaricom's own documentation, does not automatically retry in most cases. Build accordingly: monitor the endpoint, and use the [Transaction Status](/docs/daraja/account/transaction-status) or [Pull Transactions](/docs/daraja/account/pull-transactions) APIs as a fallback reconciliation path rather than assuming every callback will land.
 
 ### SSL certificates
 
@@ -167,13 +167,16 @@ Safaricom separately offers commercial SSL certificates for general server secur
 If something in this reference doesn't match what you're seeing in the sandbox or in production, it's worth cross-checking against Safaricom's own developer portal directly, since Daraja's documentation is occasionally updated without much notice.
 
 <Cards>
-  <Card title="Authorization" href="/daraja/authorization">
+  <Card title="Authorization" href="/docs/daraja/authentication/authorization">
     Generate the access token every other call depends on.
   </Card>
-  <Card title="Organization Portal" href="/daraja/organization-portal">
+  <Card
+    title="Organization Portal"
+    href="/docs/daraja/authentication/organization-portal"
+  >
     Create the operators and roles a live short code needs.
   </Card>
-  <Card title="C2B" href="/daraja/c2b">
+  <Card title="C2B" href="/docs/daraja/payments/c2b">
     Start with the most commonly integrated collection API.
   </Card>
 </Cards>

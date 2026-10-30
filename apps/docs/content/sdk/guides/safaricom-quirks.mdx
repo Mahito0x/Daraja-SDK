@@ -20,7 +20,7 @@ Safaricom's sandbox has no published SLA and no status page most integrators act
 
 </Callout>
 
-None of this is something client-side retry logic can fully paper over. Build your integration assuming the callback is a _convenience_, not a guarantee always have a `query()`-based fallback (see [M-Pesa Express](/docs/endpoints/mpesa-express-stk-push#handling-the-async-callback)) for anything time-sensitive.
+None of this is something client-side retry logic can fully paper over. Build your integration assuming the callback is a _convenience_, not a guarantee always have a `query()`-based fallback (see [M-Pesa Express](/docs/sdk/endpoints/mpesa-express-stk-push#handling-the-async-callback)) for anything time-sensitive.
 
 ## Deprecated and neglected endpoints
 
@@ -47,7 +47,7 @@ None of this is something client-side retry logic can fully paper over. Build yo
 
 Safaricom's published API reference and the actual JSON on the wire disagree more often than either would like to admit:
 
-- C2B confirmation payloads frequently ship blank `OrgAccountBalance` and empty name fields in sandbox, and inconsistently on production Till (Buy Goods) transactions see [C2B](/docs/endpoints/c2b#the-confirmation-payload-youll-receive).
+- C2B confirmation payloads frequently ship blank `OrgAccountBalance` and empty name fields in sandbox, and inconsistently on production Till (Buy Goods) transactions see [C2B](/docs/sdk/endpoints/c2b#the-confirmation-payload-youll-receive).
 - The same logical "result code" field ships as a JSON string on some endpoints (`StkQueryResponse.ResultCode`) and a JSON number on others (the STK callback's `ResultCode`, C2B's numeric fields). Always check the type in this SDK's TypeScript definitions rather than assuming consistency across endpoints.
 - Several fields carry Safaricom's own misspellings verbatim `OriginatorCoversationID` (C2B), `RecieverIdentifierType` (B2C Top Up), `relatedSusbscription` (Dynamic Offers). These are preserved exactly as Safaricom ships them; "fixing" the spelling in this SDK's types would break deserialization against the real API.
 
@@ -60,7 +60,7 @@ Safaricom's published API reference and the actual JSON on the wire disagree mor
 ## IP whitelisting: production vs. local debugging
 
 <Callout type="error" title="ip-whitelisting" id="ip-whitelisting">
-Production B2C and B2B callback URLs must resolve to IPs Safaricom has whitelisted for your Go-Live application this is separate from the callback URL validation this SDK performs client-side. A URL can pass every check in [Callback URL Validation](/docs/core-concepts/callback-urls) and still get silently dropped by Safaricom's infrastructure if the underlying server IP isn't on their whitelist for your account.
+Production B2C and B2B callback URLs must resolve to IPs Safaricom has whitelisted for your Go-Live application this is separate from the callback URL validation this SDK performs client-side. A URL can pass every check in [Callback URL Validation](/docs/sdk/core-concepts/callback-urls) and still get silently dropped by Safaricom's infrastructure if the underlying server IP isn't on their whitelist for your account.
 
 This is precisely why the SDK also rejects `ngrok.io`/`ngrok-free.app`/`ngrok.app` hostnames outright: even if ngrok "worked" for a quick sandbox test, the tunnel's IP changes on every restart, which makes it fundamentally incompatible with a whitelisting model. A **Cloudflare Tunnel** pointed at a stable hostname you control is a meaningfully different setup the hostname stays constant even though the underlying IP can rotate behind it and is a reasonable local-development bridge precisely because you can register the stable hostname once. Neither approach substitutes for actual IP whitelisting once you go to production; request that whitelisting as part of your Go-Live application, well before your launch date.
 
@@ -68,11 +68,11 @@ This is precisely why the SDK also rejects `ngrok.io`/`ngrok-free.app`/`ngrok.ap
 
 ## Security Credential generation
 
-Initiator passwords for B2C/B2B flows must be RSA-encrypted with Safaricom's public certificate before being sent as `SecurityCredential` see [B2C Account Top Up](/docs/endpoints/b2c-top-up) and [Security Credentials](/docs/guides/security-credentials) for the full walkthrough. This SDK deliberately does not perform that encryption automatically: it's a one-time, offline setup step tied to a specific certificate version, and automating it inside a request path would mean shipping Safaricom's public certificate (which does get rotated) as a dependency that needs its own update cadence.
+Initiator passwords for B2C/B2B flows must be RSA-encrypted with Safaricom's public certificate before being sent as `SecurityCredential` see [B2C Account Top Up](/docs/sdk/endpoints/b2c-top-up) and [Security Credentials](/docs/sdk/guides/security-credentials) for the full walkthrough. This SDK deliberately does not perform that encryption automatically: it's a one-time, offline setup step tied to a specific certificate version, and automating it inside a request path would mean shipping Safaricom's public certificate (which does get rotated) as a dependency that needs its own update cadence.
 
 ## Undervalued endpoints worth knowing about
 
 Two endpoints in this SDK rarely get mentioned in Daraja tutorials but solve real, common problems:
 
-- **[B2B Hakikisha](/docs/endpoints/b2b-hakikisha)** confirms a Till/Paybill's registered name before you pay it. Skipping this is how "wrong shortcode, money gone" support tickets happen.
-- **[SIM Swap](/docs/endpoints/sim-swap) / [IMSI](/docs/endpoints/imsi)** a recent SIM swap is one of the highest-signal fraud indicators available, and both endpoints are cheap to call before a password reset or high-value payout, yet are conspicuously absent from most community Daraja integration guides.
+- **[B2B Hakikisha](/docs/sdk/endpoints/b2b-hakikisha)** confirms a Till/Paybill's registered name before you pay it. Skipping this is how "wrong shortcode, money gone" support tickets happen.
+- **[SIM Swap](/docs/sdk/endpoints/sim-swap) / [IMSI](/docs/sdk/endpoints/imsi)** a recent SIM swap is one of the highest-signal fraud indicators available, and both endpoints are cheap to call before a password reset or high-value payout, yet are conspicuously absent from most community Daraja integration guides.

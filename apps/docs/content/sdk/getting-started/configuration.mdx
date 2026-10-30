@@ -111,7 +111,7 @@ validation error is thrown.
 
 Milliseconds before an in-flight request is aborted via `AbortController`. Applies to every HTTP call the SDK makes, including the OAuth token fetch. Must be a positive, finite number `0`, negative numbers, `NaN`, and `Infinity` all throw `INVALID_TIMEOUT`.
 
-Aborted requests surface as a `DarajaError` with `errorCode: 'REQUEST_TIMEOUT'`, not a raw `AbortError` so your error handling only needs to know about one error shape. See [Error Handling](/docs/core-concepts/error-handling).
+Aborted requests surface as a `DarajaError` with `errorCode: 'REQUEST_TIMEOUT'`, not a raw `AbortError` so your error handling only needs to know about one error shape. See [Error Handling](/docs/sdk/core-concepts/error-handling).
 
 ## Full example
 

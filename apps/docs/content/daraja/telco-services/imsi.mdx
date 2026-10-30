@@ -6,7 +6,7 @@ description: Retrieve the hashed IMSI, last SIM swap date, and network age for a
 import { Callout } from "fumadocs-ui/components/callout";
 import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
-Returns the International Mobile Subscriber Identity (hashed) for a Safaricom number, along with the SIM's last swap date and network age, in one call. IMSI numbers change if a line's physical SIM is replaced, which is what makes this useful as a fraud signal alongside [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network).
+Returns the International Mobile Subscriber Identity (hashed) for a Safaricom number, along with the SIM's last swap date and network age, in one call. IMSI numbers change if a line's physical SIM is replaced, which is what makes this useful as a fraud signal alongside [SWAP](/docs/daraja/telco-services/swap) and [Age on Network](/docs/daraja/telco-services/age-on-network).
 
 **Endpoint**
 
@@ -47,9 +47,10 @@ Both exclusive of VAT; charges don't apply to unsuccessful calls.
 3. M-PESA returns the hashed IMSI, age on network, and last swap date, which Daraja relays back.
 
 <Callout type="warn" title="Defect in the source material">
-  As with [SWAP](/daraja/swap) and [Age on Network](/daraja/age-on-network), the
-  "Good to Know" section calls this API asynchronous, while the request/response
-  pair documented returns everything directly with no callback involved.
+  As with [SWAP](/docs/daraja/telco-services/swap) and [Age on
+  Network](/docs/daraja/telco-services/age-on-network), the "Good to Know"
+  section calls this API asynchronous, while the request/response pair
+  documented returns everything directly with no callback involved.
 </Callout>
 
 ## Use cases
@@ -111,7 +112,7 @@ Both exclusive of VAT; charges don't apply to unsuccessful calls.
 
 ## Error codes
 
-Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `500`, `501`, `502`, `503`, `504`, matching the descriptions given on [Age on Network](/daraja/age-on-network) and [SWAP](/daraja/swap).
+Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `500`, `501`, `502`, `503`, `504`, matching the descriptions given on [Age on Network](/docs/daraja/telco-services/age-on-network) and [SWAP](/docs/daraja/telco-services/swap).
 
 ## Testing
 
@@ -144,7 +145,7 @@ Email `apisupport@safaricom.co.ke`. Submit company registration details for bill
   Safaricom's own IMSI page closes with "These FAQs should help you understand
   and utilize the IMSI API effectively," which is accurate here, but the same
   sentence also appears verbatim at the bottom of the unrelated [M-Pesa
-  Ratiba](/daraja/mpesa-ratiba) FAQ section, where it refers to the wrong API
-  entirely. Noted on that page rather than here, since this is the page the
-  sentence actually belongs to.
+  Ratiba](/docs/daraja/telco-services/mpesa-ratiba) FAQ section, where it refers
+  to the wrong API entirely. Noted on that page rather than here, since this is
+  the page the sentence actually belongs to.
 </Callout>

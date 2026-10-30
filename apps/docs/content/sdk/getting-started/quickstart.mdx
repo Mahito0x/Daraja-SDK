@@ -58,7 +58,7 @@ console.log(push.CheckoutRequestID);
 // Save this  you need it to query the transaction status later.
 ```
 
-`daraja.stkPush(...)` is a shortcut for `daraja.mpesaExpress.push(...)`. Both exist so you can either treat STK Push as the SDK's headline feature (top-level) or reach for it alongside the rest of `mpesaExpress` (namespaced) see [M-Pesa Express](/docs/endpoints/mpesa-express-stk-push) for the full method.
+`daraja.stkPush(...)` is a shortcut for `daraja.mpesaExpress.push(...)`. Both exist so you can either treat STK Push as the SDK's headline feature (top-level) or reach for it alongside the rest of `mpesaExpress` (namespaced) see [M-Pesa Express](/docs/sdk/endpoints/mpesa-express-stk-push) for the full method.
 
 ## 3. Handle the callback
 
@@ -204,7 +204,7 @@ return Response.json({ ResultCode: 0, ResultDesc: 'Accepted' });
 </Tabs>
 
 <Callout type="warn" title="Local development">
-Daraja needs a publicly reachable URL for `callBackURL`  `localhost` will never receive anything. Use a tunnel (Cloudflare Tunnel, or ngrok *for local testing only*) and swap it for a real domain before you register anything in production. See [Safaricom API Quirks](/docs/guides/safaricom-quirks#ip-whitelisting) for why ngrok specifically causes problems later.
+Daraja needs a publicly reachable URL for `callBackURL`  `localhost` will never receive anything. Use a tunnel (Cloudflare Tunnel, or ngrok *for local testing only*) and swap it for a real domain before you register anything in production. See [Safaricom API Quirks](/docs/sdk/guides/safaricom-quirks#ip-whitelisting) for why ngrok specifically causes problems later.
 </Callout>
 
 ## 4. (Optional) Query the status directly
@@ -221,6 +221,6 @@ console.log(status.ResultDesc);
 
 That's the whole loop. From here:
 
-- [Authentication](/docs/core-concepts/authentication) how token caching actually works under the hood
-- [M-Pesa Express](/docs/endpoints/mpesa-express-stk-push) the full request/response shape
-- [Framework Integrations](/docs/integrations/nextjs) production-shaped route handlers
+- [Authentication](/docs/sdk/core-concepts/authentication) how token caching actually works under the hood
+- [M-Pesa Express](/docs/sdk/endpoints/mpesa-express-stk-push) the full request/response shape
+- [Framework Integrations](/docs/sdk/integrations/nextjs) production-shaped route handlers

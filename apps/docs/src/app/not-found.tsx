@@ -1,7 +1,7 @@
+import { Button } from "@/components/ui/button";
+import { ArrowRight, BookOpen, Home } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "404 Page Not Found",

@@ -54,7 +54,7 @@ Funds move from a customer's M-PESA wallet to a merchant's short code, triggered
   </Step>
 </Steps>
 
-For transactions where a callback never lands, Safaricom points to the [Pull Transactions API](/daraja/pull-transactions) or the M-PESA Organization Portal as the fallback.
+For transactions where a callback never lands, Safaricom points to the [Pull Transactions API](/docs/daraja/account/pull-transactions) or the M-PESA Organization Portal as the fallback.
 
 ### URL requirements
 
@@ -74,8 +74,8 @@ For transactions where a callback never lands, Safaricom points to the [Pull Tra
 
 - Daraja account and sandbox app, with a Consumer Key and Consumer Secret.
 - Test data from the simulator section for sandbox testing.
-- A live Pay Bill or Till number with Business Admin/Manager operators created, for [Go Live](/daraja/organization-portal).
-- An access token from the [Authorization API](/daraja/authorization).
+- A live Pay Bill or Till number with Business Admin/Manager operators created, for [Go Live](/docs/daraja/authentication/organization-portal).
+- An access token from the [Authorization API](/docs/daraja/authentication/authorization).
 
 ## Registering URLs
 
@@ -250,7 +250,7 @@ To reject, use any non-zero code from the table below and set `ResultDesc` to `R
 
 ## Go Live
 
-Attach the integration to a live Pay Bill or Till, using a short code, organization name, and M-PESA admin/manager username. See [Organization Portal & Go Live](/daraja/organization-portal) for creating those operators. Once approved, production endpoints are emailed to the developer on the account.
+Attach the integration to a live Pay Bill or Till, using a short code, organization name, and M-PESA admin/manager username. See [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal) for creating those operators. Once approved, production endpoints are emailed to the developer on the account.
 
 ## FAQs
 

@@ -9,7 +9,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ## Singleton client
 
-Create the client once, at module scope, and import it everywhere. Constructing `Daraja(config)` inside a route handler defeats [token caching](/docs/core-concepts/authentication) because a fresh `AuthManager` (and empty cache) is created on every request.
+Create the client once, at module scope, and import it everywhere. Constructing `Daraja(config)` inside a route handler defeats [token caching](/docs/sdk/core-concepts/authentication) because a fresh `AuthManager` (and empty cache) is created on every request.
 
 ```ts title="lib/daraja.ts"
 import { Daraja } from "@lumierelabs/daraja";
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
 }
 ```
 
-Register these with [`c2b.registerUrl()`](/docs/endpoints/c2b) once per shortcode not on every deploy since re-registering doesn't hurt but also doesn't need to happen automatically on every build.
+Register these with [`c2b.registerUrl()`](/docs/sdk/endpoints/c2b) once per shortcode not on every deploy since re-registering doesn't hurt but also doesn't need to happen automatically on every build.
 
 <Callout type="info">
   Deploying to Vercel? `process.env.APP_URL` should be your production domain,

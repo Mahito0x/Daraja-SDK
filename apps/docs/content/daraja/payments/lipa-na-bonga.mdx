@@ -16,7 +16,7 @@ Bonga is Safaricom's loyalty rewards scheme. This API lets merchants who accept 
 4. If eligible, an STK push asks the customer for their M-PESA PIN.
 5. On successful PIN validation, the Bonga balance is checked against the points required.
 6. If sufficient, points are deducted and the equivalent amount is transferred to the merchant's Pay Bill or Till.
-7. A callback is posted to the URLs registered for [C2B](/daraja/c2b) transactions, since Safaricom treats the resulting payment as a C2B transaction for notification purposes.
+7. A callback is posted to the URLs registered for [C2B](/docs/daraja/payments/c2b) transactions, since Safaricom treats the resulting payment as a C2B transaction for notification purposes.
 
 <Callout type="warn">
   If M-PESA fails to transfer funds to the merchant despite the Bonga deduction
@@ -182,7 +182,7 @@ Converts a points value into its Kenyan Shilling equivalent.
 
 **Postman**: token from the sandbox OAuth endpoint, then call the Calculate Points or Redeem Points endpoint above.
 
-Going live follows [Organization Portal & Go Live](/daraja/organization-portal): a short code, organization name, and M-PESA admin/manager username submitted via the portal's Go Live tab.
+Going live follows [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal): a short code, organization name, and M-PESA admin/manager username submitted via the portal's Go Live tab.
 
 ## FAQs
 

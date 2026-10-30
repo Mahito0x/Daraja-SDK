@@ -14,7 +14,7 @@ https://sandbox.safaricom.co.ke/imsi/v2/checkATI
 
 ## Overview
 
-Returns the last date a given SIM card was swapped. Safaricom frames this and the [IMSI](/daraja/imsi) API together as a response to SIM-swap fraud targeting mobile and internet banking customers. If the SIM was swapped more than three months ago, the API returns a default date of `01-01-1900` rather than the actual date.
+Returns the last date a given SIM card was swapped. Safaricom frames this and the [IMSI](/docs/daraja/telco-services/imsi) API together as a response to SIM-swap fraud targeting mobile and internet banking customers. If the SIM was swapped more than three months ago, the API returns a default date of `01-01-1900` rather than the actual date.
 
 ## How it works
 
@@ -23,10 +23,10 @@ Returns the last date a given SIM card was swapped. Safaricom frames this and th
 3. M-PESA returns the last swap date, which Daraja relays back.
 
 <Callout type="warn" title="Defect in the source material">
-  As with [Age on Network](/daraja/age-on-network), Safaricom's own "Good to
-  Know" section calls this API asynchronous, while the documented request and
-  response return the answer directly with no callback URL field and no callback
-  payload shown anywhere on the page.
+  As with [Age on Network](/docs/daraja/telco-services/age-on-network),
+  Safaricom's own "Good to Know" section calls this API asynchronous, while the
+  documented request and response return the answer directly with no callback
+  URL field and no callback payload shown anywhere on the page.
 </Callout>
 
 ## Onboarding
@@ -79,7 +79,7 @@ Commercial API. Write to `apisupport@safaricom.co.ke` or your account manager; o
 
 ## Error codes
 
-Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `500`, `501`, `502`, `503`, `504`, with the same descriptions documented across Safaricom's identity-check APIs (see [Age on Network](/daraja/age-on-network) for the full text).
+Standard HTTP status codes: `400`, `401`, `403`, `404`, `405`, `408`, `429`, `500`, `501`, `502`, `503`, `504`, with the same descriptions documented across Safaricom's identity-check APIs (see [Age on Network](/docs/daraja/telco-services/age-on-network) for the full text).
 
 ## Testing
 

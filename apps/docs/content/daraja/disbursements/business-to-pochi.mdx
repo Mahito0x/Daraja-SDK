@@ -16,11 +16,11 @@ https://sandbox.safaricom.co.ke/mpesa/b2pochi/v1/paymentrequest
 
 ## Overview
 
-Mechanically this mirrors [B2C](/daraja/b2c) closely enough that Safaricom's own documentation reuses B2C wording in places (see the callout below); the distinguishing points are the endpoint and the `CommandID`.
+Mechanically this mirrors [B2C](/docs/daraja/disbursements/b2c) closely enough that Safaricom's own documentation reuses B2C wording in places (see the callout below); the distinguishing points are the endpoint and the `CommandID`.
 
 ## Prerequisites
 
-Same as [B2C](/daraja/b2c) (Daraja account, sandbox app, `InitiatorName`/`InitiatorPassword`, encrypted `SecurityCredential`, live B2C shortcode with operators created), plus one addition specific to this API:
+Same as [B2C](/docs/daraja/disbursements/b2c) (Daraja account, sandbox app, `InitiatorName`/`InitiatorPassword`, encrypted `SecurityCredential`, live B2C shortcode with operators created), plus one addition specific to this API:
 
 - The receiving party must actually have a Pochi la Biashara / Micro SME business wallet. Safaricom doesn't document a way to check this ahead of a payment attempt.
 
@@ -74,11 +74,11 @@ Same as [B2C](/daraja/b2c) (Daraja account, sandbox app, `InitiatorName`/`Initia
 
 ## Callback payload
 
-Structurally identical to the [B2C](/daraja/b2c) callback: `ResultType`, `ResultCode`, `ResultDesc`, `TransactionID`, and a `ResultParameters.ResultParameter` array carrying `TransactionAmount`, `TransactionReceipt`, `ReceiverPartyPublicName`, `TransactionCompletedDateTime`, and the B2C account balance fields (`B2CUtilityAccountAvailableFunds`, `B2CWorkingAccountAvailableFunds`, `B2CRecipientIsRegisteredCustomer`, `B2CChargesPaidAccountAvailableFunds`).
+Structurally identical to the [B2C](/docs/daraja/disbursements/b2c) callback: `ResultType`, `ResultCode`, `ResultDesc`, `TransactionID`, and a `ResultParameters.ResultParameter` array carrying `TransactionAmount`, `TransactionReceipt`, `ReceiverPartyPublicName`, `TransactionCompletedDateTime`, and the B2C account balance fields (`B2CUtilityAccountAvailableFunds`, `B2CWorkingAccountAvailableFunds`, `B2CRecipientIsRegisteredCustomer`, `B2CChargesPaidAccountAvailableFunds`).
 
 ## Testing and Go Live
 
-Same path as [B2C](/daraja/b2c): Daraja Simulator with the B2Pochi product attached, or Postman against the sandbox endpoint above. Going live requires the same B2C shortcode/one-account setup described in [Organization Portal & Go Live](/daraja/organization-portal).
+Same path as [B2C](/docs/daraja/disbursements/b2c): Daraja Simulator with the B2Pochi product attached, or Postman against the sandbox endpoint above. Going live requires the same B2C shortcode/one-account setup described in [Organization Portal & Go Live](/docs/daraja/authentication/organization-portal).
 
 ## FAQs
 
@@ -94,6 +94,7 @@ Same path as [B2C](/daraja/b2c): Daraja Simulator with the B2Pochi product attac
     No, passkeys are specific to M-Pesa Express/STK Push.
   </Accordion>
   <Accordion title="Is there an API to move funds from a Pay Bill into a B2C short code first?">
-    Yes, see [B2C Account Top Up](/daraja/b2c-account-top-up).
+    Yes, see [B2C Account Top
+    Up](/docs/daraja/disbursements/b2c-account-top-up).
   </Accordion>
 </Accordions>
