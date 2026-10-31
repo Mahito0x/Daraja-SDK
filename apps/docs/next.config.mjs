@@ -66,6 +66,19 @@ const config = {
   },
   async rewrites() {
     return [
+      // SAFI homepage
+      {
+        source: "/safi",
+        destination: "https://daraja-safi.vercel.app/",
+      },
+
+      // SAFI nested routes (privacy, terms, etc.)
+      {
+        source: "/safi/:path*",
+        destination: "https://daraja-safi.vercel.app/safi/:path*",
+      },
+
+      // PostHog
       {
         source: "/ingest/static/:path*",
         destination: "https://us-assets.i.posthog.com/static/:path*",
@@ -78,6 +91,11 @@ const config = {
   },
   skipTrailingSlashRedirect: true,
   webpack(config) {
+    if (process.env.NODE_ENV === "development") {
+      // Fumadocs loads generated files by URL, which Webpack cannot track in its filesystem cache.
+      config.cache = { type: "memory" };
+    }
+
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
