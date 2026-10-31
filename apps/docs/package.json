@@ -68,7 +68,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-rehype": "^11.1.2",
-    "shadcn": "4.22.1",
+    "shadcn": "4.23.0",
     "shiki": "^4.5.0",
     "tailwind-merge": "^3.7.0",
     "takumi-pdf": "^0.18.4",
