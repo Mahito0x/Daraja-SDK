@@ -1,3 +1,4 @@
+@layer scalar-base, scalar-theme, scalar-config, theme, base, components, utilities;
 @import "tailwindcss";
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
@@ -355,4 +356,75 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* SCALAR THEME CONFIG */
+
+.scalar-app {
+  /* Typography */
+  --scalar-font: var(--font-sans);
+  --scalar-font-code: var(--font-mono);
+  --scalar-radius: var(--radius);
+
+  /* Brand Accent */
+  --scalar-color-accent: var(--primary);
+  --scalar-background-accent: color-mix(
+    in oklab,
+    var(--primary) 12%,
+    transparent
+  );
+}
+
+/* Light / Dark Mode automatic mapping based on Fumadocs / Tailwind classes */
+:root,
+.light,
+.scalar-app {
+  --scalar-color-1: var(--foreground);
+  --scalar-color-2: var(--muted-foreground);
+  --scalar-color-3: color-mix(
+    in oklab,
+    var(--muted-foreground) 65%,
+    var(--background)
+  );
+
+  --scalar-background-1: var(--background);
+  --scalar-background-2: var(--card);
+  --scalar-background-3: var(--popover);
+  --scalar-border-color: var(--border);
+}
+
+.dark,
+.scalar-app.dark-mode,
+.scalar-app .dark-mode {
+  --scalar-color-1: var(--foreground);
+  --scalar-color-2: var(--muted-foreground);
+  --scalar-color-3: color-mix(
+    in oklab,
+    var(--muted-foreground) 65%,
+    var(--background)
+  );
+
+  --scalar-background-1: var(--background);
+  --scalar-background-2: var(--card);
+  --scalar-background-3: var(--popover);
+  --scalar-border-color: var(--border);
+}
+
+/* Scalar Sidebar Matching - Seamless Deep Matte Black */
+.scalar-app .sidebar {
+  --scalar-sidebar-background-1: var(--scalar-background-1);
+  --scalar-sidebar-color-1: var(--scalar-color-1);
+  --scalar-sidebar-color-2: var(--scalar-color-2);
+  --scalar-sidebar-color-active: var(--scalar-color-accent);
+  --scalar-sidebar-item-hover-color: var(--scalar-color-1);
+  --scalar-sidebar-item-hover-background: var(--scalar-background-2);
+  --scalar-sidebar-item-active-background: color-mix(
+    in oklab,
+    var(--scalar-color-accent) 12%,
+    transparent
+  );
+  --scalar-sidebar-border-color: var(--scalar-border-color);
+  --scalar-sidebar-search-background: var(--scalar-background-2);
+  --scalar-sidebar-search-border-color: var(--scalar-border-color);
+  --scalar-sidebar-search-color: var(--scalar-color-3);
 }

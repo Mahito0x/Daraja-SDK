@@ -77,7 +77,16 @@ const config = {
         source: "/safi/:path*",
         destination: "https://daraja-safi.vercel.app/safi/:path*",
       },
-
+      // Maps /blog on your main site to the root (/) of your blog project
+      // {
+      //   source: "/blog",
+      //   destination: "https://daraja-blog.vercel.app/",
+      // },
+      // // Maps /blog/[slug] on your main site to /[slug] on your blog project
+      // {
+      //   source: "/blog/:path*",
+      //   destination: "https://daraja-blog.vercel.app/:path*",
+      // },
       // PostHog
       {
         source: "/ingest/static/:path*",

@@ -1,15 +1,15 @@
-import { source } from "@/lib/source";
-import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import { baseOptions } from "@/lib/layout.shared";
-import { MessageCircle } from "lucide-react";
-import Image from "next/image";
 import {
   AISearch,
   AISearchPanel,
   AISearchTrigger,
 } from "@/components/ai/search";
 import { cn } from "@/lib/cn";
+import { baseOptions } from "@/lib/layout.shared";
+import { source } from "@/lib/source";
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import { MessageCircle, Play } from "lucide-react";
+import Image from "next/image";
 
 export const metadata = {
   title: "Documentation",
@@ -51,6 +51,12 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
           ),
           description: "Raw REST endpoints & specs.",
           url: "/docs/daraja",
+        },
+        {
+          title: "API Playground",
+          icon: <Play className="size-4" />,
+          description: "Explore and test Daraja API operations.",
+          url: "/playground",
         },
       ]}
     >
