@@ -69,13 +69,13 @@ const config = {
       // SAFI homepage
       {
         source: "/safi",
-        destination: "https://daraja-safi.vercel.app/",
+        destination: "https://safi-chi-five.vercel.app/",
       },
 
       // SAFI nested routes (privacy, terms, etc.)
       {
         source: "/safi/:path*",
-        destination: "https://daraja-safi.vercel.app/safi/:path*",
+        destination: "https://safi-chi-five.vercel.app/safi/:path*",
       },
       // Maps /blog on your main site to the root (/) of your blog project
       // {
