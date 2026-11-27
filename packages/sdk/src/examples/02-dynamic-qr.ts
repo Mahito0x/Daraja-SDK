@@ -4,7 +4,7 @@
  * Run: npx tsx examples/02-dynamic-qr.ts
  */
 import fs from "node:fs";
-import { Daraja, DynamicQRClient, DarajaError } from "..";
+import { Daraja, DarajaError, DynamicQRClient } from "..";
 
 function assertEnvVar(name: string, value?: string): string {
   if (!value) {

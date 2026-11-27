@@ -13,9 +13,9 @@ export interface OAuthTokenResponse {
   access_token: string;
 
   /**
-   * Lifetime of the access token in seconds (typically 3599 or 3600 seconds).
+   * Lifetime of the access token in seconds (typically 3599  seconds).
    */
-  expires_in: string | number; // It expires afte every 3599 seconds (Approx 1m)
+  expires_in: string | number; // It expires after every 3599 seconds (Approx 1 hour)
 }
 
 /**

@@ -3,7 +3,7 @@
  *
  * Run: npx tsx examples/05-swap.ts
  */
-import { Daraja, SwapClient, DarajaError } from "..";
+import { Daraja, DarajaError, SwapClient } from "..";
 
 function assertEnvVar(name: string, value?: string): string {
   if (!value) {
@@ -22,6 +22,7 @@ async function main() {
   try {
     const result = await daraja.swap.check({ customerNumber: "254722000000" });
 
+    console.log("Swap check result:", result);
     console.log("Swap check:", result.responseDesc);
     console.log("Last swap date:", result.lastSwapDate);
 

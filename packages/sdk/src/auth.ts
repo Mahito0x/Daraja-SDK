@@ -1,5 +1,5 @@
+import type { CachedToken, OAuthTokenResponse } from "./types/auth";
 import type { ResolvedDarajaConfig } from "./types/config";
-import type { OAuthTokenResponse, CachedToken } from "./types/auth";
 import { DarajaError } from "./types/errors";
 
 const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9]+$/;
